@@ -144,7 +144,38 @@ await p2.waitForFunction(() => window.dhad);
 assert.equal(await p2.evaluate(() => window.dhad.view.state.doc.toString()), "# برنامج مشترك\nاطبع(\"رابط ✔\")");
 await ctx.close();
 
-// ١١) الهاتف + الوضع الليلي
+// ١١) الدروس: تصحيح آلي، تقدم محفوظ، فتح الحل بعد محاولتين، رابط مباشر
+const lessons = await open();
+const lp = lessons.page;
+await lp.click("#lessons-btn");
+await lp.waitForSelector("#lesson-check");
+assert.match(await lp.locator(".lesson h2").innerText(), /مرحبًا يا عالم/);
+await lp.click("#lesson-check");
+await lp.waitForSelector(".verdict.fail");
+await lp.click("#lesson-check");
+await lp.waitForSelector(".verdict.fail");
+assert.equal(await lp.locator(".lesson-actions button", { hasText: "أظهر الحل" }).isEnabled(), true, "الحل يُتاح بعد محاولتين");
+await lp.locator(".lesson-actions button", { hasText: "أظهر الحل" }).click();
+await lp.click("#lesson-check");
+await lp.waitForSelector(".verdict.pass");
+assert.equal(await lp.locator(".dot.done").count(), 1);
+await lp.locator(".lesson-nav button", { hasText: "التالي" }).click();
+await lp.waitForFunction(() => document.querySelector(".lesson h2").textContent.includes("المتغيرات"));
+await lp.evaluate(() => window.dhad.view.dispatch({ changes: { from: 0, to: window.dhad.view.state.doc.length, insert: window.dhad.LESSONS[1].solution } }));
+await lp.click("#lesson-check");
+await lp.waitForSelector(".verdict.pass");
+await lp.screenshot({ path: shots + "desktop-lesson.png" });
+await lp.goto(base + "?lesson=07");
+await lp.waitForSelector("#lesson-check");
+assert.match(await lp.locator(".lesson h2").innerText(), /الأخطاء صديقتك/);
+assert.equal(await lp.locator(".dot.done").count(), 2, "التقدم محفوظ بعد إعادة التحميل");
+await lp.click("#lesson-check");
+await lp.waitForSelector(".verdict.fail");
+assert.match(await lp.locator("#output").innerText(), /ضاد-1001/);
+await lp.screenshot({ path: shots + "desktop-lesson-error.png" });
+await lessons.ctx.close();
+
+// ١٢) الهاتف + الوضع الليلي
 const phone = await open({ ...devices["iPhone 13"], colorScheme: "dark" });
 await phone.page.selectOption("#examples", "القوائم_والقواميس");
 out = await runAndWait(phone.page);

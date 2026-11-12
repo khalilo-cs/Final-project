@@ -9,6 +9,7 @@ import qrcode from "qrcode-generator";
 import { dhadLanguage, dhadHighlight, KEYWORDS, BUILTINS, MODULES } from "./lang.js";
 import { isolatedRanges, needsIsolation } from "./bidi.js";
 import EXAMPLES from "./examples.json";
+import { LESSONS, gradedSource, judge } from "../../../learn/lessons.mjs";
 
 const WASM_URL = new URL("dhad.wasm", document.baseURI).href;
 const RUN_TIMEOUT_MS = 5000;
@@ -352,6 +353,7 @@ $("wat").onclick = showWat;
 const sel = $("examples");
 for (const ex of EXAMPLES) sel.append(Object.assign(document.createElement("option"), { value: ex.id, textContent: ex.title }));
 sel.onchange = () => {
+  if (lessonIndex >= 0) closeLessons();
   const ex = EXAMPLES.find((x) => x.id === sel.value);
   if (ex) view.dispatch({ changes: { from: 0, to: view.state.doc.length, insert: ex.code } });
   out.replaceChildren(el("div", "muted", "اضغط «تشغيل» أو Ctrl+Enter."));
@@ -392,5 +394,145 @@ $("copy").onclick = async () => {
 };
 $("close-share").onclick = () => dialog.close();
 
+// ---------------- الدروس ----------------
+const lessonBox = $("lesson");
+let lessonIndex = -1;
+let failedChecks = 0;
+
+function loadJson(key, fallback) {
+  try { return JSON.parse(localStorage.getItem(key)) ?? fallback; } catch { return fallback; }
+}
+function saveJson(key, value) {
+  try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* التخزين غير متاح */ }
+}
+let progress = new Set(loadJson("dhad.lessons.done", []));
+
+/** عرض نص الدرس: فقرات، و`كود` داخلي، و**عريض**، وكتل ```dhad — كلها عبر textContent. */
+function renderBody(parts) {
+  const frag = document.createDocumentFragment();
+  for (const part of parts) {
+    const block = part.match(/^```dhad\n([\s\S]*?)```$/);
+    if (block) { frag.append(el("pre", null, block[1].replace(/\n$/, ""))); continue; }
+    const p = el("p");
+    for (const tok of part.split(/(`[^`]+`|\*\*[^*]+\*\*)/)) {
+      if (!tok) continue;
+      if (tok.startsWith("`")) p.append(el("code", null, tok.slice(1, -1)));
+      else if (tok.startsWith("**")) p.append(el("strong", null, tok.slice(2, -2)));
+      else p.append(document.createTextNode(tok));
+    }
+    frag.append(p);
+  }
+  return frag;
+}
+
+function setDoc(code) {
+  view.dispatch({ changes: { from: 0, to: view.state.doc.length, insert: code } });
+}
+
+function openLesson(i, { restoreDraft = true } = {}) {
+  lessonIndex = Math.max(0, Math.min(LESSONS.length - 1, i));
+  failedChecks = 0;
+  const L = LESSONS[lessonIndex];
+  saveJson("dhad.lessons.current", L.id);
+  history.replaceState(null, "", `?lesson=${L.id}`);
+  const drafts = loadJson("dhad.lessons.drafts", {});
+  setDoc(restoreDraft && drafts[L.id] ? drafts[L.id] : L.starter);
+
+  const top = el("div", "lesson-top");
+  top.append(el("h2", null, `الدرس ${toEastern(String(lessonIndex + 1))}: ${L.title}`));
+  const nav = el("div", "lesson-nav");
+  const prev = el("button", null, "→ السابق"); prev.type = "button"; prev.disabled = lessonIndex === 0;
+  const next = el("button", null, "التالي ←"); next.type = "button"; next.disabled = lessonIndex === LESSONS.length - 1;
+  prev.onclick = () => openLesson(lessonIndex - 1);
+  next.onclick = () => openLesson(lessonIndex + 1);
+  const dots = el("div", "dots");
+  LESSONS.forEach((x, k) => {
+    const d = el("button", "dot" + (progress.has(x.id) ? " done" : "") + (k === lessonIndex ? " current" : ""));
+    d.type = "button";
+    d.title = `${x.title}${progress.has(x.id) ? " ✔" : ""}`;
+    d.setAttribute("aria-label", d.title);
+    d.onclick = () => openLesson(k);
+    dots.append(d);
+  });
+  nav.append(prev, dots, next);
+  top.append(nav);
+
+  const actions = el("div", "lesson-actions");
+  const check = el("button", "primary", "تحقق من حلّي ✔"); check.type = "button"; check.id = "lesson-check";
+  const hint = el("button", null, "💡 تلميح"); hint.type = "button";
+  const sol = el("button", null, "أظهر الحل"); sol.type = "button"; sol.disabled = true; sol.title = "يُتاح بعد محاولتين";
+  const reset = el("button", null, "↺ ابدأ من جديد"); reset.type = "button";
+  const verdict = el("div");
+  check.onclick = () => checkLesson(verdict, sol);
+  hint.onclick = () => { verdict.className = "verdict"; verdict.replaceChildren(el("p", null, "💡 " + L.hint)); };
+  sol.onclick = () => setDoc(L.solution);
+  reset.onclick = () => setDoc(L.starter);
+  actions.append(check, hint, sol, reset);
+
+  lessonBox.replaceChildren(top, el("div", "lesson-concept", L.concept), renderBody(L.body), actions, verdict);
+  lessonBox.hidden = false;
+  $("lessons-btn").setAttribute("aria-pressed", "true");
+  out.replaceChildren(el("div", "muted", "اكتب حلك في المحرر ثم اضغط «تحقق من حلّي»."));
+  status.textContent = ""; status.className = "status";
+}
+
+async function checkLesson(verdict, solBtn) {
+  const L = LESSONS[lessonIndex];
+  verdict.className = "verdict"; verdict.replaceChildren(el("p", null, "جارٍ التصحيح…"));
+  let res;
+  try {
+    res = await ask({ kind: "run", src: gradedSource(L, view.state.doc.toString()), fuel: FUEL });
+  } catch (err) {
+    res = { ok: false, output: "", error: { codeStr: "ضاد-2005", code: 2005, message: "تجاوز البرنامج المهلة — ربما حلقة لا تنتهي" } };
+  }
+  const v = judge(L, res);
+  out.replaceChildren();
+  if (res.output) out.append(el("pre", "stdout", fmt(res.output)));
+  if (res.error) out.append(renderError(res.error));
+  if (v.passed) {
+    progress.add(L.id);
+    saveJson("dhad.lessons.done", [...progress]);
+    verdict.className = "verdict pass";
+    const done = progress.size === LESSONS.length;
+    verdict.replaceChildren(el("p", null, done ? "🎉 أحسنت! أنهيت كل الدروس." : "✔ أحسنت! حلّك صحيح."));
+    lessonBox.querySelectorAll(".dot")[lessonIndex].classList.add("done");
+    return;
+  }
+  failedChecks++;
+  if (failedChecks >= 2) { solBtn.disabled = false; solBtn.title = ""; }
+  verdict.className = "verdict fail";
+  if (v.reason === "output") {
+    verdict.replaceChildren(el("p", null, "✘ المخرجات لا تطابق المطلوب. المتوقع:"), el("pre", null, fmt(v.want)));
+  } else if (v.reason === "tests") {
+    verdict.replaceChildren(el("p", null, "✘ بعض الاختبارات لم تنجح — انظر العلامات ✘ في المخرجات."));
+  } else {
+    verdict.replaceChildren(el("p", null, "✘ في البرنامج خطأ — اقرأ الرسالة والتلميحات في المخرجات."));
+  }
+}
+
+function closeLessons() {
+  lessonIndex = -1;
+  lessonBox.hidden = true;
+  $("lessons-btn").setAttribute("aria-pressed", "false");
+  history.replaceState(null, "", location.pathname);
+}
+
+$("lessons-btn").onclick = () => {
+  if (lessonIndex >= 0) { closeLessons(); return; }
+  const cur = loadJson("dhad.lessons.current", LESSONS[0].id);
+  openLesson(Math.max(0, LESSONS.findIndex((x) => x.id === cur)));
+};
+
+view.dom.addEventListener("input", () => {
+  if (lessonIndex < 0) return;
+  const drafts = loadJson("dhad.lessons.drafts", {});
+  drafts[LESSONS[lessonIndex].id] = view.state.doc.toString();
+  saveJson("dhad.lessons.drafts", drafts);
+});
+
 out.append(el("div", "muted", "اضغط «تشغيل» أو Ctrl+Enter لتنفيذ البرنامج."));
-window.dhad = { view, run, compileAndRun, showWat, ask };
+if (params.get("lesson")) {
+  const i = LESSONS.findIndex((x) => x.id === params.get("lesson"));
+  if (i >= 0) openLesson(i);
+}
+window.dhad = { view, run, compileAndRun, showWat, ask, openLesson, LESSONS };
