@@ -1,0 +1,9 @@
+[package]
+name = "dhad-diagnostics"
+description = "نظام التشخيص وأكواد الأخطاء الموثقة (ضاد-XXXX) للغة ضاد"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]

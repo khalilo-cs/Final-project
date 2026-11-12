@@ -1,0 +1,11 @@
+[package]
+name = "dhad-interp"
+description = "المفسر (Tree-walking) والمكتبة القياسية للغة ضاد"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+dhad-diagnostics = { workspace = true }
+dhad-syntax = { workspace = true }

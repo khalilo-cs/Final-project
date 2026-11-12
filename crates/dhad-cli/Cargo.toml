@@ -1,0 +1,16 @@
+[package]
+name = "dhad-cli"
+description = "الأمر «ضاد»: تشغيل، فحص، اختبار، شرح الأخطاء، وREPL"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[[bin]]
+name = "dhad"
+path = "src/main.rs"
+
+[dependencies]
+dhad-diagnostics = { workspace = true }
+dhad-syntax = { workspace = true }
+dhad-interp = { workspace = true }
