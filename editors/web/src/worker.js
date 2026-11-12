@@ -54,6 +54,7 @@ self.onmessage = async (e) => {
     let result;
     if (kind === "run") result = call(x, "dhad_run", src, fuel || 0);
     else if (kind === "check") result = call(x, "dhad_check", src);
+    else if (kind === "format") result = call(x, "dhad_format", src);
     else if (kind === "compile-run" || kind === "wat") {
       const bytes = enc.encode(src);
       const p = x.dhad_alloc(bytes.length);

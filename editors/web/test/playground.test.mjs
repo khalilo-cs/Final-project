@@ -96,6 +96,12 @@ await page.waitForSelector(".cm-tooltip-autocomplete");
 assert.match(await page.locator(".cm-tooltip-autocomplete").innerText(), /جذر/);
 await page.keyboard.press("Escape");
 
+// ٧ب) التنسيق
+await setCode(page, "دالة ف( أ ,ب ){\nأرجع أ+ب\n}");
+await page.click("#format");
+await page.waitForFunction(() => window.dhad.view.state.doc.toString().includes("أرجع أ + ب"));
+assert.equal(await page.evaluate(() => window.dhad.view.state.doc.toString()), "دالة ف(أ، ب) {\n    أرجع أ + ب\n}\n");
+
 // ٨) عزل BiDi مطبَّق فعلًا في DOM
 await setCode(page, "دع result = مجموع + 25\nاطبع(\"hello مرحبا\")\n# total = price * 2 تعليق مختلط");
 await page.waitForSelector(".bidi-ltr");

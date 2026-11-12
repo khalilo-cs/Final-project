@@ -21,6 +21,7 @@ const USAGE: &str = "\
   dhad افحص <ملف.ضاد>     فحص نحوي دون تشغيل      (check)
   dhad اختبر <ملف.ضاد>    تشغيل كتل «اختبر»       (test)
   dhad شرح <كود>          شرح كود خطأ: شرح 1003  (explain)
+  dhad نسّق <ملفات.ضاد>   تنسيق بالأسلوب القياسي  (fmt) [--تحقق: دون تعديل]
   dhad ترجم <ملف.ضاد>     ترجمة إلى WebAssembly   (compile)
        [-o ملف.wasm] [--wat لطباعة الصيغة النصية]
   dhad                     جلسة تفاعلية            (repl)
@@ -32,6 +33,7 @@ const USAGE: &str = "\
 ";
 
 struct Opts {
+    check: bool,
     json: bool,
     out: Option<String>,
     wat: bool,
@@ -42,6 +44,7 @@ struct Opts {
 
 fn parse_opts() -> Opts {
     let mut opts = Opts {
+        check: false,
         json: false,
         out: None,
         wat: false,
@@ -59,6 +62,7 @@ fn parse_opts() -> Opts {
             "-o" | "--out" | "--مخرج" => opts.out = args.next(),
             "--wat" => opts.wat = true,
             "--json" => opts.json = true,
+            "--تحقق" | "--check" => opts.check = true,
             "-h" | "--help" | "مساعدة" | "--مساعدة" => {
                 print!("{USAGE}");
                 std::process::exit(0);
@@ -89,9 +93,11 @@ fn real_main() -> ExitCode {
         Some("شرح" | "explain") => explain_cmd(&opts),
         Some("ترجم" | "compile") => compile_cmd(&opts),
         Some("فهرس" | "catalog") => catalog_cmd(),
+        Some("نسّق" | "نسق" | "fmt") => fmt_cmd(&opts),
         Some(path) if path.ends_with(".ضاد") || path.ends_with(".dhad") => {
             // اختصار: dhad ملف.ضاد
             let mut o = Opts {
+                check: false,
                 json: opts.json,
                 out: None,
                 wat: false,
@@ -138,13 +144,62 @@ impl Write for SharedBuf {
 
 /// كائن JSON واحد على المخرج القياسي: {ok, output, diagnostics, source}
 fn print_json(ok: bool, output: &str, diags: &[Diagnostic], src: &str) {
-    let items: Vec<String> = diags.iter().map(|d| dhad_diagnostics::to_json(d, src)).collect();
+    let items: Vec<String> = diags
+        .iter()
+        .map(|d| dhad_diagnostics::to_json(d, src))
+        .collect();
     println!(
         "{{\"ok\":{ok},\"output\":{},\"diagnostics\":[{}],\"source\":{}}}",
         dhad_diagnostics::json_str(output),
         items.join(","),
         dhad_diagnostics::json_str(src)
     );
+}
+
+fn fmt_cmd(opts: &Opts) -> ExitCode {
+    let files = &opts.positional[1..];
+    if files.is_empty() {
+        eprintln!("حدد ملفًا أو أكثر، مثل: dhad نسّق برنامج.ضاد");
+        return ExitCode::from(2);
+    }
+    let mut status = ExitCode::SUCCESS;
+    for path in files {
+        let raw = match std::fs::read_to_string(path) {
+            Ok(s) => s,
+            Err(e) => {
+                eprintln!("تعذّر قراءة «{path}»: {e}");
+                status = ExitCode::from(2);
+                continue;
+            }
+        };
+        let src = dhad_syntax::normalize_source(&raw);
+        match dhad_fmt::format(&src) {
+            Ok(out) if out == raw => {
+                if opts.check {
+                    println!("✔ {path}: منسَّق");
+                }
+            }
+            Ok(out) => {
+                if opts.check {
+                    if let Some(span) = dhad_fmt::first_difference(&raw, &out) {
+                        let (line, _) = dhad_diagnostics::line_col(&raw, span.start);
+                        eprintln!("✘ {path}: يحتاج تنسيقًا (أول اختلاف في السطر {line})");
+                    }
+                    status = ExitCode::from(1);
+                } else if let Err(e) = std::fs::write(path, &out) {
+                    eprintln!("تعذّر كتابة «{path}»: {e}");
+                    status = ExitCode::from(2);
+                } else {
+                    println!("✔ نُسِّق {path}");
+                }
+            }
+            Err(e) => {
+                report(&e, &src, path);
+                status = ExitCode::from(1);
+            }
+        }
+    }
+    status
 }
 
 fn catalog_cmd() -> ExitCode {
@@ -247,7 +302,11 @@ fn check_file(opts: &Opts) -> ExitCode {
     let warnings = analysis.diagnostics.len() - errors;
     if opts.json {
         print_json(errors == 0, "", &analysis.diagnostics, &src);
-        return if errors == 0 { ExitCode::SUCCESS } else { ExitCode::from(1) };
+        return if errors == 0 {
+            ExitCode::SUCCESS
+        } else {
+            ExitCode::from(1)
+        };
     }
     for d in &analysis.diagnostics {
         report(d, &src, &path);

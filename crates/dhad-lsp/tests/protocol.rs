@@ -269,9 +269,14 @@ fn full_editor_session() {
         .unwrap()
         .starts_with("تقريب("));
 
+    // التنسيق: كامل المستند في تعديل واحد.
+    c.change("دالة ف( أ ,ب ){\nأرجع أ+ب\n}\n", 8);
+    let edits = c.request("textDocument/formatting", json!({ "textDocument": { "uri": URI }, "options": { "tabSize": 4, "insertSpaces": true } }));
+    assert_eq!(edits[0]["newText"], "دالة ف(أ، ب) {\n    أرجع أ + ب\n}\n");
+
     // إصلاح الاستيراد الناقص.
     let doc = "اطبع(نصوص.اقلب(\"ضاد\"))\n";
-    let diags = c.change(doc, 7);
+    let diags = c.change(doc, 9);
     let actions = c.request(
         "textDocument/codeAction",
         json!({ "textDocument": { "uri": URI }, "range": diags[0]["range"], "context": { "diagnostics": diags } }),

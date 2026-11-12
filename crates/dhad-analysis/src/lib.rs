@@ -193,11 +193,8 @@ impl Resolver<'_> {
         let raw = self.src.get(span.start..span.end).unwrap_or("");
         if kind != SymbolKind::Module && raw.chars().any(dhad_syntax::unicode::is_tashkeel) {
             self.an.diagnostics.push(
-                Diagnostic::warning(
-                    3003,
-                    format!("التشكيل في «{raw}» يُتجاهل؛ الاسم هو «{name}»"),
-                )
-                .with_span(span),
+                Diagnostic::warning(3003, format!("التشكيل في «{raw}» يُتجاهل؛ الاسم هو «{name}»"))
+                    .with_span(span),
             );
         }
         self.an.symbols.push(Symbol {

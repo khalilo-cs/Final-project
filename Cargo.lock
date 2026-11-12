@@ -50,6 +50,7 @@ version = "0.1.0"
 dependencies = [
  "dhad-analysis",
  "dhad-diagnostics",
+ "dhad-fmt",
  "dhad-interp",
  "dhad-syntax",
  "dhad-wasmgen",
@@ -58,6 +59,14 @@ dependencies = [
 [[package]]
 name = "dhad-diagnostics"
 version = "0.1.0"
+
+[[package]]
+name = "dhad-fmt"
+version = "0.1.0"
+dependencies = [
+ "dhad-diagnostics",
+ "dhad-syntax",
+]
 
 [[package]]
 name = "dhad-interp"
@@ -73,6 +82,7 @@ version = "0.1.0"
 dependencies = [
  "dhad-analysis",
  "dhad-diagnostics",
+ "dhad-fmt",
  "dhad-syntax",
  "lsp-server",
  "lsp-types",
@@ -94,6 +104,7 @@ version = "0.1.0"
 dependencies = [
  "dhad-analysis",
  "dhad-diagnostics",
+ "dhad-fmt",
  "dhad-interp",
  "dhad-syntax",
  "dhad-wasmgen",

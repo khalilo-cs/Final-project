@@ -71,6 +71,7 @@ fn capabilities() -> Value {
             work_done_progress_options: Default::default(),
         }),
         code_action_provider: Some(CodeActionProviderCapability::Simple(true)),
+        document_formatting_provider: Some(OneOf::Left(true)),
         ..Default::default()
     })
     .unwrap()
@@ -285,6 +286,22 @@ impl Server {
                 let tdp = p.text_document_position_params;
                 let doc = self.doc(&tdp.text_document.uri)?;
                 serde_json::to_value(signature_help(doc, tdp.position))
+            }
+            "textDocument/formatting" => {
+                let p: DocumentFormattingParams = params(req.params)?;
+                let doc = self.doc(&p.text_document.uri)?;
+                let edits = match dhad_fmt::format(&doc.text) {
+                    Ok(out) if out != doc.text => {
+                        let end = doc.index.position(&doc.text, doc.text.len());
+                        Some(vec![TextEdit::new(
+                            Range::new(Position::new(0, 0), end),
+                            out,
+                        )])
+                    }
+                    Ok(_) => Some(vec![]),
+                    Err(_) => None,
+                };
+                serde_json::to_value(edits)
             }
             "textDocument/codeAction" => {
                 let p: CodeActionParams = params(req.params)?;

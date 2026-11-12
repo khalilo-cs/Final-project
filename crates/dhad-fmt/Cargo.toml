@@ -1,0 +1,11 @@
+[package]
+name = "dhad-fmt"
+description = "منسّق لغة ضاد: أسلوب قياسي واحد، يغيّر المسافات فقط ولا يغيّر الرموز"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+dhad-diagnostics = { workspace = true }
+dhad-syntax = { workspace = true }

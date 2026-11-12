@@ -15,3 +15,4 @@ dhad-syntax = { workspace = true }
 dhad-interp = { workspace = true }
 dhad-analysis = { workspace = true }
 dhad-wasmgen = { workspace = true }
+dhad-fmt = { workspace = true }

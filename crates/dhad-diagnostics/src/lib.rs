@@ -275,7 +275,6 @@ pub fn to_json(d: &Diagnostic, src: &str) -> String {
     format!("{{{}}}", fields.join(","))
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;

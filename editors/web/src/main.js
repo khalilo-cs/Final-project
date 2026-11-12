@@ -165,6 +165,7 @@ const view = new EditorView({
         indentWithTab,
         { key: "Mod-Enter", run: () => { run(); return true; } },
         { key: "Mod-Shift-Enter", run: () => { compileAndRun(); return true; } },
+        { key: "Shift-Alt-f", run: () => { formatDoc(); return true; } },
       ]),
       indentUnit.of("    "),
       dhadLanguage,
@@ -345,7 +346,25 @@ async function showWat() {
   }
 }
 
+async function formatDoc() {
+  const before = view.state.doc.toString();
+  let res;
+  try { res = await ask({ kind: "format", src: before }, 3000); } catch { return; }
+  if (!res.ok) {
+    status.textContent = `✘ تعذّر التنسيق: ${res.error.codeStr} ${res.error.message}`;
+    status.className = "status bad";
+    return;
+  }
+  if (res.text !== before && view.state.doc.toString() === before) {
+    const head = view.state.selection.main.head;
+    view.dispatch({ changes: { from: 0, to: before.length, insert: res.text }, selection: { anchor: Math.min(head, res.text.length) } });
+  }
+  status.textContent = res.text === before ? "الكود منسَّق بالفعل ✔" : "✔ نُسِّق الكود";
+  status.className = "status ok";
+}
+
 // ---------------- أدوات الشريط ----------------
+$("format").onclick = formatDoc;
 $("run").onclick = run;
 $("compile").onclick = compileAndRun;
 $("wat").onclick = showWat;
@@ -535,4 +554,4 @@ if (params.get("lesson")) {
   const i = LESSONS.findIndex((x) => x.id === params.get("lesson"));
   if (i >= 0) openLesson(i);
 }
-window.dhad = { view, run, compileAndRun, showWat, ask, openLesson, LESSONS };
+window.dhad = { view, run, compileAndRun, showWat, formatDoc, ask, openLesson, LESSONS };

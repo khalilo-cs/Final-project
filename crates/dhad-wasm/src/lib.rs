@@ -201,6 +201,22 @@ pub unsafe extern "C" fn dhad_compile_wat(ptr: *const u8, len: usize) -> usize {
     }
 }
 
+/// تنسيق البرنامج: {ok, text} أو {ok:false, error}.
+///
+/// # Safety
+/// انظر [`input`].
+#[no_mangle]
+pub unsafe extern "C" fn dhad_format(ptr: *const u8, len: usize) -> usize {
+    let src = dhad_syntax::normalize_source(unsafe { input(ptr, len) });
+    match dhad_fmt::format(&src) {
+        Ok(out) => set_result(format!("{{\"ok\":true,\"text\":{}}}", json_str(&out))),
+        Err(e) => set_result(format!(
+            "{{\"ok\":false,\"error\":{}}}",
+            diag_json(&e, &src)
+        )),
+    }
+}
+
 #[no_mangle]
 pub extern "C" fn dhad_explain(code: u32) -> usize {
     let s = match explain(code as u16) {

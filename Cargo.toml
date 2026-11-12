@@ -9,6 +9,7 @@ members = [
     "crates/dhad-wasm",
     "crates/dhad-lsp",
     "crates/dhad-wasmgen",
+    "crates/dhad-fmt",
 ]
 
 [workspace.package]
@@ -24,6 +25,7 @@ dhad-syntax = { path = "crates/dhad-syntax" }
 dhad-interp = { path = "crates/dhad-interp" }
 dhad-analysis = { path = "crates/dhad-analysis" }
 dhad-wasmgen = { path = "crates/dhad-wasmgen" }
+dhad-fmt = { path = "crates/dhad-fmt" }
 unicode-normalization = "0.1"
 
 [profile.release]
