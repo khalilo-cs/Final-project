@@ -1,0 +1,131 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  rust:
+    name: النواة (Rust)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+          targets: wasm32-unknown-unknown
+      - uses: Swatinem/rust-cache@v2
+      - name: التنسيق
+        run: cargo fmt --all --check
+      - name: المدقق (clippy)
+        run: cargo clippy --all-targets -- -D warnings
+      - name: الاختبارات (وحدة، ذهبية، LSP، المولّد، المنسّق)
+        run: cargo test --all
+      - name: بناء وحدة المتصفح
+        run: cargo build --release --target wasm32-unknown-unknown -p dhad-wasm
+      - name: برامج المستودع منسَّقة
+        run: cargo run -q -p dhad-cli -- نسّق --تحقق examples/*.ضاد tests/corpus/0*.ضاد benchmarks/*/*.ضاد
+
+  grammar:
+    name: قواعد Tree-sitter
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: grammar
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: npx tree-sitter generate && git diff --exit-code src/
+      - run: npx tree-sitter test
+      - name: التطابق مع المحلل المرجعي
+        run: ./check-programs.sh
+
+  web:
+    name: الساحة (المتصفح)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: editors/web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+      - uses: Swatinem/rust-cache@v2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: npm run build
+      - run: node test/bidi.test.mjs
+      - run: node test/lessons.test.mjs
+      - name: اختبار المتصفح الشامل
+        run: |
+          npm install --no-save playwright
+          npx playwright install --with-deps chromium
+          node test/playground.test.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playground-screenshots
+          path: editors/web/test-results/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: playground-dist
+          path: editors/web/dist/
+
+  vscode:
+    name: إضافة VS Code
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: editors/vscode
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: npm test
+      - run: npm run package
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dhad-vsix
+          path: editors/vscode/*.vsix
+
+  quality:
+    name: الشارح الذكي والتوثيق والاختبار التفاضلي
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+      - uses: Swatinem/rust-cache@v2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: cargo build -p dhad-cli
+      - name: صفحات أكواد الأخطاء محدَّثة وأمثلتها تعمل
+        run: python3 tools/gen_error_docs.py --check
+      - name: أمثلة التوثيق تعمل
+        run: python3 tools/check_doc_examples.py
+      - name: حسابات تحليل دراسة المستخدمين
+        run: python3 evaluation/analyze_study.py selftest
+      - name: اختبارات الشارح الذكي
+        run: |
+          pip install anthropic
+          python3 -m unittest discover -s ai-explainer/tests
+      - name: تقييم الشارح (خط الأساس من التوثيق)
+        run: cd ai-explainer && python3 eval/run_eval.py --providers offline
+      - name: المفسر الأصلي = المفسر في WASM = المترجم إلى WASM
+        run: node benchmarks/run.mjs --check
