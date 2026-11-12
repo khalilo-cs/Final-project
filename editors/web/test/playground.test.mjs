@@ -106,7 +106,32 @@ await page.check("#show-bidi");
 await page.locator(".editor-pane").screenshot({ path: shots + "desktop-bidi.png" });
 await page.uncheck("#show-bidi");
 
-// ٩) المشاركة: الرابط يعيد الكود نفسه
+// ٩) الترجمة إلى WebAssembly: المخرجات تطابق المفسر، وWAT يُعرض، والبنى غير المدعومة تُشرح
+await page.selectOption("#examples", "مقارنة_الأداء");
+const interpOut = await runAndWait(page);
+await page.click("#compile");
+await page.waitForFunction(() => document.querySelector("#status .badge"), null, { timeout: 15000 });
+const compiledOut = await page.locator("#output").innerText();
+assert.equal(compiledOut, interpOut, "مخرجات المترجم تطابق المفسر");
+assert.match(compiledOut, /فيب\(٢٢\) = 17711/);
+assert.match(await page.locator("#status").innerText(), /ترجمة .* تنفيذ .* بايت/);
+await page.screenshot({ path: shots + "desktop-compiled.png" });
+await page.click("#wat");
+await page.waitForSelector(".wat pre");
+const wat = await page.locator(".wat pre").innerText();
+assert.match(wat, /\(module/);
+assert.match(wat, /;; دالة فيب/);
+await page.screenshot({ path: shots + "desktop-wat.png" });
+await setCode(page, "دع ق = [١، ٢]\nاطبع(ق)");
+await page.click("#compile");
+await page.waitForFunction(() => /✘/.test(document.getElementById("status").textContent));
+assert.match(await page.locator("#output").innerText(), /ضاد-4001/);
+await setCode(page, "اطبع(٥ // ٠)");
+await page.click("#compile");
+await page.waitForFunction(() => document.querySelector("#status .badge"));
+assert.match(await page.locator("#output").innerText(), /ضاد-2001/);
+
+// ١٠) المشاركة: الرابط يعيد الكود نفسه
 await setCode(page, "# برنامج مشترك\nاطبع(\"رابط ✔\")");
 await page.click("#share");
 await page.waitForSelector("#qr svg");
@@ -119,7 +144,7 @@ await p2.waitForFunction(() => window.dhad);
 assert.equal(await p2.evaluate(() => window.dhad.view.state.doc.toString()), "# برنامج مشترك\nاطبع(\"رابط ✔\")");
 await ctx.close();
 
-// ١٠) الهاتف + الوضع الليلي
+// ١١) الهاتف + الوضع الليلي
 const phone = await open({ ...devices["iPhone 13"], colorScheme: "dark" });
 await phone.page.selectOption("#examples", "القوائم_والقواميس");
 out = await runAndWait(phone.page);

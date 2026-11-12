@@ -217,6 +217,46 @@ pub unsafe extern "C" fn dhad_check(ptr: *const u8, len: usize) -> usize {
     set_result(check_json(src))
 }
 
+/// ترجمة البرنامج إلى WebAssembly. النتيجة إما بايتات الوحدة (تبدأ بـ `\0asm`)
+/// أو JSON يصف الخطأ.
+///
+/// # Safety
+/// انظر [`input`].
+#[no_mangle]
+pub unsafe extern "C" fn dhad_compile(ptr: *const u8, len: usize) -> usize {
+    let src = dhad_syntax::normalize_source(unsafe { input(ptr, len) });
+    match dhad_wasmgen::compile(&src) {
+        Ok(wasm) => RESULT.with(|r| {
+            *r.borrow_mut() = wasm;
+            r.borrow().len()
+        }),
+        Err(e) => set_result(format!(
+            "{{\"ok\":false,\"error\":{}}}",
+            diag_json(&e, &src)
+        )),
+    }
+}
+
+/// الصيغة النصية (WAT) للوحدة المترجمة، أو JSON بالخطأ.
+///
+/// # Safety
+/// انظر [`input`].
+#[no_mangle]
+pub unsafe extern "C" fn dhad_compile_wat(ptr: *const u8, len: usize) -> usize {
+    let src = dhad_syntax::normalize_source(unsafe { input(ptr, len) });
+    match dhad_wasmgen::compile_full(&src) {
+        Ok(out) => set_result(format!(
+            "{{\"ok\":true,\"wat\":{},\"size\":{}}}",
+            json_str(&out.wat),
+            out.wasm.len()
+        )),
+        Err(e) => set_result(format!(
+            "{{\"ok\":false,\"error\":{}}}",
+            diag_json(&e, &src)
+        )),
+    }
+}
+
 #[no_mangle]
 pub extern "C" fn dhad_explain(code: u32) -> usize {
     let s = match explain(code as u16) {

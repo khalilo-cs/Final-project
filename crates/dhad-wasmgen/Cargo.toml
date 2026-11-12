@@ -1,0 +1,16 @@
+[package]
+name = "dhad-wasmgen"
+description = "مولّد WebAssembly للغة ضاد: يترجم مجموعة فرعية عددية من اللغة إلى وحدة .wasm"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+dhad-diagnostics = { workspace = true }
+dhad-syntax = { workspace = true }
+wasm-encoder = "0.263.0"
+
+[dev-dependencies]
+wasmparser = "0.263.0"
+wat = "1.263.0"

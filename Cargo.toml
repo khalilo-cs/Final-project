@@ -8,6 +8,7 @@ members = [
     "crates/dhad-cli",
     "crates/dhad-wasm",
     "crates/dhad-lsp",
+    "crates/dhad-wasmgen",
 ]
 
 [workspace.package]
@@ -22,8 +23,13 @@ dhad-diagnostics = { path = "crates/dhad-diagnostics" }
 dhad-syntax = { path = "crates/dhad-syntax" }
 dhad-interp = { path = "crates/dhad-interp" }
 dhad-analysis = { path = "crates/dhad-analysis" }
+dhad-wasmgen = { path = "crates/dhad-wasmgen" }
 unicode-normalization = "0.1"
 
 [profile.release]
 opt-level = 3
 lto = true
+strip = true
+
+[profile.release.package.wasmparser]
+opt-level = "s"

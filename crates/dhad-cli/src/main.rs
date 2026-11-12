@@ -21,6 +21,8 @@ const USAGE: &str = "\
   dhad افحص <ملف.ضاد>     فحص نحوي دون تشغيل      (check)
   dhad اختبر <ملف.ضاد>    تشغيل كتل «اختبر»       (test)
   dhad شرح <كود>          شرح كود خطأ: شرح 1003  (explain)
+  dhad ترجم <ملف.ضاد>     ترجمة إلى WebAssembly   (compile)
+       [-o ملف.wasm] [--wat لطباعة الصيغة النصية]
   dhad                     جلسة تفاعلية            (repl)
 
 خيارات:
@@ -29,6 +31,8 @@ const USAGE: &str = "\
 ";
 
 struct Opts {
+    out: Option<String>,
+    wat: bool,
     fuel: Option<u64>,
     eastern: bool,
     positional: Vec<String>,
@@ -36,6 +40,8 @@ struct Opts {
 
 fn parse_opts() -> Opts {
     let mut opts = Opts {
+        out: None,
+        wat: false,
         fuel: None,
         eastern: false,
         positional: Vec::new(),
@@ -47,6 +53,8 @@ fn parse_opts() -> Opts {
                 opts.fuel = args.next().and_then(|v| v.parse().ok());
             }
             "--أرقام-شرقية" | "--eastern-digits" => opts.eastern = true,
+            "-o" | "--out" | "--مخرج" => opts.out = args.next(),
+            "--wat" => opts.wat = true,
             "-h" | "--help" | "مساعدة" | "--مساعدة" => {
                 print!("{USAGE}");
                 std::process::exit(0);
@@ -75,9 +83,12 @@ fn real_main() -> ExitCode {
         Some("اختبر" | "test") => run_file(&opts, true),
         Some("افحص" | "check") => check_file(&opts),
         Some("شرح" | "explain") => explain_cmd(&opts),
+        Some("ترجم" | "compile") => compile_cmd(&opts),
         Some(path) if path.ends_with(".ضاد") || path.ends_with(".dhad") => {
             // اختصار: dhad ملف.ضاد
             let mut o = Opts {
+                out: None,
+                wat: false,
                 fuel: opts.fuel,
                 eastern: opts.eastern,
                 positional: vec!["شغّل".into(), path.to_string()],
@@ -167,6 +178,41 @@ fn check_file(opts: &Opts) -> ExitCode {
     } else {
         eprintln!("✘ {path}: {errors} خطأ — {warnings} تحذير");
         ExitCode::from(1)
+    }
+}
+
+fn compile_cmd(opts: &Opts) -> ExitCode {
+    let (path, src) = match read_source(opts) {
+        Ok(v) => v,
+        Err(c) => return c,
+    };
+    let out = match dhad_wasmgen::compile_full(&src) {
+        Ok(o) => o,
+        Err(e) => {
+            report(&e, &src, &path);
+            return ExitCode::from(1);
+        }
+    };
+    let wasm = out.wasm;
+    if opts.wat {
+        print!("{}", out.wat);
+        if opts.out.is_none() {
+            return ExitCode::SUCCESS;
+        }
+    }
+    let dest = opts.out.clone().unwrap_or_else(|| {
+        let p = std::path::Path::new(&path);
+        p.with_extension("wasm").to_string_lossy().into_owned()
+    });
+    match std::fs::write(&dest, &wasm) {
+        Ok(()) => {
+            eprintln!("✔ تُرجم {path} إلى {dest} ({} بايت)", wasm.len());
+            ExitCode::SUCCESS
+        }
+        Err(e) => {
+            eprintln!("تعذّر كتابة «{dest}»: {e}");
+            ExitCode::from(2)
+        }
     }
 }
 

@@ -24,6 +24,7 @@ const TITLES = {
   "القوائم_والقواميس": "القوائم والقواميس والنصوص",
   "فيبوناتشي": "فيبوناتشي + اختبارات",
   "خطأ_متعمد": "خطأ متعمد (جرّب التلميحات)",
+  "مقارنة_الأداء": "⚡ قارن: المفسر مقابل WebAssembly",
 };
 const order = Object.keys(TITLES);
 const examples = readdirSync(join(root, "examples"))

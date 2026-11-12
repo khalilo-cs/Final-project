@@ -1,0 +1,57 @@
+{
+  "env": {
+    "date": "2026-11-12",
+    "node": "v22.23.4",
+    "cpu": "Intel(R) Xeon(R) Processor @ 2.10GHz",
+    "cores": 4,
+    "platform": "linux x64",
+    "runs": 7
+  },
+  "rows": [
+    {
+      "program": "الأعداد_الأولية",
+      "native_interpreter_ms": 167.18,
+      "wasm_interpreter_ms": 212.32,
+      "compiled_wasm_ms": 1.195,
+      "speedup_vs_native": 140,
+      "speedup_vs_wasm_interpreter": 177.7,
+      "wasm_bytes": 519
+    },
+    {
+      "program": "القاسم_المشترك",
+      "native_interpreter_ms": 304.41,
+      "wasm_interpreter_ms": 369.56,
+      "compiled_wasm_ms": 3.217,
+      "speedup_vs_native": 94.6,
+      "speedup_vs_wasm_interpreter": 114.9,
+      "wasm_bytes": 507
+    },
+    {
+      "program": "حلقة_حسابية",
+      "native_interpreter_ms": 212.54,
+      "wasm_interpreter_ms": 247.22,
+      "compiled_wasm_ms": 3.067,
+      "speedup_vs_native": 69.3,
+      "speedup_vs_wasm_interpreter": 80.6,
+      "wasm_bytes": 478
+    },
+    {
+      "program": "فيبوناتشي_ذاتي",
+      "native_interpreter_ms": 149.39,
+      "wasm_interpreter_ms": 131.5,
+      "compiled_wasm_ms": 0.594,
+      "speedup_vs_native": 251.6,
+      "speedup_vs_wasm_interpreter": 221.5,
+      "wasm_bytes": 369
+    },
+    {
+      "program": "كولاتز",
+      "native_interpreter_ms": 1779.24,
+      "wasm_interpreter_ms": 1943.59,
+      "compiled_wasm_ms": 34.182,
+      "speedup_vs_native": 52.1,
+      "speedup_vs_wasm_interpreter": 56.9,
+      "wasm_bytes": 519
+    }
+  ]
+}

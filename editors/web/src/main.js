@@ -160,7 +160,11 @@ const view = new EditorView({
     doc: initial,
     extensions: [
       basicSetup,
-      keymap.of([indentWithTab, { key: "Mod-Enter", run: () => { run(); return true; } }]),
+      keymap.of([
+        indentWithTab,
+        { key: "Mod-Enter", run: () => { run(); return true; } },
+        { key: "Mod-Shift-Enter", run: () => { compileAndRun(); return true; } },
+      ]),
       indentUnit.of("    "),
       dhadLanguage,
       dhadHighlight,
@@ -236,7 +240,7 @@ async function run() {
   out.replaceChildren();
   status.textContent = "جارٍ التشغيل…";
   status.className = "status running";
-  $("run").disabled = true;
+  setBusy(true);
   try {
     const res = await ask({ kind: "run", src: view.state.doc.toString(), fuel: FUEL });
     if (res.output) out.append(el("pre", "stdout", fmt(res.output)));
@@ -260,12 +264,90 @@ async function run() {
       status.className = "status bad";
     }
   } finally {
-    $("run").disabled = false;
+    setBusy(false);
+  }
+}
+
+// ---------------- مسار WebAssembly ----------------
+function setBusy(busy) {
+  for (const id of ["run", "compile", "wat"]) $(id).disabled = busy;
+}
+
+async function errorFromCode(code, message) {
+  let info = {};
+  try { info = await ask({ kind: "explain", code }); } catch { /* الشرح اختياري */ }
+  const lines = (info.text || "").split("\n").filter(Boolean);
+  return {
+    codeStr: `ضاد-${code}`, code, message: message || lines[0]?.replace(/^ضاد-\d+:\s*/, "") || "خطأ وقت التشغيل",
+    explanation: lines[1], help: lines.find((l) => l.startsWith("مساعدة:"))?.replace("مساعدة: ", ""),
+  };
+}
+
+async function compileAndRun() {
+  out.replaceChildren();
+  status.textContent = "جارٍ الترجمة إلى WebAssembly…";
+  status.className = "status running";
+  setBusy(true);
+  try {
+    const res = await ask({ kind: "compile-run", src: view.state.doc.toString() });
+    if (res.error) {
+      out.append(renderError(res.error));
+      status.textContent = "✘ تعذّرت الترجمة — جرّب «▶ تشغيل» بالمفسر";
+      status.className = "status bad";
+      return;
+    }
+    if (res.output) out.append(el("pre", "stdout", fmt(res.output)));
+    if (res.failCode) out.append(renderError(await errorFromCode(res.failCode)));
+    if (res.trap) {
+      const deep = /call stack|recursion/i.test(res.trap);
+      out.append(renderError(deep
+        ? await errorFromCode(2004, "تجاوز عمق الاستدعاء في الوحدة المترجمة")
+        : { codeStr: "WASM", message: res.trap }));
+    }
+    const head = el("span", "badge", "⚡ WebAssembly");
+    status.replaceChildren(head, document.createTextNode(fmt(
+      `${res.ok ? "✔" : "✘"} ترجمة ${res.compileMs.toFixed(1)} ملّي ثانية، تنفيذ ${res.runMs.toFixed(2)} ملّي ثانية، ${res.size} بايت`)));
+    status.className = "status " + (res.ok ? "ok" : "bad");
+  } catch (err) {
+    if (err.message === "timeout") {
+      out.append(renderError(await errorFromCode(2005, `تجاوز البرنامج المترجم المهلة (${RUN_TIMEOUT_MS / 1000} ثوانٍ) فأُوقف`)));
+      status.textContent = "✘ أُوقف لتجاوز المهلة";
+    } else {
+      out.append(el("div", "err", "تعذّر التشغيل: " + err.message));
+      status.textContent = "✘ خطأ داخلي";
+    }
+    status.className = "status bad";
+  } finally {
+    setBusy(false);
+  }
+}
+
+async function showWat() {
+  setBusy(true);
+  try {
+    const res = await ask({ kind: "wat", src: view.state.doc.toString() });
+    out.replaceChildren();
+    if (!res.ok) {
+      out.append(renderError(res.error));
+      status.textContent = "✘ تعذّرت الترجمة";
+      status.className = "status bad";
+      return;
+    }
+    const d = el("details", "wat");
+    d.open = true;
+    d.append(el("summary", null, `الصيغة النصية لوحدة WebAssembly (${res.size} بايت)`), el("pre", null, res.wat));
+    out.append(d);
+    status.textContent = "هذه هي التعليمات التي ينفّذها المتصفح فعلًا.";
+    status.className = "status";
+  } finally {
+    setBusy(false);
   }
 }
 
 // ---------------- أدوات الشريط ----------------
 $("run").onclick = run;
+$("compile").onclick = compileAndRun;
+$("wat").onclick = showWat;
 
 const sel = $("examples");
 for (const ex of EXAMPLES) sel.append(Object.assign(document.createElement("option"), { value: ex.id, textContent: ex.title }));
@@ -311,4 +393,4 @@ $("copy").onclick = async () => {
 $("close-share").onclick = () => dialog.close();
 
 out.append(el("div", "muted", "اضغط «تشغيل» أو Ctrl+Enter لتنفيذ البرنامج."));
-window.dhad = { view, run, ask };
+window.dhad = { view, run, compileAndRun, showWat, ask };

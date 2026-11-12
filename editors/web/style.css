@@ -30,7 +30,11 @@ button, select, input { font: inherit; }
 button { border-radius: 8px; padding: 7px 14px; border: 1px solid transparent; cursor: pointer; font-weight: 600; }
 button:focus-visible, select:focus-visible, input:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
 .primary { background: var(--gold); color: #14213d; }
-.primary:disabled { opacity: .6; cursor: progress; }
+.primary:disabled, .ghost:disabled { opacity: .6; cursor: progress; }
+.wat { margin: 0 0 12px; }
+.wat summary { cursor: pointer; font-family: "Cairo", sans-serif; font-weight: 600; margin-bottom: 6px; }
+.wat pre { direction: ltr; text-align: left; unicode-bidi: isolate; background: var(--code-bg); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, "Noto Sans Arabic", monospace; font-size: 13px; line-height: 1.6; overflow: auto; max-height: 60vh; margin: 0; }
+.badge { display: inline-block; font-size: 12px; font-weight: 700; border-radius: 999px; padding: 1px 8px; margin-inline-end: 6px; background: var(--hint-bg); color: var(--ink); border: 1px solid var(--gold); }
 .ghost { background: transparent; color: #fff; border-color: rgba(255,255,255,.5); }
 .link { background: none; border: none; color: var(--brand); padding: 4px 0; text-decoration: underline; }
 select { border-radius: 8px; padding: 7px 10px; border: 1px solid rgba(255,255,255,.5); background: rgba(255,255,255,.12); color: #fff; max-width: 220px; }
