@@ -5,6 +5,7 @@ members = [
     "crates/dhad-syntax",
     "crates/dhad-interp",
     "crates/dhad-cli",
+    "crates/dhad-wasm",
 ]
 
 [workspace.package]

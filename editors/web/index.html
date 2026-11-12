@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ساحة ضاد</title>
+  <meta name="description" content="ساحة تجريب لغة ضاد: اكتب بالعربية، شغّل في المتصفح، وافهم أخطاءك.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@600;800&family=Noto+Sans+Arabic:wght@400;600;700&family=Noto+Kufi+Arabic:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230f4c5c'/%3E%3Ctext x='32' y='44' font-size='34' text-anchor='middle' fill='%23c9a227' font-family='serif'%3E%D8%B6%3C/text%3E%3C/svg%3E">
+</head>
+<body>
+  <header class="bar">
+    <div class="brand"><span class="logo">ضاد</span><span class="tag">ساحة التجريب</span></div>
+    <div class="tools">
+      <label class="select"><span class="sr">الأمثلة</span>
+        <select id="examples" aria-label="اختر مثالًا"></select>
+      </label>
+      <button id="share" type="button" class="ghost">مشاركة</button>
+      <button id="run" type="button" class="primary" title="Ctrl+Enter">▶ تشغيل</button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="pane editor-pane" aria-label="المحرر">
+      <div id="editor"></div>
+      <div class="editor-foot">
+        <button id="dir" type="button" class="link">اتجاه: يمين ← يسار</button>
+        <label><input type="checkbox" id="show-bidi"> إظهار حدود العزل</label>
+        <label><input type="checkbox" id="digits"> أرقام عربية شرقية</label>
+      </div>
+    </section>
+    <section class="pane out-pane" aria-label="المخرجات">
+      <div class="out-head"><h2>المخرجات</h2><span id="status" class="status" role="status" aria-live="polite"></span></div>
+      <div id="output" aria-live="polite"></div>
+    </section>
+  </main>
+
+  <dialog id="share-dialog">
+    <h3>شارك برنامجك</h3>
+    <p class="muted">الكود محفوظ داخل الرابط نفسه — لا يُرفع إلى أي خادم.</p>
+    <div id="qr" aria-label="رمز QR للرابط"></div>
+    <div class="share-row">
+      <input id="share-url" readonly aria-label="رابط المشاركة" dir="ltr">
+      <button id="copy" type="button" class="primary">نسخ الرابط</button>
+    </div>
+    <button id="close-share" type="button" class="link">إغلاق</button>
+  </dialog>
+
+  <script type="module" src="main.js"></script>
+</body>
+</html>

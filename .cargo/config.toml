@@ -1,0 +1,3 @@
+# المفسر تكراري؛ نمنح وحدة WebAssembly مكدسًا كافيًا (64MB) لبلوغ حد العمق المنطقي (1000).
+[target.wasm32-unknown-unknown]
+rustflags = ["-C", "link-arg=-zstack-size=67108864"]
