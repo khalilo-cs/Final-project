@@ -259,7 +259,7 @@ impl Parser {
             }
             Tok::Kw(Kw::Fn) => {
                 self.advance();
-                let (name, _) = self.expect_ident("اسم الدالة")?;
+                let (name, name_span) = self.expect_ident("اسم الدالة")?;
                 self.expect(Tok::LParen, "«(» بعد اسم الدالة")?;
                 let mut params = Vec::new();
                 if !self.at(&Tok::RParen) {
@@ -273,7 +273,12 @@ impl Parser {
                 self.expect(Tok::RParen, "«)» بعد المعاملات")?;
                 let body = self.block()?;
                 self.end_stmt()?;
-                StmtKind::FnDecl { name, params, body }
+                StmtKind::FnDecl {
+                    name,
+                    name_span,
+                    params,
+                    body,
+                }
             }
             Tok::Kw(Kw::Return) => {
                 self.advance();

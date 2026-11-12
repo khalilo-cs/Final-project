@@ -45,6 +45,7 @@ pub enum StmtKind {
     },
     FnDecl {
         name: String,
+        name_span: Span,
         params: Vec<(String, Span)>,
         body: Block,
     },

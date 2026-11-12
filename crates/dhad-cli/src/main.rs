@@ -151,15 +151,22 @@ fn check_file(opts: &Opts) -> ExitCode {
         Ok(v) => v,
         Err(c) => return c,
     };
-    match dhad_syntax::parse(&src) {
-        Ok(p) => {
-            println!("✔ {path}: لا أخطاء نحوية ({} جملة)", p.stmts.len());
-            ExitCode::SUCCESS
-        }
-        Err(e) => {
-            report(&e, &src, &path);
-            ExitCode::from(1)
-        }
+    let analysis = dhad_analysis::analyze(&src);
+    let errors = analysis
+        .diagnostics
+        .iter()
+        .filter(|d| d.severity == dhad_diagnostics::Severity::Error)
+        .count();
+    let warnings = analysis.diagnostics.len() - errors;
+    for d in &analysis.diagnostics {
+        report(d, &src, &path);
+    }
+    if errors == 0 {
+        println!("✔ {path}: لا أخطاء — {warnings} تحذير");
+        ExitCode::SUCCESS
+    } else {
+        eprintln!("✘ {path}: {errors} خطأ — {warnings} تحذير");
+        ExitCode::from(1)
     }
 }
 

@@ -4,8 +4,10 @@ members = [
     "crates/dhad-diagnostics",
     "crates/dhad-syntax",
     "crates/dhad-interp",
+    "crates/dhad-analysis",
     "crates/dhad-cli",
     "crates/dhad-wasm",
+    "crates/dhad-lsp",
 ]
 
 [workspace.package]
@@ -19,6 +21,7 @@ authors = ["مشروع ضاد"]
 dhad-diagnostics = { path = "crates/dhad-diagnostics" }
 dhad-syntax = { path = "crates/dhad-syntax" }
 dhad-interp = { path = "crates/dhad-interp" }
+dhad-analysis = { path = "crates/dhad-analysis" }
 unicode-normalization = "0.1"
 
 [profile.release]

@@ -13,3 +13,4 @@ crate-type = ["cdylib", "rlib"]
 dhad-diagnostics = { workspace = true }
 dhad-syntax = { workspace = true }
 dhad-interp = { workspace = true }
+dhad-analysis = { workspace = true }

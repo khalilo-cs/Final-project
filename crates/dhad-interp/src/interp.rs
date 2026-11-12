@@ -258,7 +258,9 @@ impl Interp {
                     }
                 }
             }
-            StmtKind::FnDecl { name, params, body } => {
+            StmtKind::FnDecl {
+                name, params, body, ..
+            } => {
                 let f = Function {
                     name: name.clone(),
                     params: params.iter().map(|(p, _)| p.clone()).collect(),

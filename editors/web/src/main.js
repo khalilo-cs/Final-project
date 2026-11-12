@@ -108,15 +108,15 @@ let lastError = null;
 const liveLinter = linter(async (view) => {
   let res;
   try { res = await ask({ kind: "check", src: view.state.doc.toString() }, 2000); } catch { return []; }
-  if (res.ok || !res.error) return [];
-  const e = res.error;
   const len = view.state.doc.length;
-  const from = Math.min(e.from ?? 0, len);
-  return [{
-    from, to: Math.max(from, Math.min(e.to ?? from, len)),
-    severity: "error",
-    message: `${e.codeStr}: ${e.message}${e.help ? "\nمساعدة: " + e.help : ""}`,
-  }];
+  return (res.diagnostics || []).map((e) => {
+    const from = Math.min(e.from ?? 0, len);
+    return {
+      from, to: Math.max(from, Math.min(e.to ?? from, len)),
+      severity: e.severity === "warning" ? "warning" : "error",
+      message: `${e.codeStr}: ${e.message}${e.help ? "\nمساعدة: " + e.help : ""}`,
+    };
+  });
 }, { delay: 350 });
 
 // ---------------- المحرر ----------------

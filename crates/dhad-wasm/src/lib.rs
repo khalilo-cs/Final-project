@@ -159,13 +159,21 @@ pub fn run_json(src: &str, fuel: Option<u64>) -> String {
     }
 }
 
-/// فحص نحوي فقط (للتشخيص الفوري أثناء الكتابة): {ok, error?}
+/// فحص ثابت (للتشخيص الفوري أثناء الكتابة): {ok, diagnostics: [...]}
+/// `ok` خطأ إن وُجد خطأ واحد على الأقل؛ التحذيرات لا تؤثر فيه.
 pub fn check_json(src: &str) -> String {
     let src = dhad_syntax::normalize_source(src);
-    match dhad_syntax::parse(&src) {
-        Ok(_) => "{\"ok\":true}".to_string(),
-        Err(e) => format!("{{\"ok\":false,\"error\":{}}}", diag_json(&e, &src)),
-    }
+    let analysis = dhad_analysis::analyze(&src);
+    let ok = !analysis
+        .diagnostics
+        .iter()
+        .any(|d| d.severity == dhad_diagnostics::Severity::Error);
+    let items: Vec<String> = analysis
+        .diagnostics
+        .iter()
+        .map(|d| diag_json(d, &src))
+        .collect();
+    format!("{{\"ok\":{ok},\"diagnostics\":[{}]}}", items.join(","))
 }
 
 /// # Safety
@@ -249,5 +257,10 @@ mod tests {
     #[test]
     fn check_reports_syntax_error() {
         assert!(check_json("دع = ").contains("\"ok\":false"));
+        let w = check_json("دع س = ١");
+        assert!(
+            w.contains("\"ok\":true") && w.contains("\"code\":3001"),
+            "{w}"
+        );
     }
 }
