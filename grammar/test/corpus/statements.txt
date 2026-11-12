@@ -1,0 +1,160 @@
+================================================================================
+تعريف متغير وثابت
+================================================================================
+
+دع العمر = ٢٥
+ثابت ط = ٣٫١٤
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (let_declaration
+    name: (identifier)
+    value: (number))
+  (const_declaration
+    name: (identifier)
+    value: (number)))
+
+================================================================================
+إذا مع وإلا إذا ووإلا (على أسطر منفصلة أيضًا)
+================================================================================
+
+إذا س > ٠ {
+    اطبع("موجب")
+} وإلا إذا س < ٠ {
+    اطبع("سالب")
+}
+وإلا {
+    اطبع("صفر")
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (if_statement
+    condition: (binary_expression
+      left: (identifier)
+      right: (number))
+    consequence: (block
+      (expression_statement
+        (call_expression
+          function: (identifier)
+          arguments: (arguments
+            (string
+              (string_content))))))
+    alternative: (else_if_clause
+      condition: (binary_expression
+        left: (identifier)
+        right: (number))
+      consequence: (block
+        (expression_statement
+          (call_expression
+            function: (identifier)
+            arguments: (arguments
+              (string
+                (string_content)))))))
+    alternative: (else_clause
+      body: (block
+        (expression_statement
+          (call_expression
+            function: (identifier)
+            arguments: (arguments
+              (string
+                (string_content)))))))))
+
+================================================================================
+دالة وحلقة على مدى وإرجاع
+================================================================================
+
+دالة أولي؟(ع) {
+    لكل ق في ٢..ع {
+        إذا ع % ق == ٠ { أرجع خطأ }
+    }
+    أرجع صحيح
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    name: (identifier)
+    parameters: (parameters
+      (identifier))
+    body: (block
+      (for_statement
+        variable: (identifier)
+        iterable: (range_expression
+          start: (number)
+          end: (identifier))
+        body: (block
+          (if_statement
+            condition: (binary_expression
+              left: (binary_expression
+                left: (identifier)
+                right: (identifier))
+              right: (number))
+            consequence: (block
+              (return_statement
+                (false))))))
+      (return_statement
+        (true)))))
+
+================================================================================
+طالما مع توقف واستمر وإسناد
+================================================================================
+
+طالما صحيح {
+    س = س + ١
+    إذا س == ٢ { استمر }
+    توقف
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (while_statement
+    condition: (true)
+    body: (block
+      (assignment
+        left: (identifier)
+        right: (binary_expression
+          left: (identifier)
+          right: (number)))
+      (if_statement
+        condition: (binary_expression
+          left: (identifier)
+          right: (number))
+        consequence: (block
+          (continue_statement)))
+      (break_statement))))
+
+================================================================================
+استيراد واستدعاء عضو وكتلة اختبار
+================================================================================
+
+استورد رياضيات
+اختبر "الجذر" {
+    تأكد(رياضيات.جذر(٩) == ٣)
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (import_statement
+    module: (identifier))
+  (test_block
+    name: (string
+      (string_content))
+    body: (block
+      (expression_statement
+        (call_expression
+          function: (identifier)
+          arguments: (arguments
+            (binary_expression
+              left: (call_expression
+                function: (member_expression
+                  object: (identifier)
+                  property: (identifier))
+                arguments: (arguments
+                  (number)))
+              right: (number))))))))

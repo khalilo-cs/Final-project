@@ -1,0 +1,23 @@
+{
+  "name": "tree-sitter-dhad",
+  "version": "0.1.0",
+  "description": "قواعد Tree-sitter للغة ضاد العربية",
+  "main": "bindings/node",
+  "license": "MIT",
+  "scripts": {
+    "generate": "tree-sitter generate",
+    "test": "tree-sitter generate && tree-sitter test"
+  },
+  "tree-sitter": [
+    {
+      "scope": "source.dhad",
+      "file-types": [
+        "ضاد",
+        "dhad"
+      ]
+    }
+  ],
+  "devDependencies": {
+    "tree-sitter-cli": "0.25.10"
+  }
+}

@@ -1,0 +1,118 @@
+================================================================================
+أولوية العمليات: الضرب قبل الجمع، والمدى أدنى من الحساب
+================================================================================
+
+١ + ٢ * ٣
+٢..ن + ١
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (expression_statement
+    (binary_expression
+      left: (number)
+      right: (binary_expression
+        left: (number)
+        right: (number))))
+  (expression_statement
+    (range_expression
+      start: (number)
+      end: (binary_expression
+        left: (identifier)
+        right: (number)))))
+
+================================================================================
+عمليات منطقية ونفي
+================================================================================
+
+أ و ليس ب أو ج
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (expression_statement
+    (binary_expression
+      left: (binary_expression
+        left: (identifier)
+        right: (unary_expression
+          operand: (identifier)))
+      right: (identifier))))
+
+================================================================================
+نص مع دمج تعبير وعلامة دولار منفردة ونص بعلامات عربية
+================================================================================
+
+"س = ${س * ٢}، السعر ٥$"
+«مرحبا»
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (expression_statement
+    (string
+      (string_content)
+      (interpolation
+        (binary_expression
+          left: (identifier)
+          right: (number)))
+      (string_content)
+      (string_content)))
+  (expression_statement
+    (string
+      (string_content))))
+
+================================================================================
+قائمة وقاموس متعدد الأسطر وفهرسة
+================================================================================
+
+دع ق = [١، 2, ٣]
+دع ط = {
+    "اسم": "ليلى"،
+    "العمر": ١٧
+}
+ط["اسم"]
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (let_declaration
+    name: (identifier)
+    value: (list
+      (number)
+      (number)
+      (number)))
+  (let_declaration
+    name: (identifier)
+    value: (dictionary
+      (pair
+        key: (string
+          (string_content))
+        value: (string
+          (string_content)))
+      (pair
+        key: (string
+          (string_content))
+        value: (number))))
+  (expression_statement
+    (index_expression
+      object: (identifier)
+      index: (string
+        (string_content)))))
+
+================================================================================
+استدعاء معاملاته على عدة أسطر وتعليق
+================================================================================
+
+اطبع(١،
+     ٢)  # تعليق
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (expression_statement
+    (call_expression
+      function: (identifier)
+      arguments: (arguments
+        (number)
+        (number))))
+  (comment))

@@ -1,0 +1,20 @@
+{
+  "grammars": [
+    {
+      "name": "dhad",
+      "camelcase": "Dhad",
+      "scope": "source.dhad",
+      "path": ".",
+      "file-types": ["ضاد", "dhad"],
+      "highlights": "queries/highlights.scm",
+      "injection-regex": "^(dhad|ضاد)$"
+    }
+  ],
+  "metadata": {
+    "version": "0.1.0",
+    "license": "MIT",
+    "description": "قواعد Tree-sitter للغة ضاد العربية",
+    "links": { "repository": "https://github.com/khalilo-cs/Final-project" }
+  },
+  "bindings": { "c": false, "go": false, "node": false, "python": false, "rust": false, "swift": false }
+}
