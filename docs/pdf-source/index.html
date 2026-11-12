@@ -1,0 +1,1023 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<title>منصة ضاد — وثيقة مشروع التخرج الشاملة</title>
+<style>
+  :root{
+    --ink:#14213d; --ink2:#2b3a67; --muted:#5b6478; --line:#dfe3ec;
+    --p:#0f4c5c; --p2:#1b6f80; --pl:#e6f1f3; --gold:#c9a227; --goldl:#fbf5e3;
+    --ok:#1f7a4d; --okl:#e7f5ec; --warn:#b4530a; --warnl:#fdf0e3; --bad:#9b2226; --badl:#fbe9e9;
+    --code:#f6f8fb;
+  }
+  @page{ size:A4; margin:18mm 16mm 20mm 16mm; }
+  @page :first{ margin:0; }
+  .mark{font-size:3px;color:transparent;unicode-bidi:isolate;font-family:"DejaVu Sans Mono",monospace}
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{font-family:"Noto Sans Arabic","Cairo",sans-serif;color:var(--ink);font-size:11.2pt;line-height:1.85;background:#fff}
+  h1,h2,h3,h4{font-family:"Cairo","Noto Sans Arabic",sans-serif;color:var(--ink);line-height:1.45;margin:0}
+  h1{font-size:26pt;font-weight:800}
+  h2{font-size:18pt;font-weight:800;color:var(--p);margin:0 0 10pt;padding-bottom:6pt;border-bottom:2.5pt solid var(--gold);break-after:avoid}
+  h3{font-size:13.5pt;font-weight:700;color:var(--ink2);margin:16pt 0 6pt;break-after:avoid}
+  h4{font-size:11.8pt;font-weight:700;color:var(--p2);margin:12pt 0 4pt;break-after:avoid}
+  p{margin:0 0 8pt;text-align:justify}
+  ul,ol{margin:0 0 8pt;padding-right:20pt}
+  li{margin-bottom:3pt}
+  strong{color:var(--ink)}
+  .ltr{direction:ltr;unicode-bidi:isolate;font-family:"DejaVu Sans Mono","Noto Sans Mono",monospace;font-size:9.6pt}
+  code{font-family:"Noto Sans Arabic","DejaVu Sans Mono",monospace;background:var(--code);padding:1pt 5pt;border-radius:4pt;font-size:10pt;unicode-bidi:isolate}
+  pre{direction:rtl;text-align:right;background:var(--code);border:1pt solid var(--line);border-right:4pt solid var(--p);border-radius:6pt;padding:10pt 14pt;font-family:"Noto Sans Arabic","DejaVu Sans Mono",monospace;font-size:10pt;line-height:1.9;white-space:pre-wrap;margin:6pt 0 12pt;break-inside:avoid}
+  pre.ltr{direction:ltr;text-align:left;border-right:1pt solid var(--line);border-left:4pt solid var(--p)}
+  .section{break-before:page}
+  .section:first-of-type{break-before:auto}
+  .num{display:inline-block;min-width:34pt;color:var(--gold);font-weight:800}
+  table{width:100%;border-collapse:collapse;margin:6pt 0 14pt;font-size:10pt;break-inside:auto}
+  thead{display:table-header-group}
+  tr{break-inside:avoid}
+  th{background:var(--p);color:#fff;font-weight:700;padding:6pt 8pt;text-align:right;font-family:"Cairo",sans-serif}
+  td{padding:5.5pt 8pt;border-bottom:1pt solid var(--line);vertical-align:top}
+  tbody tr:nth-child(even) td{background:#f8fafc}
+  table.compact td,table.compact th{padding:4pt 6pt;font-size:9.5pt}
+  .callout{border-radius:8pt;padding:10pt 14pt;margin:10pt 0 12pt;border-right:5pt solid;break-inside:avoid}
+  .callout .t{font-family:"Cairo",sans-serif;font-weight:800;margin-bottom:3pt;display:block}
+  .info{background:var(--pl);border-color:var(--p)}
+  .gold{background:var(--goldl);border-color:var(--gold)}
+  .ok{background:var(--okl);border-color:var(--ok)}
+  .warn{background:var(--warnl);border-color:var(--warn)}
+  .bad{background:var(--badl);border-color:var(--bad)}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10pt;margin:6pt 0 12pt}
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10pt;margin:6pt 0 12pt}
+  .card{border:1pt solid var(--line);border-top:4pt solid var(--p);border-radius:8pt;padding:10pt 12pt;break-inside:avoid;background:#fff}
+  .card h4{margin:0 0 4pt;color:var(--p)}
+  .card.g{border-top-color:var(--gold)}
+  .card p{font-size:10.2pt;margin:0}
+  .tag{display:inline-block;font-size:8.6pt;font-weight:700;padding:1pt 7pt;border-radius:10pt;margin-left:3pt;font-family:"Cairo",sans-serif}
+  .must{background:#fde8e8;color:#9b2226}.should{background:#fdf0e3;color:#b4530a}.could{background:#e6f1f3;color:#0f4c5c}.wont{background:#eceff4;color:#5b6478}
+  .fig{margin:8pt 0 14pt;break-inside:avoid;text-align:center}
+  .fig svg{max-width:100%;height:auto}
+  .cap{font-size:9.5pt;color:var(--muted);margin-top:4pt;text-align:center}
+  .small{font-size:9.5pt;color:var(--muted)}
+  .kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:8pt;margin:8pt 0 12pt}
+  .kpi div{background:var(--pl);border-radius:8pt;padding:8pt 6pt;text-align:center}
+  .kpi b{display:block;font-family:"Cairo",sans-serif;font-size:19pt;color:var(--p);line-height:1.2}
+  .kpi span{font-size:9.2pt;color:var(--muted)}
+  hr.soft{border:0;border-top:1pt solid var(--line);margin:12pt 0}
+  .toc ol{list-style:none;padding:0;counter-reset:toc}
+  .toc li{display:flex;justify-content:space-between;border-bottom:1pt dotted var(--line);padding:3pt 0;font-size:10.8pt;line-height:1.7}
+  .toc li span:first-child{font-weight:700}
+  .toc li.sub{padding-right:16pt;font-size:9.8pt;font-weight:400;color:var(--muted)}
+  .toc li.sub span:first-child{font-weight:400}
+
+  /* cover */
+  .cover{width:210mm;height:297mm;position:relative;overflow:hidden;background:linear-gradient(160deg,#0b3a47 0%,#0f4c5c 45%,#14213d 100%);color:#fff;padding:34mm 24mm 28mm;display:flex;flex-direction:column;justify-content:space-between;break-after:page}
+  .cover .brand{font-family:"Amiri",serif;font-size:96pt;line-height:1;font-weight:700;color:#fff;letter-spacing:-1pt}
+  .cover .brand small{font-family:"Cairo",sans-serif;font-size:16pt;font-weight:600;color:var(--gold);display:block;letter-spacing:4pt;margin-top:6pt}
+  .cover h1{color:#fff;font-size:24pt;margin-top:18pt}
+  .cover .sub{font-size:13pt;color:#d9e6ea;margin-top:8pt;max-width:135mm;line-height:1.7}
+  .cover .meta{font-size:11pt;color:#d9e6ea;border-top:1pt solid rgba(255,255,255,.25);padding-top:10pt;display:grid;grid-template-columns:1fr 1fr;gap:4pt 20pt}
+  .cover .meta b{color:var(--gold);font-weight:700;display:block;font-size:9.6pt}
+  .cover .ring{position:absolute;left:-60mm;top:-40mm;width:170mm;height:170mm;border-radius:50%;border:28mm solid rgba(201,162,39,.12)}
+  .cover .ring2{position:absolute;left:30mm;bottom:-70mm;width:140mm;height:140mm;border-radius:50%;border:18mm solid rgba(255,255,255,.06)}
+  .cover .badge{display:inline-block;background:rgba(201,162,39,.18);border:1pt solid var(--gold);color:#fff;border-radius:20pt;padding:3pt 12pt;font-size:9.8pt;font-family:"Cairo",sans-serif;font-weight:700;margin-left:4pt}
+
+  .quote{font-family:"Amiri",serif;font-size:14pt;color:var(--ink2);background:var(--goldl);border-radius:8pt;padding:12pt 18pt;margin:10pt 0 14pt;border-right:5pt solid var(--gold);break-inside:avoid}
+  .req td:first-child{font-family:"Cairo",sans-serif;font-weight:700;color:var(--p);white-space:nowrap}
+  .ms{display:flex;gap:6pt;margin:8pt 0 14pt}
+  .ms div{flex:1;background:var(--pl);border-radius:8pt;padding:7pt 6pt;text-align:center;font-size:9.4pt;border-top:4pt solid var(--p)}
+  .ms div b{display:block;font-family:"Cairo",sans-serif;font-size:11pt;color:var(--p)}
+  .refs{list-style:none;padding:0;counter-reset:r}
+  .refs li{position:relative;padding-right:24pt;margin-bottom:4pt}
+  .refs li::before{counter-increment:r;content:counter(r) ".";position:absolute;right:0;top:0;color:var(--gold);font-weight:800;font-family:"Cairo",sans-serif}
+  .refs li[dir="ltr"]{direction:ltr;text-align:left;padding-right:0;padding-left:24pt}
+  .refs li[dir="ltr"]::before{right:auto;left:0}
+  .footer-note{font-size:9pt;color:var(--muted);text-align:center;margin-top:16pt}
+  .kw td:nth-child(2){font-family:"DejaVu Sans Mono",monospace;direction:ltr;text-align:left;font-size:9.4pt;color:var(--ink2)}
+</style>
+</head>
+<body>
+
+<!-- ======================= COVER ======================= -->
+<section class="cover">
+  <div class="ring"></div><div class="ring2"></div>
+  <div>
+    <span class="badge">مشروع تخرج — بكالوريوس علوم الحاسب</span>
+    <span class="badge">الإصدار 2.0 — نوفمبر 2026</span>
+    <div class="brand" style="margin-top:22mm">ضاد<small>DHAD · ARABIC PROGRAMMING PLATFORM</small></div>
+    <h1>منصة برمجة عربية متكاملة</h1>
+    <div class="sub">لغة برمجة عربية بمحلل نحوي تزايدي، مفسر، مترجم إلى WebAssembly، خادم لغة (LSP)، محرر ويب بدعم RTL/BiDi أصيل، شارح أخطاء ذكي مقيَّد بالتوثيق، وبيئة تعلم تفاعلية — مع خطة تقييم تجريبي كاملة.</div>
+  </div>
+  <div class="meta">
+    <div><b>إعداد الطالب</b> ______________________</div>
+    <div><b>المشرف الأكاديمي</b> ______________________</div>
+    <div><b>القسم / الكلية</b> علوم الحاسب — ______________________</div>
+    <div><b>العام الأكاديمي</b> 2026 / 2027 — فصلان دراسيان</div>
+  </div>
+</section>
+
+<!-- ======================= TOC ======================= -->
+<section class="toc">
+  <h2>المحتويات</h2>
+  <p class="small" style="margin:0 0 8pt">جميع القرارات التصميمية الواردة في هذه الوثيقة مرشحة للمراجعة مع المشرف قبل الأسبوع الثالث من الفصل الأول.</p>
+  <ol>
+    <li><span>1. الملخص التنفيذي</span><span data-sec="S01"></span></li>
+    <li><span>2. المشكلة والدافع</span><span data-sec="S02"></span></li>
+    <li><span>3. تحليل الوضع الحالي والفجوة البحثية</span><span data-sec="S03"></span></li>
+    <li><span>4. الرؤية والأهداف ومعايير النجاح</span><span data-sec="S04"></span></li>
+    <li><span>5. البنية المعمارية للمنصة</span><span data-sec="S05"></span></li>
+    <li><span>6. الطبقة الأولى: النواة اللغوية</span><span data-sec="S06"></span></li>
+    <li class="sub"><span>تصميم اللغة، الكلمات المفتاحية، سياسة الأرقام وUnicode، أكواد الأخطاء، المفسر، مسار WASM</span><span></span></li>
+    <li><span>7. الطبقة الثانية: أدوات المطور</span><span data-sec="S07"></span></li>
+    <li class="sub"><span>خادم LSP، إضافة VS Code، محرر الويب وطبقة BiDi، المنسّق، المدقق، ساحة التجريب</span><span></span></li>
+    <li><span>8. الطبقة الثالثة: الذكاء الاصطناعي المساعد</span><span data-sec="S08"></span></li>
+    <li><span>9. الطبقة الرابعة: بيئة التعلم</span><span data-sec="S09"></span></li>
+    <li><span>10. الجودة الهندسية والأمان وإتاحة الوصول</span><span data-sec="S10"></span></li>
+    <li><span>11. التقييم التجريبي ودراسة المستخدمين</span><span data-sec="S11"></span></li>
+    <li><span>12. المتطلبات الوظيفية وغير الوظيفية</span><span data-sec="S12"></span></li>
+    <li><span>13. خطة التنفيذ (فصلان دراسيان) والمعالم</span><span data-sec="S13"></span></li>
+    <li><span>14. ترتيب الأولويات (MoSCoW) ونطاق MVP</span><span data-sec="S14"></span></li>
+    <li><span>15. التقنيات وهيكلة المستودع</span><span data-sec="S15"></span></li>
+    <li><span>16. المخاطر وخطة التخفيف</span><span data-sec="S16"></span></li>
+    <li><span>17. التموضع أمام اللجنة والأسئلة المتوقعة</span><span data-sec="S17"></span></li>
+    <li><span>18. المراجع</span><span data-sec="S18"></span></li>
+    <li><span>الملحق أ — مسودة مواصفة اللغة (EBNF)</span><span data-sec="SA"></span></li>
+    <li><span>الملحق ب — فهرس أكواد الأخطاء الأولي</span><span data-sec="SB"></span></li>
+    <li><span>الملاحق ج، د، هـ — قالب ADR، استبيان SUS، قاموس المصطلحات</span><span data-sec="SC"></span></li>
+  </ol>
+</section>
+
+<!-- ======================= 1 ======================= -->
+<section class="section">
+  <h2><span class="num">1</span>الملخص التنفيذي<span class="mark" dir="ltr">QQS01QQ</span></h2>
+  <p>يقترح هذا المشروع بناء <strong>منصة برمجة عربية متكاملة</strong> تحمل الاسم المقترح «ضاد» — نسبةً إلى الحرف الذي تُعرف به العربية بوصفها «لغة الضاد». المنصة ليست «لغة برمجة عربية أخرى»، بل نظام بيئي كامل يجعل الكتابة البرمجية بالعربية ممكنة عمليًا خارج نطاق الأمثلة التعليمية: من لحظة كتابة أول حرف في المحرر، مرورًا بالتحليل والتنفيذ والترجمة إلى WebAssembly، وصولًا إلى فهم الخطأ وتصحيحه بمساعدة ذكية مقيَّدة.</p>
+  <p>تتكون المنصة من <strong>أربع طبقات هندسية أساسية</strong> تدعمها ثلاث طبقات تمكينية:</p>
+  <div class="grid2">
+    <div class="card"><h4>1 · النواة اللغوية</h4><p>قواعد Tree-sitter تزايدية، مفسر Tree-walking بلغة Rust، مولّد WebAssembly، مكتبة قياسية عربية مصغّرة، ونظام أكواد أخطاء موثَّق.</p></div>
+    <div class="card"><h4>2 · أدوات المطور</h4><p>خادم LSP (إكمال، تشخيص، تلميحات، انتقال للتعريف)، إضافة VS Code، منسّق ومدقق، ومحرر ويب بطبقة BiDi مخصصة.</p></div>
+    <div class="card"><h4>3 · الذكاء الاصطناعي المساعد</h4><p>شارح أخطاء عربي يعتمد على التوثيق الرسمي للغة (RAG) مع تلميحات تربوية متدرجة وحارس جودة — LLM كمساعد لا كمترجم.</p></div>
+    <div class="card"><h4>4 · التقييم التجريبي</h4><p>أداء WASM مقابل المفسر، زمن استجابة LSP، صحة BiDi، فهم رسائل الخطأ، وقابلية الاستخدام (SUS) في دراسة مستخدمين حقيقية.</p></div>
+  </div>
+  <p>والطبقات التمكينية: <strong>بيئة تعلم</strong> (دروس تفاعلية بمصحّح آلي في المتصفح)، <strong>جودة هندسية</strong> (تكامل مستمر، اختبارات golden، fuzzing، قياسات أداء آلية، سجل قرارات معمارية)، و<strong>أمان وإتاحة وصول</strong> (حدود موارد لتشغيل كود المستخدمين، دعم قارئات الشاشة، خط برمجي عربي).</p>
+  <div class="kpi">
+    <div><b>4+3</b><span>طبقات معمارية</span></div>
+    <div><b>2</b><span>أهداف تنفيذ: مفسر + WASM</span></div>
+    <div><b>28</b><span>أسبوع عمل مخطط</span></div>
+    <div><b>9</b><span>مقاييس تقييم كمية</span></div>
+  </div>
+  <div class="callout gold"><span class="t">الفجوة التي يسدّها المشروع</span>لا توجد اليوم لغة عربية تجمع في آنٍ واحد: نواة بسيطة قابلة للتوسع ومتعددة الأهداف، وأدوات مطور حقيقية مبنية حول محلل تزايدي، ودعمًا هندسيًا أصيلًا لاتجاه الكتابة من اليمين إلى اليسار، ومساعدة ذكية للمبتدئين لا تمسّ حتمية المترجم. المشاريع السابقة إما بنت لغة تعليمية أحادية الهدف (Alif) أو لغة أنظمة معقدة (SultanC)؛ لم يبنِ أحد «النظام البيئي الوسيط».</div>
+  <p><strong>الحد الأدنى القابل للتسليم (MVP):</strong> لغة تعمل + مفسر + REPL + أكواد أخطاء موثقة + خادم LSP أساسي + محرر ويب يعرض الكود العربي بشكل صحيح + تكامل مستمر. كل ما عدا ذلك مرتَّب بأولوية صريحة (MoSCoW) بحيث لا يهدد أي تأخير جوهرَ المشروع.</p>
+</section>
+
+<!-- ======================= 2 ======================= -->
+<section class="section">
+  <h2><span class="num">2</span>المشكلة والدافع<span class="mark" dir="ltr">QQS02QQ</span></h2>
+  <h3>2.1 لماذا البرمجة بالعربية؟</h3>
+  <p>تشير أدبيات تعليم البرمجة إلى أن العبء المعرفي على المبتدئ يتضاعف حين يتعلم مفهومًا جديدًا (المتغير، الحلقة، الدالة) بلغة أجنبية في الوقت نفسه. الطالب الناطق بالعربية في مراحله الأولى لا يصارع «منطق البرمجة» فقط بل يصارع المفردات الإنجليزية ورسائل الخطأ الإنجليزية معًا. لغة برمجة بالعربية لا تهدف إلى استبدال اللغات العالمية في سوق العمل، بل إلى <strong>إزالة الحاجز الأول</strong> وجعل المفهوم البرمجي يصل مباشرة.</p>
+  <h3>2.2 لماذا فشلت المحاولات السابقة في الانتشار؟</h3>
+  <p>المشكلة لم تكن يومًا في «ترجمة الكلمات المفتاحية». تحليل المشاريع القائمة يكشف أن ما ينقصها هو ما يحيط باللغة:</p>
+  <ul>
+    <li><strong>غياب الأدوات:</strong> لا إكمال تلقائي، لا تشخيص فوري، لا تكامل مع المحررات الحديثة. المستخدم يكتب في محرر نصوص عادي ويشغّل من سطر الأوامر.</li>
+    <li><strong>العرض المكسور للنص المختلط:</strong> خوارزمية Unicode BiDi تُفسد عرض أي سطر يخلط العربية بالرموز والأرقام والمعرّفات اللاتينية، فتبدو الأقواس معكوسة والعمليات الحسابية مقلوبة. هذا وحده يكفي لإحباط المبتدئ.</li>
+    <li><strong>رسائل خطأ غير مفهومة:</strong> حتى حين تكون الرسالة بالعربية، تظل تقنية وجافة ولا تشرح للمبتدئ ماذا يفعل.</li>
+    <li><strong>غياب التقييم:</strong> معظم المشاريع تُقدَّم كعرض توضيحي بلا قياس لأثرها الفعلي على التعلم أو لأدائها الحقيقي.</li>
+  </ul>
+  <h3>2.3 الفرضية المركزية للمشروع</h3>
+  <div class="quote">«قيمة لغة البرمجة العربية لا تكمن في اللغة نفسها، بل في النظام البيئي الذي يحيط بها: أدوات تعمل، عرض صحيح، أخطاء مفهومة، وتعلم مُوجَّه. إذا بُنيت هذه الطبقات هندسيًا — لا كإضافات لاحقة — تصبح العربية صالحة للبرمجة الحقيقية.»</div>
+  <h3>2.4 لمن هذه المنصة؟ (الشخصيات المستهدفة)</h3>
+  <table>
+    <thead><tr><th style="width:18%">الشخصية</th><th>الوصف</th><th style="width:34%">ما تحتاجه من المنصة</th></tr></thead>
+    <tbody>
+      <tr><td>ليلى — طالبة ثانوية</td><td>تتعلم البرمجة لأول مرة، إنجليزيتها متوسطة، تستخدم المتصفح فقط.</td><td>ساحة تجريب بلا تثبيت، دروس تفاعلية، أخطاء مشروحة ببساطة.</td></tr>
+      <tr><td>أحمد — معلم حاسب</td><td>يدرّس 30 طالبًا، يريد تمارين تُصحَّح آليًا ويتابع تقدم الطلاب.</td><td>مصحّح آلي، روابط مشاركة، مكتبة تمارين، تشغيل آمن للكود.</td></tr>
+      <tr><td>سارة — طالبة جامعية</td><td>تعرف Python، تريد أداة حقيقية بمحرر حديث لمشروع صغير بالعربية.</td><td>إضافة VS Code، إكمال تلقائي، منسّق، أداء مقبول (WASM).</td></tr>
+      <tr><td>د. خالد — باحث</td><td>مهتم بتعليم البرمجة وبالذكاء الاصطناعي في التعليم.</td><td>بيانات تقييم قابلة لإعادة الإنتاج، كود مفتوح، منهجية موثقة.</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ======================= 3 ======================= -->
+<section class="section">
+  <h2><span class="num">3</span>تحليل الوضع الحالي والفجوة البحثية<span class="mark" dir="ltr">QQS03QQ</span></h2>
+  <h3>3.1 اللغات العربية القائمة</h3>
+  <table>
+    <thead><tr><th style="width:13%">اللغة</th><th>النهج التقني</th><th>نقطة القوة</th><th>القيد</th></tr></thead>
+    <tbody>
+      <tr><td><strong>ألف (Alif)</strong></td><td>مبنية من الصفر بلغة C++‎، متعددة المنصات، كائنية التوجه</td><td>بيئة تطوير (Alif Studio)، مجتمع نشط، تتجنب عمدًا Lex/Yacc/LLVM</td><td>مترجم أحادي الهدف؛ لا WASM ولا LLVM؛ لا خادم LSP</td></tr>
+      <tr><td><strong>SultanC</strong></td><td>لغة أنظمة ذاتية الاستضافة، كلمات مفتاحية عربية وإنجليزية، ملكية وأنواع جبرية</td><td>توليد أصلي (ELF, Mach-O, PE, WASM)، تمثيل وسيط موثَّق (MSIR)</td><td>معقدة (شبيهة بـ Rust)؛ غير موجهة للمبتدئين؛ لا بيئة ويب</td></tr>
+      <tr><td><strong>زهراء (Zahra)</strong></td><td>مترجم موحد (VM + QBE + LLVM) مع مرحلة تحقق ZIR</td><td>تعدد أهداف التجميع</td><td>نضج أقل، مجتمع صغير</td></tr>
+      <tr><td><strong>عربي (arabi-lang)</strong></td><td>موزعة عبر pip، تدعم التزامن وخوادم ويب</td><td>سهولة التثبيت</td><td>مبنية فوق Python؛ ليست مستقلة تقنيًا</td></tr>
+      <tr><td><strong>العارب (Alarab)</strong></td><td>مبنية بلغة C بهدف الاستقلال التقني</td><td>استقلالية</td><td>معلومات غير كافية عن نضج الأدوات</td></tr>
+    </tbody>
+  </table>
+  <h3>3.2 مصفوفة الفجوة</h3>
+  <p>الجدول التالي يُظهر بوضوح موضع «ضاد» مقارنةً بأقرب مشروعين، وهو الشريحة التي تُعرض للجنة عند سؤال «ما الجديد؟».</p>
+  <table class="compact">
+    <thead><tr><th>الخاصية</th><th>Alif</th><th>SultanC</th><th>APL (بحث 2025)</th><th>ضاد (المقترح)</th></tr></thead>
+    <tbody>
+      <tr><td>موجّهة للمبتدئين</td><td>✔</td><td>✘</td><td>✔</td><td>✔</td></tr>
+      <tr><td>محلل تزايدي (Tree-sitter)</td><td>✘</td><td>✘</td><td>✘</td><td>✔</td></tr>
+      <tr><td>خادم LSP + إضافة VS Code</td><td>✘</td><td>جزئي</td><td>✘</td><td>✔</td></tr>
+      <tr><td>هدف WebAssembly</td><td>✘</td><td>✔</td><td>✘</td><td>✔</td></tr>
+      <tr><td>تشغيل في المتصفح بلا تثبيت</td><td>✘</td><td>✘</td><td>✘</td><td>✔</td></tr>
+      <tr><td>طبقة BiDi هندسية في المحرر</td><td>✘</td><td>✘</td><td>✘</td><td>✔</td></tr>
+      <tr><td>أكواد أخطاء موثقة بالعربية</td><td>✘</td><td>✘</td><td>✘</td><td>✔</td></tr>
+      <tr><td>شرح أخطاء بـ LLM مقيَّد بالتوثيق</td><td>✘</td><td>✘</td><td>LLM كمترجم (غير حتمي)</td><td>✔ (LLM كمساعد فقط)</td></tr>
+      <tr><td>دروس + مصحّح آلي</td><td>✘</td><td>✘</td><td>✘</td><td>✔</td></tr>
+      <tr><td>تقييم تجريبي مع مستخدمين</td><td>✘</td><td>✘</td><td>جزئي</td><td>✔ (SUS + اختبار فهم)</td></tr>
+    </tbody>
+  </table>
+  <div class="callout info"><span class="t">تمييز منهجي مهم عن APL</span>مشروع APL البحثي (2025) استخدم نماذج اللغة الكبيرة كمترجم شبه آلي يحوّل الكود العربي إلى Python، أي أن سلوك «اللغة» غير حتمي ويتبدل بتبدل النموذج. في «ضاد» لا يلمس النموذجُ اللغويُّ منطقَ الترجمة إطلاقًا: المحلل والمفسر والمترجم حتميون بالكامل، والنموذج يشرح فقط خطأً اكتشفه المترجم، ومخرجاته تمر عبر حارس جودة قبل العرض. هذا الفصل هو ما يجعل الطبقة الثالثة قابلة للتقييم علميًا.</div>
+  <h3>3.3 الأعمال ذات الصلة خارج العالم العربي</h3>
+  <ul>
+    <li><strong>Hedy</strong> (هولندا): لغة تعليمية متدرجة تدعم كلمات مفتاحية بلغات متعددة منها العربية؛ تؤكد أن «الواجهة اللغوية» للمبتدئين مسألة بحثية جدية، لكنها تعمل فوق Python ولا تعالج مشكلة BiDi في المحرر ولا توفر LSP.</li>
+    <li><strong>Rust diagnostics</strong>: نموذج رسائل الخطأ المرقمة والموثقة (<span class="ltr">E0382</span> مثلًا) الذي يُستلهم منه نظام أكواد «ضاد».</li>
+    <li><strong>Python Tutor</strong>: متتبّع التنفيذ المرئي الذي يُستلهم منه مكوّن التصوّر في بيئة التعلم.</li>
+    <li><strong>أبحاث «Enhanced Compiler Error Messages»</strong> (Becker وآخرون): تُظهر أن تحسين صياغة رسائل الخطأ يقلل تكرار الأخطاء عند المبتدئين — الأساس النظري لتجربة الطبقة الثالثة.</li>
+  </ul>
+</section>
+
+<!-- ======================= 4 ======================= -->
+<section class="section">
+  <h2><span class="num">4</span>الرؤية والأهداف ومعايير النجاح<span class="mark" dir="ltr">QQS04QQ</span></h2>
+  <h3>4.1 الرؤية</h3>
+  <p>أن يتمكن أي ناطق بالعربية من فتح المتصفح وكتابة برنامج بلغته وتشغيله فورًا وفهم أخطائه بنفسه — بتجربة لا تقل جودةً عن أدوات اللغات العالمية.</p>
+  <h3>4.2 الأهداف (قابلة للقياس)</h3>
+  <table class="req">
+    <thead><tr><th style="width:10%">الرمز</th><th>الهدف</th><th style="width:30%">مؤشر الإنجاز</th></tr></thead>
+    <tbody>
+      <tr><td>هـ-1</td><td>تصميم لغة عربية صغيرة قابلة للتوسع بقواعد Tree-sitter رسمية ومفسر يعمل.</td><td>تحليل وتنفيذ 50 برنامجًا مرجعيًا بنجاح 100%</td></tr>
+      <tr><td>هـ-2</td><td>ترجمة مجموعة فرعية من اللغة إلى WebAssembly وتشغيلها في المتصفح.</td><td>تسريع ≥ 5× مقابل المفسر على خوارزميات رقمية</td></tr>
+      <tr><td>هـ-3</td><td>تقديم أدوات مطور حقيقية عبر LSP ومحرر ويب بعرض BiDi صحيح.</td><td>زمن استجابة p95 للإكمال &lt; 100ms؛ اجتياز 100% من حالات BiDi</td></tr>
+      <tr><td>هـ-4</td><td>بناء شارح أخطاء عربي مقيَّد بالتوثيق وقياس أثره على الفهم.</td><td>تحسّن دال إحصائيًا في اختبار الفهم مقابل الرسالة الخام</td></tr>
+      <tr><td>هـ-5</td><td>إثبات قابلية الاستخدام مع مستخدمين حقيقيين.</td><td>درجة SUS ≥ 70 (فوق المتوسط العالمي 68)</td></tr>
+      <tr><td>هـ-6</td><td>تسليم المشروع كمنتج مفتوح المصدر موثق وقابل لإعادة الإنتاج.</td><td>مستودع عام، CI أخضر، إصدار v1.0 موسوم، توثيق ثنائي اللغة</td></tr>
+    </tbody>
+  </table>
+  <h3>4.3 ما ليس ضمن النطاق (صراحةً)</h3>
+  <ul>
+    <li>بناء لغة أنظمة عالية الأداء منافسة لـ C/Rust — الهدف تعليمي وتطبيقي خفيف.</li>
+    <li>مترجم LLVM كامل — يُذكر كعمل مستقبلي، وقد يُنفَّذ نموذج أولي إن سمح الوقت.</li>
+    <li>الاستضافة الذاتية (كتابة مترجم ضاد بلغة ضاد) — عمل مستقبلي.</li>
+    <li>استخدام LLM لتوليد أو ترجمة الكود كجزء من مسار التنفيذ — مرفوض تصميميًا.</li>
+  </ul>
+  <h3>4.4 معايير النجاح أمام اللجنة</h3>
+  <div class="grid3">
+    <div class="card g"><h4>يعمل فعلًا</h4><p>عرض حي: كتابة برنامج عربي في المتصفح، تشغيله بالمفسر ثم بـ WASM، إحداث خطأ متعمد ورؤية شرحه.</p></div>
+    <div class="card g"><h4>مقاس كميًا</h4><p>جداول ورسوم من بيانات حقيقية: أداء، زمن استجابة، نتائج دراسة المستخدمين مع تحليل إحصائي.</p></div>
+    <div class="card g"><h4>مهندَس باحتراف</h4><p>مستودع منظم، اختبارات آلية، سجل قرارات، توثيق — لا «كود عرض» يعمل مرة واحدة.</p></div>
+  </div>
+</section>
+
+<!-- ======================= 5 ======================= -->
+<section class="section">
+  <h2><span class="num">5</span>البنية المعمارية للمنصة<span class="mark" dir="ltr">QQS05QQ</span></h2>
+  <p>تتبع المنصة معمارية طبقية: كل طبقة تعتمد على ما تحتها عبر واجهات واضحة، بحيث يمكن تسليم كل طبقة وتقييمها مستقلةً. <strong>شجرة Tree-sitter</strong> هي العمود الفقري المشترك: يستهلكها المفسر، والمترجم، وخادم LSP، والمنسّق، والمدقق — فلا يُكتب محلل مرتين.</p>
+  <div class="fig">
+    <svg viewBox="0 0 760 520" xmlns="http://www.w3.org/2000/svg" font-family="Cairo, Noto Sans Arabic, sans-serif" direction="rtl">
+      <defs>
+        <linearGradient id="g1" x1="0" x2="1"><stop offset="0" stop-color="#0f4c5c"/><stop offset="1" stop-color="#1b6f80"/></linearGradient>
+        <marker id="ar" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#5b6478"/></marker>
+      </defs>
+      <!-- Layer 4 users -->
+      <rect x="40" y="20" width="680" height="62" rx="10" fill="#fbf5e3" stroke="#c9a227" stroke-width="2"/>
+      <text x="700" y="45" text-anchor="start" font-size="15" font-weight="800" fill="#14213d">الطبقة الرابعة — بيئة التعلم والتقييم</text>
+      <text x="700" y="68" text-anchor="start" font-size="11.5" fill="#5b6478">دروس تفاعلية · مصحّح آلي · متتبّع تنفيذ مرئي · أدوات دراسة المستخدمين والقياس</text>
+      <!-- Layer 3 -->
+      <rect x="40" y="100" width="680" height="62" rx="10" fill="#e6f1f3" stroke="#0f4c5c" stroke-width="2"/>
+      <text x="700" y="125" text-anchor="start" font-size="15" font-weight="800" fill="#14213d">الطبقة الثالثة — الذكاء الاصطناعي المساعد</text>
+      <text x="700" y="148" text-anchor="start" font-size="11.5" fill="#5b6478">شارح أخطاء (RAG على توثيق اللغة) · تلميحات متدرجة · حارس جودة · تخزين مؤقت · نموذج سحابي أو محلي</text>
+      <!-- Layer 2 -->
+      <rect x="40" y="180" width="680" height="120" rx="10" fill="#fff" stroke="#0f4c5c" stroke-width="2"/>
+      <text x="700" y="205" text-anchor="start" font-size="15" font-weight="800" fill="#14213d">الطبقة الثانية — أدوات المطور</text>
+      <g font-size="11.5" fill="#14213d">
+        <rect x="560" y="222" width="140" height="60" rx="8" fill="#e6f1f3"/><text x="630" y="247" text-anchor="middle" font-weight="700">خادم LSP</text><text x="630" y="268" text-anchor="middle" font-size="10" fill="#5b6478">إكمال · تشخيص · تلميح</text>
+        <rect x="400" y="222" width="140" height="60" rx="8" fill="#e6f1f3"/><text x="470" y="247" text-anchor="middle" font-weight="700">إضافة VS Code</text><text x="470" y="268" text-anchor="middle" font-size="10" fill="#5b6478">تلوين · مقتطفات</text>
+        <rect x="240" y="222" width="140" height="60" rx="8" fill="#e6f1f3"/><text x="310" y="247" text-anchor="middle" font-weight="700">محرر ويب + BiDi</text><text x="310" y="268" text-anchor="middle" font-size="10" fill="#5b6478">CodeMirror 6 · ساحة تجريب</text>
+        <rect x="80" y="222" width="140" height="60" rx="8" fill="#e6f1f3"/><text x="150" y="247" text-anchor="middle" font-weight="700">منسّق + مدقق</text><text x="150" y="268" text-anchor="middle" font-size="10" fill="#5b6478">ضاد نسّق · ضاد دقّق</text>
+      </g>
+      <!-- Layer 1 -->
+      <rect x="40" y="318" width="680" height="150" rx="10" fill="url(#g1)"/>
+      <text x="700" y="343" text-anchor="start" font-size="15" font-weight="800" fill="#fff">الطبقة الأولى — النواة اللغوية (Rust)</text>
+      <g font-size="11.5">
+        <rect x="560" y="360" width="140" height="44" rx="8" fill="#fff"/><text x="630" y="388" text-anchor="middle" font-weight="700" fill="#0f4c5c">المحلل اللغوي (Lexer)</text>
+        <rect x="400" y="360" width="140" height="44" rx="8" fill="#fff"/><text x="470" y="388" text-anchor="middle" font-weight="700" fill="#0f4c5c">Tree-sitter Grammar</text>
+        <rect x="240" y="360" width="140" height="44" rx="8" fill="#fff"/><text x="310" y="388" text-anchor="middle" font-weight="700" fill="#0f4c5c">التحليل الدلالي والأنواع</text>
+        <rect x="80" y="360" width="140" height="44" rx="8" fill="#fff"/><text x="150" y="388" text-anchor="middle" font-weight="700" fill="#0f4c5c">فهرس الأخطاء ضاد-XXXX</text>
+        <rect x="560" y="414" width="140" height="44" rx="8" fill="#c9a227"/><text x="630" y="442" text-anchor="middle" font-weight="700" fill="#14213d">المفسر + REPL</text>
+        <rect x="400" y="414" width="140" height="44" rx="8" fill="#c9a227"/><text x="470" y="442" text-anchor="middle" font-weight="700" fill="#14213d">مولّد WebAssembly</text>
+        <rect x="240" y="414" width="140" height="44" rx="8" fill="#c9a227"/><text x="310" y="442" text-anchor="middle" font-weight="700" fill="#14213d">المكتبة القياسية العربية</text>
+        <rect x="80" y="414" width="140" height="44" rx="8" fill="#ffffff" fill-opacity=".25" stroke="#fff" stroke-dasharray="4 3"/><text x="150" y="442" text-anchor="middle" font-weight="700" fill="#fff">LLVM (مستقبلي)</text>
+      </g>
+      <!-- Cross-cutting -->
+      <rect x="40" y="484" width="680" height="28" rx="6" fill="#eceff4"/>
+      <text x="380" y="503" text-anchor="middle" font-size="11" fill="#2b3a67" font-weight="700">طبقات عرضية: الجودة الهندسية (CI · اختبارات · fuzzing · benchmarks) — الأمان (حدود موارد) — إتاحة الوصول</text>
+    </svg>
+    <div class="cap">الشكل 1 — المعمارية الطبقية لمنصة ضاد. شجرة التحليل الواحدة تُغذّي كل الأدوات.</div>
+  </div>
+  <h3>5.1 تدفق البيانات الرئيسي</h3>
+  <ol>
+    <li>يكتب المستخدم الكود في المحرر (ويب أو VS Code). كل ضغطة مفتاح تُحدّث شجرة Tree-sitter تزايديًا.</li>
+    <li>يستهلك خادم LSP الشجرة لإنتاج التشخيصات والإكمال فورًا، دون انتظار التنفيذ.</li>
+    <li>عند التشغيل: المفسر ينفّذ الشجرة مباشرة (وضع التطوير)، أو المترجم يولّد وحدة WASM تُحمَّل في المتصفح (وضع الأداء).</li>
+    <li>عند الخطأ: يُصدر المترجم خطأً مرقمًا بموقعه؛ طبقة الذكاء الاصطناعي تأخذ الكود + صفحة التوثيق الرسمية لذلك الكود + مقتطف السياق وتولّد شرحًا متدرجًا يمر بحارس الجودة قبل العرض.</li>
+    <li>في وضع التعلم: المصحّح الآلي يشغّل كود الطالب في Web Worker معزول بحدود زمن وذاكرة على حالات اختبار خفية.</li>
+  </ol>
+</section>
+
+<!-- ======================= 6 ======================= -->
+<section class="section">
+  <h2><span class="num">6</span>الطبقة الأولى: النواة اللغوية<span class="mark" dir="ltr">QQS06QQ</span></h2>
+  <h3>6.1 فلسفة تصميم اللغة</h3>
+  <ul>
+    <li><strong>صغيرة أولًا:</strong> نواة من 12 كلمة مفتاحية تقريبًا تكفي لبرامج تعليمية ومتوسطة، وتوسّع لاحقًا دون كسر التوافق.</li>
+    <li><strong>عربية طبيعية لا مترجمة حرفيًا:</strong> اختيار الكلمات بناءً على ما يقرؤه العربي بسلاسة (<code>طالما</code> أوضح من «بينما» لحلقة while؛ <code>أرجع</code> أوضح من «عُد»).</li>
+    <li><strong>صيغة أقواس معقوفة</strong> <code>{ }</code> لتفادي حساسية المسافات البادئة التي تربك المبتدئين وتربك العرض في بيئات RTL.</li>
+    <li><strong>أنواع ديناميكية مع تحقق تدريجي:</strong> البداية ديناميكية (أسهل للمبتدئ)، مع تلميحات أنواع اختيارية يستخدمها المترجم إلى WASM ويعرضها LSP.</li>
+    <li><strong>كل خطأ له رقم وصفحة:</strong> لا توجد رسالة خطأ بلا كود موثق.</li>
+  </ul>
+  <h3>6.2 الكلمات المفتاحية المقترحة</h3>
+  <table class="kw compact">
+    <thead><tr><th style="width:16%">الكلمة</th><th style="width:16%">المقابل</th><th>الدور</th><th style="width:34%">مثال</th></tr></thead>
+    <tbody>
+      <tr><td><code>دع</code></td><td>let</td><td>تعريف متغير قابل للتغيير</td><td><code>دع العمر = ٢٥</code></td></tr>
+      <tr><td><code>ثابت</code></td><td>const</td><td>تعريف ثابت</td><td><code>ثابت ط = ٣٫١٤</code></td></tr>
+      <tr><td><code>إذا</code> / <code>وإلا إذا</code> / <code>وإلا</code></td><td>if / else if / else</td><td>التفرع الشرطي</td><td><code>إذا العمر &gt;= ١٨ { ... } وإلا { ... }</code></td></tr>
+      <tr><td><code>طالما</code></td><td>while</td><td>حلقة شرطية</td><td><code>طالما س &lt; ١٠ { س = س + ١ }</code></td></tr>
+      <tr><td><code>لكل</code> ... <code>في</code></td><td>for ... in</td><td>حلقة تكرار على مدى أو قائمة</td><td><code>لكل ع في ١..٥ { اطبع(ع) }</code></td></tr>
+      <tr><td><code>دالة</code></td><td>function</td><td>تعريف دالة</td><td><code>دالة جمع(أ، ب) { أرجع أ + ب }</code></td></tr>
+      <tr><td><code>أرجع</code></td><td>return</td><td>إرجاع قيمة</td><td><code>أرجع النتيجة</code></td></tr>
+      <tr><td><code>توقف</code> / <code>استمر</code></td><td>break / continue</td><td>التحكم في الحلقات</td><td><code>إذا س == ٥ { توقف }</code></td></tr>
+      <tr><td><code>صحيح</code> / <code>خطأ</code></td><td>true / false</td><td>القيم المنطقية</td><td><code>دع جاهز = صحيح</code></td></tr>
+      <tr><td><code>و</code> / <code>أو</code> / <code>ليس</code></td><td>and / or / not</td><td>العمليات المنطقية</td><td><code>إذا أ &gt; ٠ و ليس ب { ... }</code></td></tr>
+      <tr><td><code>عدم</code></td><td>null / none</td><td>غياب القيمة</td><td><code>دع نتيجة = عدم</code></td></tr>
+      <tr><td><code>استورد</code></td><td>import</td><td>استيراد وحدة</td><td><code>استورد رياضيات</code></td></tr>
+      <tr><td><code>اختبر</code> / <code>تأكد</code></td><td>test / assert</td><td>اختبارات مدمجة في اللغة</td><td><code>اختبر "الجمع" { تأكد(جمع(١،٢) == ٣) }</code></td></tr>
+      <tr><td><code>صنف</code> / <code>هذا</code></td><td>class / this</td><td>(مرحلة لاحقة) كائنات بسيطة</td><td><code>صنف نقطة { ... }</code></td></tr>
+    </tbody>
+  </table>
+  <p class="small">الفاصلة العربية <code>،</code> والفاصلة اللاتينية <code>,</code> كلتاهما مقبولتان كفاصل معاملات؛ الفاصلة العشرية العربية <code>٫</code> مقبولة إلى جانب النقطة. يُوثَّق ذلك في مواصفة اللغة (الملحق أ).</p>
+
+  <h3>6.3 برنامج نموذجي بلغة ضاد</h3>
+<pre>استورد رياضيات
+
+دالة مضروب(ن) {
+    إذا ن &lt;= ١ {
+        أرجع ١
+    }
+    أرجع ن * مضروب(ن - ١)
+}
+
+دالة أولي؟(ع) {
+    إذا ع &lt; ٢ { أرجع خطأ }
+    لكل ق في ٢..رياضيات.جذر(ع) + ١ {
+        إذا ع % ق == ٠ { أرجع خطأ }
+    }
+    أرجع صحيح
+}
+
+دع الأعداد = [١، ٢، ٣، ٤، ٥، ٦، ٧]
+لكل ع في الأعداد {
+    إذا أولي؟(ع) {
+        اطبع("${ع} عدد أولي ومضروبه ${مضروب(ع)}")
+    }
+}</pre>
+  <p class="small">لاحظ: علامة الاستفهام في اسم الدالة <code>أولي؟</code> مسموح بها كاصطلاح للدوال المنطقية (مستوحى من Ruby/Scheme) وتزيد قابلية القراءة بالعربية.</p>
+
+  <h3>6.4 قرارات التصميم الحرجة (تُوثَّق كـ ADR)</h3>
+  <h4>القرار 1 — الأرقام</h4>
+  <p>يقبل المحلل اللغوي الأرقام العربية الشرقية <code>٠١٢٣٤٥٦٧٨٩</code> والغربية <code>0123456789</code> معًا، ويوحّدهما داخليًا إلى التمثيل الغربي. عرض الأرقام في المخرجات وفي المحرر خاضع لإعداد مستخدم (شرقي/غربي). السبب: المستخدمون في المشرق والمغرب العربي يختلفون في العادة، والتمثيل الداخلي الموحد يبسّط المترجم.</p>
+  <h4>القرار 2 — سياسة Unicode للمعرّفات</h4>
+  <ul>
+    <li><strong>تطبيع NFC</strong> لكل معرّف قبل المقارنة والتخزين في جدول الرموز، حتى يتطابق المحرف المركّب والمفكك.</li>
+    <li><strong>الحركات (التشكيل):</strong> تُتجاهل في المعرّفات مع تحذير من المدقق (<code>عَدد</code> و<code>عدد</code> متغير واحد). تبقى الحركات ذات معنى داخل النصوص.</li>
+    <li><strong>الهمزات والألف:</strong> <code>اسم</code> و<code>إسم</code> معرّفان مختلفان (لا تطبيع دلالي)، لكن المدقق يحذر عند وجود معرّفين لا يختلفان إلا بالهمزة أو التاء المربوطة/الهاء.</li>
+    <li><strong>المحارف المربكة (Confusables):</strong> رفض خلط محارف من نصوص مختلفة تتشابه بصريًا في المعرّف الواحد (مثل الكاف العربية والكاف الفارسية)، استنادًا إلى <span class="ltr">UTS #39</span>. هذه نقطة أصالة لم تعالجها اللغات العربية القائمة.</li>
+    <li><strong>الأحرف الممدودة (الكشيدة ـ):</strong> تُتجاهل في المعرّفات لأنها محرف زخرفي.</li>
+  </ul>
+  <h4>القرار 3 — Tree-sitter منذ البداية (مع ANTLR4 كخطة بديلة)</h4>
+  <p>تُكتب القواعد في <code class="ltr">grammar.js</code> وتُولَّد بـ Tree-sitter CLI محللًا بلغة C يُربط بـ Rust. الفائدة الحاسمة: المحلل نفسه يعمل في المفسر وفي خادم LSP وفي المحرر (عبر <span class="ltr">web-tree-sitter</span> المترجم إلى WASM)، ويُنتج شجرة حتى عند وجود أخطاء (error recovery) وهو ما يحتاجه التشخيص أثناء الكتابة. إن ظهرت عقبة في دعم Unicode داخل القواعد يُبنى نموذج أولي بـ ANTLR4 الذي يدعم Unicode كاملًا.</p>
+  <h4>القرار 4 — Rust لغةَ تنفيذ</h4>
+  <p>الأداء، سلامة الذاكرة، نضج منظومة الأدوات ذات الصلة (<span class="ltr">tree-sitter</span>, <span class="ltr">tower-lsp</span>, <span class="ltr">wasm-encoder</span>, <span class="ltr">wasmtime</span>)، وإمكانية ترجمة المفسر نفسه إلى WASM ليعمل في المتصفح بلا خادم. SultanC وZahra أثبتتا جدوى Rust لهذا النوع من المشاريع.</p>
+
+  <h3>6.5 نظام أكواد الأخطاء الموثَّق</h3>
+  <p>كل خطأ يحمل كودًا بصيغة <code>ضاد-XXXX</code> ضمن نطاقات: 0001–0999 أخطاء تحليل نحوي، 1000–1999 أخطاء دلالية وأنواع، 2000–2999 أخطاء وقت تشغيل، 3000–3999 تحذيرات المدقق. ولكل كود صفحة توثيق عربية (السبب، أمثلة خاطئة وصحيحة، أخطاء مشابهة). مثال مخرجات المترجم:</p>
+<pre>خطأ[ضاد-1003]: لا يمكن جمع نص مع عدد
+  ← الملف: مثال.ضاد — السطر ٣، العمود ١٨
+   │
+ ٣ │     دع الرسالة = "العمر: " + ٢٥
+   │                   ─────────   ── عدد صحيح
+   │                   نص
+   │
+   = مساعدة: حوّل العدد إلى نص بـ نص(٢٥)، أو استخدم دمج النصوص: "العمر: ${٢٥}"
+   = لمزيد من التفاصيل: ضاد شرح 1003</pre>
+  <div class="callout ok"><span class="t">لماذا هذا الاستثمار يعود بفائدة مضاعفة؟</span>صفحات التوثيق هذه هي نفسها «مصدر الحقيقة» الذي يُحقن في برومبت شارح الأخطاء (الطبقة الثالثة). فبدل أن يعتمد النموذج اللغوي على معرفته العامة، يُطلب منه إعادة صياغة الصفحة الرسمية فقط — مما يحوّل مشكلة الهلوسة من «أمل» إلى «قيد قابل للقياس».</div>
+
+  <h3>6.6 المفسر و REPL</h3>
+  <p>مفسر Tree-walking يمشي على شجرة Tree-sitter مباشرة (مع مرحلة تحويل خفيفة إلى AST مبسّط لتسريع التنفيذ وتجنب إعادة الاستعلام عن العقد). يدعم: الأنواع الأساسية (عدد صحيح 64-بت، عدد عشري، نص، منطقي، عدم)، القوائم والقواميس، الدوال من الدرجة الأولى والإغلاقات، النطاقات اللغوية، والاستثناءات الأساسية. يُرفق به <strong>REPL</strong> بأمر <code>ضاد</code> بلا معاملات، بسجل أوامر وإكمال بسيط، ونسخة ويب منه في الساحة.</p>
+  <h3>6.7 المكتبة القياسية العربية المصغّرة</h3>
+  <table class="compact">
+    <thead><tr><th style="width:14%">الوحدة</th><th>أهم الدوال</th></tr></thead>
+    <tbody>
+      <tr><td><code>أساسيات</code></td><td><code>اطبع</code>، <code>اقرأ</code>، <code>نص</code>، <code>عدد</code>، <code>طول</code>، <code>نوع</code> — متاحة بلا استيراد</td></tr>
+      <tr><td><code>رياضيات</code></td><td><code>جذر</code>، <code>قوة</code>، <code>مطلق</code>، <code>تقريب</code>، <code>أكبر</code>، <code>أصغر</code>، الثابتان <code>ط</code> و<code>هـ</code></td></tr>
+      <tr><td><code>نصوص</code></td><td><code>قسّم</code>، <code>اربط</code>، <code>استبدل</code>، <code>يبدأ_بـ</code>، <code>احذف_التشكيل</code>، <code>طبّع</code></td></tr>
+      <tr><td><code>قوائم</code></td><td><code>أضف</code>، <code>رتّب</code>، <code>اعكس</code>، <code>صفِّ</code>، <code>حوّل</code>، <code>اجمع</code></td></tr>
+      <tr><td><code>عشوائي</code></td><td><code>عدد_عشوائي</code>، <code>اختر</code>، <code>اخلط</code></td></tr>
+      <tr><td><code>وقت</code></td><td><code>الآن</code>، <code>انتظر</code>، <code>قِس</code> (لقياس الزمن في التجارب)</td></tr>
+    </tbody>
+  </table>
+  <p>تُكتب أجزاء من المكتبة (مثل <code>قوائم</code>) بلغة ضاد نفسها (dogfooding) — دليل عملي على نضج اللغة يُعرض للجنة.</p>
+
+  <h3>6.8 مسار الترجمة إلى WebAssembly</h3>
+  <p>المرحلة الأولى تستهدف <strong>مجموعة فرعية رقمية</strong> من اللغة (أعداد، منطق، شروط، حلقات، دوال، استدعاء ذاتي) تكفي لخوارزميات القياس. يُنتج المترجم وحدة WASM ثنائية مباشرة عبر صندوق <span class="ltr">wasm-encoder</span> في Rust (بديلًا عن توليد نص WAT ثم تمريره لـ <span class="ltr">wat2wasm</span>؛ يبقى إخراج WAT متاحًا بخيار <code>--wat</code> لأغراض التوثيق والتصحيح). النصوص والقوائم تُضاف في مرحلة ثانية عبر ذاكرة خطية مُدارة ودوال وقت تشغيل صغيرة.</p>
+  <div class="fig">
+    <svg viewBox="0 0 760 120" xmlns="http://www.w3.org/2000/svg" font-family="Cairo, Noto Sans Arabic, sans-serif" font-size="11.5">
+      <defs><marker id="a2" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#0f4c5c"/></marker></defs>
+      <g>
+        <rect x="640" y="30" width="110" height="56" rx="8" fill="#e6f1f3" stroke="#0f4c5c"/><text x="695" y="54" text-anchor="middle" font-weight="700" fill="#14213d">ملف .ضاد</text><text x="695" y="74" text-anchor="middle" font-size="10" fill="#5b6478">مصدر عربي</text>
+        <line x1="640" y1="58" x2="585" y2="58" stroke="#0f4c5c" stroke-width="2" marker-end="url(#a2)"/>
+        <rect x="470" y="30" width="110" height="56" rx="8" fill="#e6f1f3" stroke="#0f4c5c"/><text x="525" y="54" text-anchor="middle" font-weight="700" fill="#14213d">Tree-sitter</text><text x="525" y="74" text-anchor="middle" font-size="10" fill="#5b6478">شجرة تحليل</text>
+        <line x1="470" y1="58" x2="415" y2="58" stroke="#0f4c5c" stroke-width="2" marker-end="url(#a2)"/>
+        <rect x="300" y="30" width="110" height="56" rx="8" fill="#e6f1f3" stroke="#0f4c5c"/><text x="355" y="54" text-anchor="middle" font-weight="700" fill="#14213d">تحليل دلالي</text><text x="355" y="74" text-anchor="middle" font-size="10" fill="#5b6478">نطاقات · أنواع · أخطاء</text>
+        <line x1="300" y1="58" x2="245" y2="58" stroke="#0f4c5c" stroke-width="2" marker-end="url(#a2)"/>
+        <rect x="130" y="8" width="110" height="44" rx="8" fill="#c9a227"/><text x="185" y="35" text-anchor="middle" font-weight="700" fill="#14213d">المفسر</text>
+        <rect x="130" y="64" width="110" height="44" rx="8" fill="#0f4c5c"/><text x="185" y="91" text-anchor="middle" font-weight="700" fill="#fff">wasm-encoder</text>
+        <line x1="130" y1="86" x2="75" y2="86" stroke="#0f4c5c" stroke-width="2" marker-end="url(#a2)"/>
+        <rect x="8" y="64" width="64" height="44" rx="8" fill="#e6f1f3" stroke="#0f4c5c"/><text x="40" y="91" text-anchor="middle" font-weight="700" fill="#14213d">.wasm</text>
+      </g>
+    </svg>
+    <div class="cap">الشكل 2 — خط الأنابيب الموحد: تحليل واحد، مساران للتنفيذ (تفسير مباشر أو وحدة WebAssembly).</div>
+  </div>
+  <p><strong>لماذا WebAssembly أولًا؟</strong> (أ) تشغيل في المتصفح بلا تثبيت — وهو شرط وصول الشخصيات المستهدفة؛ (ب) بيئة تنفيذ معزولة وآمنة بطبيعتها، تناسب تشغيل كود الطلاب؛ (ج) محمولية كاملة دون بناء backend أصلي معقد؛ (د) يتيح مقارنة أداء عادلة وقابلة للقياس مع المفسر. <strong>LLVM</strong> (عبر <span class="ltr">inkwell</span>) أو <strong>QBE</strong> يبقيان عملًا مستقبليًا موثقًا.</p>
+</section>
+
+<!-- ======================= 7 ======================= -->
+<section class="section">
+  <h2><span class="num">7</span>الطبقة الثانية: أدوات المطور<span class="mark" dir="ltr">QQS07QQ</span></h2>
+  <h3>7.1 خادم اللغة (LSP)</h3>
+  <p>يُبنى بصندوق <span class="ltr">tower-lsp</span> ويعمل فوق شجرة Tree-sitter نفسها، فلا يحتاج إلى تشغيل البرنامج لإنتاج معلوماته. الخدمات المخططة بالترتيب:</p>
+  <table class="compact">
+    <thead><tr><th style="width:26%">الخدمة</th><th>الوصف</th><th style="width:14%">الأولوية</th></tr></thead>
+    <tbody>
+      <tr><td>التشخيص (Diagnostics)</td><td>أخطاء التحليل والدلالة فورًا أثناء الكتابة، بكود ضاد-XXXX ورسالة عربية ورابط للتوثيق</td><td><span class="tag must">Must</span></td></tr>
+      <tr><td>الإكمال التلقائي</td><td>الكلمات المفتاحية، المتغيرات والدوال في النطاق، دوال المكتبة القياسية مع توقيعها بالعربية</td><td><span class="tag must">Must</span></td></tr>
+      <tr><td>التلميح (Hover)</td><td>نوع المتغير المستنتج، توقيع الدالة، وتعليق التوثيق إن وُجد</td><td><span class="tag must">Must</span></td></tr>
+      <tr><td>الانتقال إلى التعريف / المراجع</td><td>عبر جدول الرموز المبني من الشجرة</td><td><span class="tag should">Should</span></td></tr>
+      <tr><td>إعادة التسمية</td><td>إعادة تسمية آمنة لمعرّف في كل مواضعه</td><td><span class="tag should">Should</span></td></tr>
+      <tr><td>إجراءات الإصلاح السريع (Code Actions)</td><td>إصلاحات مقترحة من فهرس الأخطاء (مثل إدراج <code>نص(...)</code>)</td><td><span class="tag could">Could</span></td></tr>
+      <tr><td>الترميز الدلالي (Semantic Tokens)</td><td>تلوين دقيق حسب الدلالة لا حسب النمط النصي فقط</td><td><span class="tag could">Could</span></td></tr>
+    </tbody>
+  </table>
+  <h3>7.2 إضافة VS Code</h3>
+  <p>تُنشر على Marketplace وتتضمن: عميل LSP، تلوين صياغة بملف استعلامات Tree-sitter (<span class="ltr">highlights.scm</span>) وقواعد TextMate كخيار احتياطي، أيقونة لملفات <code>.ضاد</code>، مقتطفات (snippets) عربية للبُنى الشائعة، وأمر «تشغيل» يفتح المخرجات في لوحة طرفية بوضع RTL. نشر الإضافة علنًا يجعل المشروع «منتجًا منشورًا» لا مجرد تسليم أكاديمي.</p>
+
+  <h3>7.3 محرر الويب وطبقة BiDi — التحدي التقني الأصعب</h3>
+  <h4>المشكلة بدقة</h4>
+  <p>تحدد خوارزمية Unicode BiDi (<span class="ltr">UAX #9</span>) اتجاه الفقرة من <strong>أول محرف قوي الاتجاه</strong>. السطر <code>result = مجموع + ٥</code> يبدأ بمعرّف لاتيني فتُعامل الفقرة كلها كـ LTR، بينما السطر العربي المحض يُعامل كـ RTL. والأسوأ: الرموز المحايدة (<code>=</code>، <code>+</code>، الأقواس) تأخذ اتجاهها من جيرانها، فتظهر الأقواس «مقلوبة» بصريًا وتتبادل أطراف العملية الحسابية مواضعها. في النثر هذا إزعاج؛ في الكود هذا يغيّر المعنى المقروء.</p>
+  <h4>الحل الهندسي المقترح</h4>
+  <ol>
+    <li><strong>الاتجاه الأساسي للمحرر RTL دائمًا</strong>، لا اعتمادًا على أول حرف قوي — فاللغة عربية بالتصميم. (CodeMirror 6 يدعم <span class="ltr">direction: rtl</span> على مستوى المحرر وحركة المؤشر البصرية في النص المختلط.)</li>
+    <li><strong>عزل اتجاهي على مستوى الرموز (Token-level isolation):</strong> لأن المحرر يملك شجرة Tree-sitter، يمكنه معرفة نوع كل رمز، فيغلّف المعرّفات اللاتينية والأرقام والنصوص المقتبسة بعناصر <span class="ltr">bdi</span>/خصائص <span class="ltr">unicode-bidi: isolate</span> عبر Decorations، بحيث لا «يتسرب» اتجاهها إلى الرموز المجاورة. هذا هو الفرق الجوهري بين «محرر نص عربي» و«محرر كود عربي».</li>
+    <li><strong>معاملة المشغّلات كمحارف قوية RTL ضمن سياق الكود:</strong> ضبط عرض <code>( ) [ ] { }</code> والمشغّلات بحيث تتبع الاتجاه المنطقي للكود لا اتجاه الجار، مع عكس أشكال الأقواس المرآتية تلقائيًا (Bidi Mirroring).</li>
+    <li><strong>أرقام متسقة:</strong> الأرقام الغربية داخل سياق RTL تُعزل كوحدة LTR واحدة حتى لا ينعكس ترتيب خاناتها؛ والأرقام الشرقية تُعرض طبيعيًا.</li>
+    <li><strong>زر تبديل يدوي</strong> للاتجاه الأساسي ووضع «إظهار حدود العزل» لأغراض التصحيح والتعليم.</li>
+  </ol>
+  <h4>مجموعة اختبار BiDi (جزء من التقييم)</h4>
+  <p>تُبنى مجموعة من 40+ حالة اختبار بصرية (snapshot tests عبر Playwright) تغطي: نص عربي محض، معرّف لاتيني في بداية السطر، نص مقتبس يحوي إنجليزية، أرقام شرقية وغربية في تعبير واحد، أقواس متداخلة، تعليقات مختلطة، وسلاسل طويلة تلتف على أسطر. لكل حالة «عرض متوقع» مرجعي تُقارن به اللقطة بكسلًا بكسل.</p>
+
+  <h3>7.4 المنسّق والمدقق</h3>
+  <div class="grid2">
+    <div class="card"><h4>ضاد نسّق (Formatter)</h4><p>أسلوب تنسيق قياسي واحد لا يقبل الخيارات (على نهج gofmt)، مبني على شجرة Tree-sitter: مسافات بادئة، فواصل، التفاف الأسطر، توحيد الفاصلة العربية. يعمل من سطر الأوامر، ومن LSP (تنسيق عند الحفظ)، ومن محرر الويب.</p></div>
+    <div class="card"><h4>ضاد دقّق (Linter)</h4><p>قواعد تحذير (نطاق 3000–3999): متغير غير مستخدم، تظليل متغير، معرّفات متشابهة بصريًا (همزة/تاء مربوطة)، مقارنة ثابتة دائمًا، حلقة بلا تغيير لشرطها. تُعرض عبر LSP كتحذيرات ويمكن تعطيل كل قاعدة بتعليق.</p></div>
+  </div>
+  <h3>7.5 ساحة التجريب (Playground)</h3>
+  <p>صفحة ويب واحدة بلا خادم تنفيذ: المحرر + المفسر المترجم إلى WASM يعمل في Web Worker + لوحة مخرجات RTL + REPL. زر «مشاركة» يولّد رابطًا دائمًا بالكود مضغوطًا في عنوان الصفحة (<span class="ltr">lz-string</span>)، وزر «رمز QR» ليفتحه أعضاء اللجنة على هواتفهم أثناء المناقشة. الساحة هي بوابة الدخول لكل الشخصيات المستهدفة وهي واجهة دراسة المستخدمين.</p>
+</section>
+
+<!-- ======================= 8 ======================= -->
+<section class="section">
+  <h2><span class="num">8</span>الطبقة الثالثة: الذكاء الاصطناعي المساعد<span class="mark" dir="ltr">QQS08QQ</span></h2>
+  <div class="callout bad"><span class="t">المبدأ الحاكم</span>النموذج اللغوي الكبير <strong>لا يترجم ولا ينفّذ ولا يقرر</strong>. المترجم الحتمي يكتشف الخطأ ويحدد كوده وموقعه؛ النموذج يشرح فقط، مقيَّدًا بالتوثيق الرسمي، ومخرجاته تمر بحارس جودة، ولا يُنفَّذ أي كود يقترحه تلقائيًا. هذا الفصل يحافظ على حتمية المنصة ويجعل الطبقة قابلة للتقييم.</div>
+  <h3>8.1 شارح الأخطاء الذكي — المعمارية</h3>
+  <div class="fig">
+    <svg viewBox="0 0 760 250" xmlns="http://www.w3.org/2000/svg" font-family="Cairo, Noto Sans Arabic, sans-serif" font-size="11">
+      <defs><marker id="a3" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#0f4c5c"/></marker></defs>
+      <rect x="610" y="20" width="140" height="56" rx="8" fill="#fbe9e9" stroke="#9b2226"/><text x="680" y="44" text-anchor="middle" font-weight="700" fill="#14213d">خطأ من المترجم</text><text x="680" y="64" text-anchor="middle" font-size="10" fill="#5b6478">ضاد-1003 · السطر ٣</text>
+      <rect x="610" y="100" width="140" height="56" rx="8" fill="#e6f1f3" stroke="#0f4c5c"/><text x="680" y="124" text-anchor="middle" font-weight="700" fill="#14213d">مقتطف الكود</text><text x="680" y="144" text-anchor="middle" font-size="10" fill="#5b6478">±٣ أسطر حول الخطأ</text>
+      <rect x="610" y="180" width="140" height="56" rx="8" fill="#fbf5e3" stroke="#c9a227"/><text x="680" y="204" text-anchor="middle" font-weight="700" fill="#14213d">صفحة توثيق الكود</text><text x="680" y="224" text-anchor="middle" font-size="10" fill="#5b6478">المصدر الرسمي (RAG)</text>
+      <line x1="610" y1="48" x2="560" y2="118" stroke="#0f4c5c" stroke-width="1.6" marker-end="url(#a3)"/>
+      <line x1="610" y1="128" x2="560" y2="128" stroke="#0f4c5c" stroke-width="1.6" marker-end="url(#a3)"/>
+      <line x1="610" y1="208" x2="560" y2="138" stroke="#0f4c5c" stroke-width="1.6" marker-end="url(#a3)"/>
+      <rect x="420" y="90" width="135" height="76" rx="8" fill="#0f4c5c"/><text x="487" y="118" text-anchor="middle" font-weight="700" fill="#fff">بناء البرومبت</text><text x="487" y="138" text-anchor="middle" font-size="10" fill="#d9e6ea">قالب + مستوى التلميح</text><text x="487" y="154" text-anchor="middle" font-size="10" fill="#d9e6ea">«أعد الصياغة فقط»</text>
+      <line x1="420" y1="128" x2="372" y2="128" stroke="#0f4c5c" stroke-width="1.6" marker-end="url(#a3)"/>
+      <rect x="272" y="60" width="100" height="56" rx="8" fill="#eceff4" stroke="#5b6478" stroke-dasharray="4 3"/><text x="322" y="84" text-anchor="middle" font-weight="700" fill="#14213d">تخزين مؤقت</text><text x="322" y="104" text-anchor="middle" font-size="10" fill="#5b6478">كود + بصمة السياق</text>
+      <rect x="252" y="128" width="120" height="56" rx="8" fill="#e6f1f3" stroke="#0f4c5c"/><text x="312" y="152" text-anchor="middle" font-weight="700" fill="#14213d">نموذج لغوي</text><text x="312" y="172" text-anchor="middle" font-size="10" fill="#5b6478">سحابي أو محلي (Ollama)</text>
+      <line x1="252" y1="156" x2="205" y2="156" stroke="#0f4c5c" stroke-width="1.6" marker-end="url(#a3)"/>
+      <rect x="90" y="128" width="115" height="56" rx="8" fill="#fdf0e3" stroke="#b4530a"/><text x="147" y="152" text-anchor="middle" font-weight="700" fill="#14213d">حارس الجودة</text><text x="147" y="172" text-anchor="middle" font-size="10" fill="#5b6478">لغة · طول · سطر · لا كود</text>
+      <line x1="90" y1="156" x2="55" y2="156" stroke="#0f4c5c" stroke-width="1.6" marker-end="url(#a3)"/>
+      <rect x="5" y="128" width="48" height="56" rx="8" fill="#e7f5ec" stroke="#1f7a4d"/><text x="29" y="160" text-anchor="middle" font-weight="700" fill="#14213d">عرض</text>
+      <text x="147" y="215" text-anchor="middle" font-size="10" fill="#9b2226">رفض → عرض الرسالة الرسمية فقط + تسجيل الحالة</text>
+    </svg>
+    <div class="cap">الشكل 3 — خط أنابيب شارح الأخطاء: مدخلات حتمية، نموذج مقيَّد، حارس قبل العرض.</div>
+  </div>
+  <h3>8.2 التلميحات التربوية المتدرجة (Progressive Hints)</h3>
+  <p>بدل تقديم الحل كاملًا — وهو ما يحوّل الأداة إلى «حلّال واجبات» — يقدَّم الشرح على أربعة مستويات يطلبها الطالب تباعًا، وفق مبدأ السقالات التعليمية (Scaffolding):</p>
+  <table class="compact">
+    <thead><tr><th style="width:12%">المستوى</th><th style="width:22%">المحتوى</th><th>مثال لخطأ ضاد-1003</th></tr></thead>
+    <tbody>
+      <tr><td>1 — ماذا؟</td><td>إعادة صياغة مبسطة للرسالة</td><td>«حاولت أن تجمع كلمات مع رقم، واللغة لا تعرف كيف تجمعهما.»</td></tr>
+      <tr><td>2 — أين ولماذا؟</td><td>تحديد السطر والمفهوم</td><td>«في السطر ٣: "العمر: " نصٌّ و ٢٥ عدد. الجمع بـ + يعمل بين عددين أو بين نصين فقط.»</td></tr>
+      <tr><td>3 — مثال مشابه</td><td>حالة مماثلة محلولة بدون لمس كود الطالب</td><td>«مثل: <code>"النتيجة: " + نص(٧)</code> أو <code>"النتيجة: ${٧}"</code>»</td></tr>
+      <tr><td>4 — الإصلاح</td><td>الاقتراح على كود الطالب (يُعرض ولا يُطبَّق تلقائيًا)</td><td>«غيّر السطر إلى: <code>دع الرسالة = "العمر: ${٢٥}"</code>»</td></tr>
+    </tbody>
+  </table>
+  <p class="small">يُسجَّل المستوى الذي يتوقف عنده الطالب كمؤشر تعلم في دراسة المستخدمين (كلما حُلَّ الخطأ بمستوى أدنى، دلّ ذلك على فهم أعمق).</p>
+  <h3>8.3 حارس الجودة (Guardrails)</h3>
+  <ul>
+    <li>اللغة عربية (كشف لغوي بسيط) وبطول لا يتجاوز حدًا لكل مستوى.</li>
+    <li>الإشارة إلى رقم السطر الصحيح نفسه الذي حدده المترجم.</li>
+    <li>لا تتضمن كتلة كود في المستويات 1–3؛ وفي المستوى 4 يُعرض الكود كاقتراح فقط ويُتحقق من أنه يُحلَّل نحويًا بنجاح قبل العرض.</li>
+    <li>لا تتعارض مع صفحة التوثيق (فحص تداخل مفردات بسيط + مراجعة بشرية بالعينة في التقييم).</li>
+    <li>عند الرفض: تُعرض رسالة المترجم الرسمية وحدها، ويُسجَّل معدل الرفض كمقياس.</li>
+  </ul>
+  <h3>8.4 الاستقلال عن المزوّد ونموذج محلي احتياطي</h3>
+  <p>تُعزل واجهة النموذج خلف طبقة تجريد واحدة بحيث يمكن التبديل بين واجهة سحابية (Claude أو GPT) ونموذج مفتوح يعمل محليًا عبر Ollama (ويُفضَّل نموذج عربي مثل Jais أو AceGPT). الفوائد: العرض الحي لا يرتهن بالإنترنت، الخصوصية في بيئات المدارس، <strong>ومقارنة تجريبية</strong> سحابي/محلي في دقة الشرح وسلامة العربية وزمن الاستجابة تُثري فصل التقييم.</p>
+  <h3>8.5 قالب البرومبت (مبسّط)</h3>
+<pre>أنت مساعد تعليمي يشرح أخطاء البرمجة لمبتدئ ناطق بالعربية.
+لديك: (١) رسالة الخطأ الرسمية ورقمها، (٢) صفحة التوثيق الرسمية لهذا الخطأ، (٣) مقتطف الكود.
+قواعد صارمة:
+- أعد صياغة ما في صفحة التوثيق بلغة أبسط. لا تضف معلومات من خارجها.
+- اذكر السطر {السطر} فقط. لا تذكر أسطرًا أخرى.
+- المستوى المطلوب: {المستوى}. التزم بحدوده: {وصف المستوى}.
+- أجب بالعربية الفصحى المبسطة في {الحد الأقصى} كلمة كحد أقصى. لا تكتب كودًا إلا في المستوى ٤.</pre>
+  <h3>8.6 مولّد الكود (اختياري، للمراجعة فقط)</h3>
+  <p>واجهة تأخذ وصفًا عربيًا («اكتب دالة تحسب المضروب») وتعرض كودًا مولَّدًا في المحرر بحالة «مسودة» تتطلب نقرة قبول، ولا تُنفَّذ أبدًا تلقائيًا. تُقدَّم كعرض واعٍ لحدود الاعتماد على النماذج، لا كميزة أساسية.</p>
+</section>
+
+<!-- ======================= 9 ======================= -->
+<section class="section">
+  <h2><span class="num">9</span>الطبقة الرابعة: بيئة التعلم<span class="mark" dir="ltr">QQS09QQ</span></h2>
+  <p>تحوّل هذه الطبقة المنصة من «أداة» إلى «بيئة تعلم» وتوفر السياق الطبيعي لدراسة المستخدمين. تكلفتها منخفضة نسبيًا لأنها تُبنى فوق الساحة والمفسر والمصحّح.</p>
+  <h3>9.1 مسار دروس تفاعلي داخل الساحة</h3>
+  <table class="compact">
+    <thead><tr><th style="width:8%">#</th><th style="width:28%">الدرس</th><th>المفهوم</th><th style="width:30%">التمرين المصحَّح آليًا</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>مرحبًا يا عالم</td><td>الطباعة، النصوص، تشغيل البرنامج</td><td>اطبع اسمك في ثلاثة أسطر</td></tr>
+      <tr><td>2</td><td>الصناديق (المتغيرات)</td><td>دع، الأنواع الأساسية، الدمج ${}</td><td>احسب عمرك بعد ١٠ سنوات</td></tr>
+      <tr><td>3</td><td>القرارات</td><td>إذا / وإلا، المقارنات، و/أو</td><td>تصنيف درجة إلى تقدير</td></tr>
+      <tr><td>4</td><td>التكرار</td><td>طالما، لكل..في، توقف</td><td>جدول الضرب لعدد مُدخل</td></tr>
+      <tr><td>5</td><td>القوائم</td><td>إنشاء، فهرسة، إضافة، طول</td><td>أكبر عدد في قائمة</td></tr>
+      <tr><td>6</td><td>الدوال</td><td>تعريف، معاملات، أرجع</td><td>دالة تختبر الأولية</td></tr>
+      <tr><td>7</td><td>الأخطاء صديقتك</td><td>قراءة رسائل ضاد-XXXX، استخدام التلميحات</td><td>إصلاح برنامج فيه ٥ أخطاء</td></tr>
+      <tr><td>8</td><td>النصوص بعمق</td><td>وحدة نصوص، التشكيل والتطبيع</td><td>عدّ الكلمات في فقرة</td></tr>
+      <tr><td>9</td><td>مشروع صغير</td><td>دمج المفاهيم</td><td>لعبة تخمين العدد</td></tr>
+      <tr><td>10</td><td>تحت الغطاء</td><td>المفسر مقابل WASM، لماذا أسرع؟</td><td>قياس زمن خوارزمية بالطريقتين</td></tr>
+    </tbody>
+  </table>
+  <h3>9.2 المصحّح الآلي (Autograder) في المتصفح</h3>
+  <p>يشغّل كود الطالب داخل Web Worker معزول على حالات اختبار خفية (مدخلات/مخرجات متوقعة) بمهلة زمنية وسقف ذاكرة، ويعرض نتيجة لكل حالة مع تلميح متدرج عند الفشل. لا يحتاج خادمًا — ما يجعله قابلًا للنشر كصفحة ثابتة واستخدامه في المدارس دون بنية تحتية.</p>
+  <h3>9.3 متتبّع التنفيذ المرئي (Execution Visualizer)</h3>
+  <p>وضع «خطوة بخطوة» فوق المفسر يعرض السطر الحالي، قيم المتغيرات في كل نطاق، ومكدس الاستدعاءات — على غرار Python Tutor لكن بالعربية وبعرض RTL. بديل أخف من منقّح كامل عبر بروتوكول DAP وأثره التعليمي أكبر؛ ويبقى DAP عملًا مستقبليًا يُبنى على نفس الخطافات (hooks) في المفسر.</p>
+  <h3>9.4 التوثيق المولَّد والتعليقات التوثيقية</h3>
+  <p>تعليقات بصيغة <code>## يحسب مضروب العدد ن</code> فوق الدوال يستخرجها أمر <code>ضاد وثّق</code> إلى موقع توثيق ثابت، ويعرضها LSP في التلميحات، وتُغذّى بها قاعدة معرفة الشارح.</p>
+</section>
+
+<!-- ======================= 10 ======================= -->
+<section class="section">
+  <h2><span class="num">10</span>الجودة الهندسية والأمان وإتاحة الوصول<span class="mark" dir="ltr">QQS10QQ</span></h2>
+  <h3>10.1 الجودة الهندسية</h3>
+  <table class="compact">
+    <thead><tr><th style="width:24%">الممارسة</th><th>التطبيق في المشروع</th><th style="width:26%">ما تثبته للجنة</th></tr></thead>
+    <tbody>
+      <tr><td>التكامل المستمر (GitHub Actions)</td><td>على كل دفعة: بناء Rust، اختبارات الوحدة، مجموعة البرامج المرجعية (corpus)، اختبارات golden لشجرة التحليل، اختبارات BiDi البصرية، فحص التنسيق</td><td>أي تغيير يكسر اللغة يُكشف قبل الدمج</td></tr>
+      <tr><td>اختبارات golden/snapshot</td><td>لكل برنامج مرجعي: الشجرة المتوقعة (<span class="ltr">tree-sitter test</span>) والمخرجات المتوقعة والأخطاء المتوقعة</td><td>استقرار السلوك عبر الإصدارات</td></tr>
+      <tr><td>Fuzzing</td><td>تغذية المحلل والمفسر بمدخلات مشوّهة (<span class="ltr">cargo-fuzz</span> + أداة fuzz في Tree-sitter) للتحقق من عدم الانهيار وإصدار خطأ نظيف دائمًا</td><td>متانة نادرة في مشاريع الطلاب</td></tr>
+      <tr><td>قياسات أداء آلية</td><td><span class="ltr">criterion</span> لقياس المفسر وWASM على خوارزميات ثابتة؛ النتائج تُحفظ كملفات JSON وتُرسم في التقرير</td><td>أرقام التقييم قابلة لإعادة الإنتاج</td></tr>
+      <tr><td>سجل القرارات المعمارية (ADR)</td><td>ملف قصير لكل قرار كبير (الأرقام، Unicode، Rust، WASM أولًا، تصميم الكلمات)</td><td>نضج هندسي ويكتب فصل المنهجية</td></tr>
+      <tr><td>الإصدارات والترخيص</td><td>SemVer، رخصة MIT أو Apache-2.0، README ثنائي اللغة، دليل مساهمة</td><td>مشروع حي قابل للاستشهاد به</td></tr>
+    </tbody>
+  </table>
+  <h3>10.2 الأمان وقيود التشغيل</h3>
+  <ul>
+    <li><strong>عزل تنفيذ كود المستخدم:</strong> في المتصفح داخل Web Worker منفصل عن واجهة المحرر، وفي WASM داخل بيئة التشغيل المعزولة بطبيعتها.</li>
+    <li><strong>حدود الموارد:</strong> سقف ذاكرة لوحدة WASM، ومهلة زمنية تُنهي الـ Worker عند الحلقات اللانهائية، و«عدّاد وقود» (fuel) في المفسر يوقف التنفيذ بعد عدد من الخطوات في وضع التصحيح الآلي.</li>
+    <li><strong>مخرجات النموذج اللغوي:</strong> لا تُنفَّذ تلقائيًا أبدًا؛ تُعرض كنص وتُعقَّم قبل الإدراج في الصفحة.</li>
+    <li><strong>الخصوصية:</strong> خيار النموذج المحلي يعني أن كود الطالب لا يغادر الجهاز؛ ولا تُرسل بيانات تعريفية في طلبات الواجهة السحابية.</li>
+    <li><strong>روابط المشاركة:</strong> الكود يُضمَّن في الرابط نفسه؛ لا تخزين على خادم في النسخة الأولى (لا بيانات شخصية).</li>
+  </ul>
+  <h3>10.3 إتاحة الوصول وتجربة الاستخدام</h3>
+  <ul>
+    <li><strong>خط برمجي عربي:</strong> استخدام خط أحادي المسافة يدعم العربية (مثل Kawkab Mono) مع محاذاة سليمة للأرقام والرموز.</li>
+    <li><strong>تبديل عرض الأرقام</strong> شرقي/غربي وحجم الخط ووضع التباين العالي والوضع الليلي.</li>
+    <li><strong>قارئات الشاشة:</strong> تسميات ARIA للمحرر ولوحة المخرجات، وإعلان التشخيصات نصيًا، والتنقل الكامل بلوحة المفاتيح.</li>
+    <li><strong>قابلية الاستخدام المقاسة:</strong> استبيان SUS المعياري (الملحق د) بعد كل جلسة في دراسة المستخدمين.</li>
+  </ul>
+</section>
+
+<!-- ======================= 11 ======================= -->
+<section class="section">
+  <h2><span class="num">11</span>التقييم التجريبي ودراسة المستخدمين<span class="mark" dir="ltr">QQS11QQ</span></h2>
+  <p>الهدف من هذا الفصل إثبات أن المنصة «تعمل» بمقاييس قابلة للقياس وإعادة الإنتاج، لا بعرض توضيحي. يتكون التقييم من شقين: <strong>قياسات تقنية آلية</strong> و<strong>دراسة مستخدمين</strong>.</p>
+  <h3>11.1 المقاييس التقنية</h3>
+  <table class="compact">
+    <thead><tr><th style="width:22%">المقياس</th><th>الطريقة</th><th style="width:22%">الهدف</th></tr></thead>
+    <tbody>
+      <tr><td>أداء WASM مقابل المفسر</td><td>5 خوارزميات (فيبوناتشي تكراري، فرز فقاعي، غربال إراتوستينس، ضرب مصفوفات، بحث ثنائي) × 3 أحجام × 10 تكرارات؛ قياس الوسيط والانحراف</td><td>تسريع ≥ 5× على الحمل الرقمي</td></tr>
+      <tr><td>زمن استجابة LSP</td><td>p50/p95 للإكمال والتشخيص على ملفات بأحجام 50/500/5000 سطر</td><td>p95 &lt; 100ms للإكمال</td></tr>
+      <tr><td>تغطية القواعد</td><td>مجموعة 50+ برنامجًا مرجعيًا من بسيط إلى متوسط؛ نسبة التحليل والتنفيذ الصحيحين</td><td>100%</td></tr>
+      <tr><td>صحة BiDi</td><td>40+ حالة بصرية؛ مقارنة لقطات Playwright بالمرجع</td><td>100% تطابق</td></tr>
+      <tr><td>متانة المحلل</td><td>مليون مدخل fuzzing؛ نسبة الانهيارات</td><td>0 انهيار</td></tr>
+      <tr><td>دقة الإكمال</td><td>مجموعة 100 موضع إكمال مُعلَّمة يدويًا؛ Precision@5</td><td>≥ 0.9</td></tr>
+      <tr><td>جودة شرح النموذج</td><td>100 خطأ مرجعي × نموذجين (سحابي/محلي)؛ تقييم مقيّمَين مستقلّين بمقياس 1–5 (الدقة، البساطة، سلامة العربية) مع معامل اتفاق Cohen’s κ</td><td>متوسط ≥ 4 و κ ≥ 0.6</td></tr>
+      <tr><td>معدل رفض الحارس</td><td>نسبة المخرجات المرفوضة وأسبابها</td><td>يُبلَّغ عنه (مؤشر وعي بالحدود)</td></tr>
+    </tbody>
+  </table>
+  <h3>11.2 دراسة المستخدمين</h3>
+  <table class="req compact">
+    <tbody>
+      <tr><td>المشاركون</td><td>24–30 طالبًا مبتدئًا (ثانوي/سنة أولى) بلا خبرة برمجية سابقة؛ موافقة مستنيرة؛ موافقة لجنة الأخلاقيات إن تطلب الأمر</td></tr>
+      <tr><td>التصميم</td><td>بين المجموعات (Between-subjects): المجموعة أ ترى رسائل الخطأ الرسمية فقط؛ المجموعة ب ترى الرسائل + الشرح المتدرج. توزيع عشوائي متوازن</td></tr>
+      <tr><td>المهمة</td><td>الدروس 1–4 ثم تمرين «إصلاح برنامج فيه 5 أخطاء» خلال 45 دقيقة في الساحة</td></tr>
+      <tr><td>القياسات</td><td>اختبار فهم قبلي/بعدي (10 أسئلة)، عدد الأخطاء المُصلَحة، زمن الإصلاح، أعلى مستوى تلميح مستخدم، درجة SUS، مقابلة قصيرة</td></tr>
+      <tr><td>التحليل</td><td>اختبار t أو Mann–Whitney للفروق بين المجموعتين؛ حجم الأثر (Cohen’s d)؛ تحليل موضوعي (thematic) للمقابلات</td></tr>
+      <tr><td>الفرضيات</td><td>ف1: المجموعة ب تصلح أخطاءً أكثر في وقت أقل. ف2: تحسّن الفهم البعدي أعلى في ب. ف3: SUS ≥ 70 للمنصة ككل. ف4: لا فرق دال في الزمن بين النموذج السحابي والمحلي يبرر الاعتماد على السحابي وحده</td></tr>
+      <tr><td>الخطة البديلة</td><td>إن تعذر العدد: 8–12 مشاركًا بتصميم داخل المجموعات (Within-subjects) مع تحليل نوعي معمّق — تظل نتائج SUS ذات قيمة أولية</td></tr>
+    </tbody>
+  </table>
+  <h3>11.3 المقارنة المباشرة مع Alif</h3>
+  <p>تُكتب خمسة برامج متطابقة بلغتي ضاد وAlif وتُقارن: عدد الأسطر، وضوح رسائل الخطأ (تقييم مقيّمين)، إمكانية التشغيل في المتصفح، وتوفر الإكمال التلقائي. هدفها التموضع التنافسي المدعوم بالدليل لا «الانتصار».</p>
+</section>
+
+<!-- ======================= 12 ======================= -->
+<section class="section">
+  <h2><span class="num">12</span>المتطلبات الوظيفية وغير الوظيفية<span class="mark" dir="ltr">QQS12QQ</span></h2>
+  <h3>12.1 المتطلبات الوظيفية</h3>
+  <table class="req compact">
+    <thead><tr><th style="width:10%">الرمز</th><th>المتطلب</th><th style="width:12%">الأولوية</th></tr></thead>
+    <tbody>
+      <tr><td>و-01</td><td>يحلل النظام ملفات <code>.ضاد</code> وفق قواعد Tree-sitter وينتج شجرة حتى عند وجود أخطاء</td><td><span class="tag must">Must</span></td></tr>
+      <tr><td>و-02</td><td>ينفّذ المفسر المتغيرات والأنواع الأساسية والشروط والحلقات والدوال والقوائم والقواميس</td><td><span class="tag must">Must</span></td></tr>
+      <tr><td>و-03</td><td>يقبل المحلل الأرقام الشرقية والغربية ويوحّدها داخليًا</td><td><span class="tag must">Must</span></td></tr>
+      <tr><td>و-04</td><td>يطبّق المحلل سياسة Unicode للمعرّفات (NFC، تجاهل التشكيل، رفض المحارف المربكة)</td><td><span class="tag must">Must</span></td></tr>
+      <tr><td>و-05</td><td>يُصدر النظام كل خطأ بكود ضاد-XXXX وموقع دقيق ورسالة عربية ورابط توثيق</td><td><span class="tag must">Must</span></td></tr>
+      <tr><td>و-06</td><td>يوفر REPL تفاعليًا في الطرفية وفي الساحة</td><td><span class="tag must">Must</span></td></tr>
+      <tr><td>و-07</td><td>يوفر خادم LSP التشخيص والإكمال والتلميح</td><td><span class="tag must">Must</span></td></tr>
+      <tr><td>و-08</td><td>يعرض محرر الويب الكود العربي المختلط بشكل صحيح باتجاه أساسي RTL وعزل رموز</td><td><span class="tag must">Must</span></td></tr>
+      <tr><td>و-09</td><td>يترجم النظام المجموعة الفرعية الرقمية إلى وحدة WASM تعمل في المتصفح</td><td><span class="tag should">Should</span></td></tr>
+      <tr><td>و-10</td><td>يولّد الشارح شرحًا عربيًا متدرجًا مقيَّدًا بصفحة التوثيق ويمرره بحارس جودة</td><td><span class="tag should">Should</span></td></tr>
+      <tr><td>و-11</td><td>تولّد الساحة روابط مشاركة دائمة ورمز QR</td><td><span class="tag should">Should</span></td></tr>
+      <tr><td>و-12</td><td>يعيد المنسّق تنسيق الملفات بأسلوب قياسي</td><td><span class="tag should">Should</span></td></tr>
+      <tr><td>و-13</td><td>تقدّم بيئة التعلم 10 دروس بمصحّح آلي يعمل في المتصفح</td><td><span class="tag should">Should</span></td></tr>
+      <tr><td>و-14</td><td>يعرض المتتبّع المرئي التنفيذ خطوة بخطوة</td><td><span class="tag could">Could</span></td></tr>
+      <tr><td>و-15</td><td>يدعم الشارح التبديل بين نموذج سحابي ومحلي</td><td><span class="tag could">Could</span></td></tr>
+      <tr><td>و-16</td><td>يوفر المدقق قواعد التحذير الأساسية</td><td><span class="tag could">Could</span></td></tr>
+      <tr><td>و-17</td><td>يدعم النظام استيراد حزم من مستودع بسيط</td><td><span class="tag could">Could</span></td></tr>
+      <tr><td>و-18</td><td>مولّد كود من وصف نصي للمراجعة فقط</td><td><span class="tag could">Could</span></td></tr>
+    </tbody>
+  </table>
+  <h3>12.2 المتطلبات غير الوظيفية</h3>
+  <table class="req compact">
+    <thead><tr><th style="width:10%">الرمز</th><th>المتطلب</th><th style="width:28%">المعيار</th></tr></thead>
+    <tbody>
+      <tr><td>غ-01</td><td>الأداء</td><td>إكمال LSP p95 &lt; 100ms؛ WASM ≥ 5× المفسر</td></tr>
+      <tr><td>غ-02</td><td>المتانة</td><td>0 انهيار تحت fuzzing؛ خطأ نظيف لكل مدخل مشوّه</td></tr>
+      <tr><td>غ-03</td><td>الأمان</td><td>عزل تنفيذ كود المستخدم؛ حدود زمن وذاكرة؛ لا تنفيذ تلقائي لمخرجات النموذج</td></tr>
+      <tr><td>غ-04</td><td>الحتمية</td><td>نفس المدخل → نفس الشجرة والمخرجات والأخطاء دائمًا؛ النموذج اللغوي خارج مسار التنفيذ</td></tr>
+      <tr><td>غ-05</td><td>قابلية الاستخدام</td><td>SUS ≥ 70؛ تشغيل في المتصفح بلا تثبيت</td></tr>
+      <tr><td>غ-06</td><td>إتاحة الوصول</td><td>تنقل كامل بلوحة المفاتيح؛ ARIA؛ تباين وفق WCAG AA</td></tr>
+      <tr><td>غ-07</td><td>قابلية الصيانة</td><td>تغطية اختبارات ≥ 80% للنواة؛ ADR لكل قرار كبير؛ CI أخضر</td></tr>
+      <tr><td>غ-08</td><td>المحمولية</td><td>الأدوات تعمل على Linux وmacOS وWindows؛ الساحة على المتصفحات الحديثة والجوال</td></tr>
+      <tr><td>غ-09</td><td>قابلية إعادة الإنتاج</td><td>سكربت واحد يعيد توليد كل أرقام التقييم من المستودع</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ======================= 13 ======================= -->
+<section class="section">
+  <h2><span class="num">13</span>خطة التنفيذ (فصلان دراسيان) والمعالم<span class="mark" dir="ltr">QQS13QQ</span></h2>
+  <div class="ms">
+    <div><b>م1</b>الأسبوع 2<br>وثيقة التصميم + ADRs</div>
+    <div><b>م2</b>الأسبوع 5<br>Grammar + Corpus</div>
+    <div><b>م3</b>الأسبوع 9<br>مفسر + REPL + أخطاء</div>
+    <div><b>م4</b>الأسبوع 14<br>WASM + LSP + VS Code</div>
+    <div><b>م5</b>الأسبوع 20<br>محرر BiDi + ساحة + شارح</div>
+    <div><b>م6</b>الأسبوع 28<br>تقييم + تقرير + عرض</div>
+  </div>
+  <h3>13.1 الفصل الأول — النواة والأدوات الأساسية</h3>
+  <table class="compact">
+    <thead><tr><th style="width:11%">الأسابيع</th><th>المهام</th><th style="width:30%">المخرج القابل للتحقق</th></tr></thead>
+    <tbody>
+      <tr><td>1–2</td><td>مراجعة الأدبيات؛ مقارنة Tree-sitter/ANTLR4 بنموذج أولي صغير؛ تثبيت الكلمات المفتاحية وسياسة الأرقام وUnicode؛ إعداد المستودع وCI وقالب ADR</td><td>وثيقة تصميم اللغة v1 + 5 ملفات ADR + CI يعمل</td></tr>
+      <tr><td>3–5</td><td>كتابة <span class="ltr">grammar.js</span>؛ مجموعة اختبارات corpus (30 برنامجًا)؛ ملف تلوين <span class="ltr">highlights.scm</span>؛ ربط المحلل بـ Rust</td><td>المحلل يجتاز 100% من corpus؛ تلوين يعمل في VS Code بلا LSP</td></tr>
+      <tr><td>6–9</td><td>المفسر: القيم والبيئات والدوال والإغلاقات؛ فهرس الأخطاء (أول 30 كودًا بصفحاتها)؛ REPL؛ نواة المكتبة القياسية</td><td>تنفيذ 50 برنامجًا مرجعيًا؛ <code>ضاد شرح 1003</code> يعمل</td></tr>
+      <tr><td>10–12</td><td>مولّد WASM للمجموعة الرقمية؛ تحميل الوحدة في صفحة ويب؛ قياسات criterion الأولى</td><td>فيبوناتشي عربي يعمل كـ WASM في المتصفح + أول رسم أداء</td></tr>
+      <tr><td>13–14</td><td>خادم LSP (تشخيص + إكمال + تلميح) بـ tower-lsp؛ إضافة VS Code أولية؛ تقرير منتصف المشروع</td><td>إضافة تعمل محليًا؛ تقرير منتصف المشروع مُسلَّم</td></tr>
+    </tbody>
+  </table>
+  <h3>13.2 الفصل الثاني — النظام البيئي والتقييم</h3>
+  <table class="compact">
+    <thead><tr><th style="width:11%">الأسابيع</th><th>المهام</th><th style="width:30%">المخرج القابل للتحقق</th></tr></thead>
+    <tbody>
+      <tr><td>15–17</td><td>محرر الويب (CodeMirror 6) + طبقة BiDi بعزل الرموز؛ مجموعة اختبارات BiDi البصرية؛ المنسّق</td><td>40 حالة BiDi تجتاز؛ <code>ضاد نسّق</code> يعمل</td></tr>
+      <tr><td>18–20</td><td>الساحة: المفسر وWASM في Web Worker بحدود موارد؛ روابط المشاركة وQR؛ شارح الأخطاء (RAG + تلميحات + حارس + cache) ودمجه في LSP والساحة</td><td>تجربة «اكتب بالعربية، شغّل في المتصفح، افهم الخطأ» كاملة</td></tr>
+      <tr><td>21–22</td><td>بيئة التعلم: 10 دروس + المصحّح الآلي؛ المتتبّع المرئي (إن سمح الوقت)؛ نشر إضافة VS Code</td><td>مسار الدروس كامل ومنشور كصفحة ثابتة</td></tr>
+      <tr><td>23–25</td><td>التقييم التقني الآلي (أداء، LSP، fuzzing، دقة الإكمال، جودة الشرح سحابي/محلي)؛ دراسة المستخدمين (تجنيد، جلسات، SUS)</td><td>بيانات خام + سكربت إعادة الإنتاج</td></tr>
+      <tr><td>26–28</td><td>تحليل النتائج؛ كتابة التقرير النهائي؛ إصدار v1.0؛ تحضير العرض والعرض الحي الاحتياطي (فيديو)</td><td>تقرير + عرض + مستودع موسوم v1.0</td></tr>
+    </tbody>
+  </table>
+  <div class="fig">
+    <svg viewBox="0 0 760 300" xmlns="http://www.w3.org/2000/svg" font-family="Cairo, Noto Sans Arabic, sans-serif" font-size="10.5">
+      <!-- grid: weeks 1..28 from right to left; x = 600 - (w-1)*20 ... we use width 560 for 28 weeks => 20 each; right edge at 740 -->
+      <g fill="#5b6478">
+        <text x="750" y="18" text-anchor="start" font-weight="700" fill="#14213d">الأسابيع ←</text>
+        <!-- week ticks every 4 -->
+        <text x="740" y="36" text-anchor="middle">1</text><text x="660" y="36" text-anchor="middle">5</text><text x="580" y="36" text-anchor="middle">9</text><text x="500" y="36" text-anchor="middle">13</text><text x="420" y="36" text-anchor="middle">17</text><text x="340" y="36" text-anchor="middle">21</text><text x="260" y="36" text-anchor="middle">25</text><text x="200" y="36" text-anchor="middle">28</text>
+      </g>
+      <line x1="470" y1="42" x2="470" y2="290" stroke="#c9a227" stroke-dasharray="4 3"/>
+      <text x="470" y="298" text-anchor="middle" font-size="9.5" fill="#b4530a">نهاية الفصل الأول</text>
+      <!-- rows: label at x=755 start, bar from right -->
+      <!-- helper: week w start x_right = 750 - (w-1)*20 ; width = n*20 -->
+      <g>
+        <rect x="710" y="48" width="40" height="16" rx="4" fill="#0f4c5c"/><text x="178" y="60" text-anchor="start" fill="#14213d">تصميم + ADR + CI</text>
+        <rect x="650" y="72" width="60" height="16" rx="4" fill="#0f4c5c"/><text x="178" y="84" text-anchor="start" fill="#14213d">Grammar + Corpus</text>
+        <rect x="570" y="96" width="80" height="16" rx="4" fill="#0f4c5c"/><text x="178" y="108" text-anchor="start" fill="#14213d">المفسر + REPL + فهرس الأخطاء</text>
+        <rect x="510" y="120" width="60" height="16" rx="4" fill="#1b6f80"/><text x="178" y="132" text-anchor="start" fill="#14213d">مولّد WASM + قياسات</text>
+        <rect x="470" y="144" width="40" height="16" rx="4" fill="#1b6f80"/><text x="178" y="156" text-anchor="start" fill="#14213d">LSP + VS Code</text>
+        <rect x="410" y="168" width="60" height="16" rx="4" fill="#c9a227"/><text x="178" y="180" text-anchor="start" fill="#14213d">محرر BiDi + منسّق</text>
+        <rect x="350" y="192" width="60" height="16" rx="4" fill="#c9a227"/><text x="178" y="204" text-anchor="start" fill="#14213d">الساحة + الشارح الذكي</text>
+        <rect x="310" y="216" width="40" height="16" rx="4" fill="#c9a227"/><text x="178" y="228" text-anchor="start" fill="#14213d">بيئة التعلم + النشر</text>
+        <rect x="250" y="240" width="60" height="16" rx="4" fill="#1f7a4d"/><text x="178" y="252" text-anchor="start" fill="#14213d">التقييم ودراسة المستخدمين</text>
+        <rect x="190" y="264" width="60" height="16" rx="4" fill="#1f7a4d"/><text x="178" y="276" text-anchor="start" fill="#14213d">التقرير + v1.0 + العرض</text>
+      </g>
+      <!-- draw tick line -->
+      <line x1="750" y1="42" x2="190" y2="42" stroke="#dfe3ec"/>
+    </svg>
+    <div class="cap">الشكل 4 — المخطط الزمني على 28 أسبوعًا (الأزرق: النواة والأدوات، الذهبي: النظام البيئي، الأخضر: التقييم والتسليم).</div>
+  </div>
+  <h3>13.3 إيقاع العمل والحوكمة</h3>
+  <ul>
+    <li><strong>اجتماع أسبوعي مع المشرف</strong> بمحضر قصير في المستودع (<span class="ltr">docs/meetings/</span>).</li>
+    <li><strong>سباقات (Sprints) من أسبوعين</strong> بلوحة مهام GitHub Projects؛ كل سباق ينتهي بمخرج قابل للتشغيل.</li>
+    <li><strong>قاعدة الحماية:</strong> لا تبدأ ميزة من فئة Could قبل اكتمال كل ميزات Must في الطبقة نفسها.</li>
+    <li><strong>تجميد الميزات</strong> في الأسبوع 22؛ بعده إصلاحات وتقييم وكتابة فقط.</li>
+  </ul>
+</section>
+
+<!-- ======================= 14 ======================= -->
+<section class="section">
+  <h2><span class="num">14</span>ترتيب الأولويات (MoSCoW) ونطاق MVP<span class="mark" dir="ltr">QQS14QQ</span></h2>
+  <div class="grid2">
+    <div class="card" style="border-top-color:#9b2226"><h4 style="color:#9b2226">Must — ضمن MVP، لا تفاوض</h4><p>قواعد Tree-sitter + corpus · المفسر بالأنواع الأساسية والدوال · REPL · سياسة الأرقام وUnicode · فهرس أكواد الأخطاء (≥ 30 كودًا موثقًا) · LSP (تشخيص، إكمال، تلميح) · محرر ويب بعزل BiDi واجتياز مجموعة الاختبار · CI بالاختبارات الآلية · نواة المكتبة القياسية.</p></div>
+    <div class="card" style="border-top-color:#b4530a"><h4 style="color:#b4530a">Should — مخطط له في الفصل الثاني</h4><p>مولّد WASM للمجموعة الرقمية وقياس الأداء · الساحة بروابط المشاركة وQR · شارح الأخطاء بنهج RAG مع التلميحات المتدرجة والحارس والتخزين المؤقت · المنسّق · إضافة VS Code منشورة · بيئة التعلم بالمصحّح الآلي · دراسة المستخدمين بـ SUS · حدود الموارد.</p></div>
+    <div class="card" style="border-top-color:#0f4c5c"><h4 style="color:#0f4c5c">Could — إن سمح الوقت</h4><p>المتتبّع المرئي · مقارنة سحابي/محلي · المدقق الموسع · إجراءات الإصلاح السريع والترميز الدلالي · التوثيق المولَّد · مدير حزم مصغّر · مولّد الكود للمراجعة · WASM للنصوص والقوائم.</p></div>
+    <div class="card" style="border-top-color:#5b6478"><h4 style="color:#5b6478">Won’t — ما بعد التخرج (خارطة طريق)</h4><p>مترجم LLVM كامل · منقّح DAP كامل · الاستضافة الذاتية · الأصناف والوراثة الكاملة · التزامن · تطبيق جوال · مستودع حزم مركزي.</p></div>
+  </div>
+  <div class="callout info"><span class="t">تعريف «النجاح الأدنى» صراحةً</span>إذا توقف المشروع في الأسبوع 20 لأي سبب، يكون المُسلَّم: لغة تعمل بمفسر وREPL، أخطاء مرقمة وموثقة، خادم LSP وإضافة VS Code، ومحرر ويب يعرض العربية المختلطة بشكل صحيح — وهو وحده يفوق ما تقدمه أي لغة عربية قائمة من حيث الأدوات. ذكر بند Won’t صراحةً أمام اللجنة يثبت وعيًا بحدود النطاق لا ضعفًا فيه.</div>
+</section>
+
+<!-- ======================= 15 ======================= -->
+<section class="section">
+  <h2><span class="num">15</span>التقنيات وهيكلة المستودع<span class="mark" dir="ltr">QQS15QQ</span></h2>
+  <h3>15.1 حزمة التقنيات</h3>
+  <table class="compact">
+    <thead><tr><th style="width:22%">المكوّن</th><th style="width:30%">التقنية</th><th>سبب الاختيار</th></tr></thead>
+    <tbody>
+      <tr><td>القواعد والمحلل</td><td class="ltr">tree-sitter, tree-sitter-cli, web-tree-sitter</td><td>تزايدي، يتعافى من الأخطاء، يعمل في Rust والمتصفح</td></tr>
+      <tr><td>المفسر والمترجم</td><td class="ltr">Rust, wasm-encoder, wasmtime (tests)</td><td>أداء وسلامة؛ توليد WASM ثنائي مباشر؛ يُترجم المفسر نفسه إلى WASM</td></tr>
+      <tr><td>خادم اللغة</td><td class="ltr">tower-lsp, lsp-types</td><td>تنفيذ LSP ناضج وغير متزامن في Rust</td></tr>
+      <tr><td>محرر الويب والساحة</td><td class="ltr">CodeMirror 6, TypeScript, Vite, Web Workers, lz-string</td><td>دعم RTL أصلي وDecorations قابلة للبرمجة؛ بناء سريع؛ عزل التنفيذ</td></tr>
+      <tr><td>إضافة VS Code</td><td class="ltr">vscode-languageclient, TextMate grammar</td><td>الطريق القياسي لعميل LSP</td></tr>
+      <tr><td>الذكاء الاصطناعي</td><td class="ltr">LLM API (Claude / GPT) + Ollama (Jais / AceGPT)</td><td>طبقة تجريد واحدة تتيح التبديل والمقارنة</td></tr>
+      <tr><td>الاختبار والجودة</td><td class="ltr">cargo test, tree-sitter test, cargo-fuzz, criterion, Playwright, GitHub Actions</td><td>تغطية كل الطبقات آليًا</td></tr>
+      <tr><td>التحليل الإحصائي</td><td class="ltr">Python (pandas, scipy), Jupyter</td><td>تحليل قابل لإعادة الإنتاج لنتائج الدراسة</td></tr>
+    </tbody>
+  </table>
+  <h3>15.2 هيكلة المستودع (Monorepo)</h3>
+<pre class="ltr">dhad/
+├── docs/                 # التصميم، ADRs، محاضر الاجتماعات، التقرير
+│   ├── adr/              # 0001-numerals.md, 0002-unicode-policy.md, ...
+│   ├── spec/             # مواصفة اللغة (نحو EBNF + دلالات)
+│   └── errors/           # صفحة لكل كود: 1003.md ... (مصدر RAG)
+├── grammar/              # tree-sitter-dhad: grammar.js, queries/, test/corpus/
+├── crates/
+│   ├── dhad-syntax/      # ربط Tree-sitter + AST + Unicode policy
+│   ├── dhad-diagnostics/ # فهرس الأخطاء، التنسيق، أكواد ضاد-XXXX
+│   ├── dhad-interp/      # المفسر + REPL + fuel
+│   ├── dhad-wasm/        # مولّد WebAssembly
+│   ├── dhad-stdlib/      # المكتبة القياسية (Rust + ملفات .ضاد)
+│   ├── dhad-fmt/         # المنسّق
+│   ├── dhad-lint/        # المدقق
+│   ├── dhad-lsp/         # خادم اللغة
+│   └── dhad-cli/         # الأمر «ضاد»: شغّل، نسّق، اختبر، شرح، وثّق
+├── editors/
+│   ├── vscode/           # الإضافة
+│   └── web/              # محرر الويب + طبقة BiDi + الساحة + الدروس
+├── ai-explainer/         # بناء البرومبت، RAG، الحارس، cache، مزوّدات النماذج
+├── examples/             # 50+ برنامج مرجعي بالعربية
+├── benchmarks/           # criterion + سكربت الرسوم
+├── evaluation/           # أدوات الدراسة، الاستبيانات، البيانات، دفاتر التحليل
+└── .github/workflows/    # CI: build, test, corpus, bidi-snapshots, bench</pre>
+</section>
+
+<!-- ======================= 16 ======================= -->
+<section class="section">
+  <h2><span class="num">16</span>المخاطر وخطة التخفيف<span class="mark" dir="ltr">QQS16QQ</span></h2>
+  <table class="compact">
+    <thead><tr><th style="width:30%">المخاطرة</th><th style="width:9%">الاحتمال</th><th style="width:9%">الأثر</th><th>التخفيف</th></tr></thead>
+    <tbody>
+      <tr><td>صعوبة توليد WASM من الصفر</td><td>مرتفع</td><td>متوسط</td><td>البدء بمجموعة رقمية صغيرة جدًا؛ استخدام wasm-encoder بدل كتابة الثنائي يدويًا؛ WASM من فئة Should لا Must</td></tr>
+      <tr><td>مشاكل Unicode/RTL داخل قواعد Tree-sitter</td><td>متوسط</td><td>مرتفع</td><td>نموذج أولي في الأسبوعين الأولين؛ ANTLR4 كخطة بديلة للمحلل مع إبقاء Tree-sitter للتلوين</td></tr>
+      <tr><td>طبقة BiDi لا تغطي كل الحالات</td><td>متوسط</td><td>مرتفع</td><td>مجموعة اختبار بصرية مبكرة؛ الاتجاه الأساسي RTL الثابت يحل معظم الحالات؛ زر تبديل يدوي كملاذ</td></tr>
+      <tr><td>النموذج اللغوي ينتج شروحًا غير دقيقة</td><td>متوسط</td><td>متوسط</td><td>RAG على التوثيق الرسمي + حارس جودة + عرض الرسالة الرسمية دائمًا + قياس معدل الرفض</td></tr>
+      <tr><td>تكلفة/انقطاع الواجهة السحابية أثناء العرض</td><td>متوسط</td><td>مرتفع</td><td>التخزين المؤقت + نموذج محلي احتياطي + فيديو عرض احتياطي</td></tr>
+      <tr><td>تعذّر تجنيد عدد كافٍ من المشاركين</td><td>متوسط</td><td>متوسط</td><td>التنسيق المبكر مع مدرسة/مقرر مدخل؛ خطة بديلة داخل المجموعات بـ 8–12 مشاركًا</td></tr>
+      <tr><td>تضخم النطاق بسبب الإضافات</td><td>مرتفع</td><td>مرتفع</td><td>MoSCoW صارم؛ تجميد الميزات في الأسبوع 22؛ أي ميزة جديدة تدخل Could افتراضيًا</td></tr>
+      <tr><td>كسر القواعد عند كل توسعة</td><td>مرتفع</td><td>متوسط</td><td>اختبارات golden للشجرة وcorpus في CI تكشف أي انحراف فورًا</td></tr>
+      <tr><td>كود الطالب يجمّد المتصفح</td><td>مرتفع</td><td>منخفض</td><td>Web Worker بمهلة إنهاء إجبارية + عدّاد وقود في المفسر</td></tr>
+      <tr><td>منحنى تعلم Rust</td><td>متوسط</td><td>متوسط</td><td>البدء بالمفسر البسيط؛ الاستعانة بصناديق ناضجة؛ تخصيص الأسبوعين الأولين للتدريب</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ======================= 17 ======================= -->
+<section class="section">
+  <h2><span class="num">17</span>التموضع أمام اللجنة والأسئلة المتوقعة<span class="mark" dir="ltr">QQS17QQ</span></h2>
+  <div class="quote">«المشاريع العربية السابقة إما بنت لغة تعليمية بسيطة (Alif) أو لغة أنظمة معقدة (SultanC). لم يبنِ أحد النظام البيئي الوسيط: لغة قابلة للتوسع، بأدوات مطور حقيقية، بدعم RTL أصيل، وبمساعدة ذكية للمبتدئين مقيَّدة وقابلة للقياس. هذا ما يقدمه مشروع ضاد — ويقدمه مع أرقام.»</div>
+  <table class="compact">
+    <thead><tr><th style="width:34%">السؤال المتوقع</th><th>الإجابة المختصرة</th></tr></thead>
+    <tbody>
+      <tr><td>ما الجديد مقارنةً بألف أو SultanC؟</td><td>مصفوفة الفجوة (3.2): محلل تزايدي + LSP + BiDi هندسي + أكواد أخطاء موثقة + شارح مقيَّد + تقييم مع مستخدمين؛ لا يجمعها أي مشروع قائم.</td></tr>
+      <tr><td>ألا يكفي استخدام ChatGPT لشرح الأخطاء؟</td><td>الفرق في القيد والقياس: شرحنا مقيَّد بتوثيقنا الرسمي، متدرج تربويًا، يمر بحارس، ويُقاس أثره تجريبيًا — وهو جزء من المحرر لا نافذة خارجية.</td></tr>
+      <tr><td>لماذا Rust وليس Python؟</td><td>الأداء، ترجمة المفسر نفسه إلى WASM للعمل في المتصفح بلا خادم، ونضج صناديق tree-sitter وLSP؛ ADR-0003 يوثق المفاضلة.</td></tr>
+      <tr><td>ماذا لو لم تكتمل طبقة WASM؟</td><td>WASM من فئة Should؛ النجاح الأدنى (القسم 14) محدد مسبقًا ويفوق المشاريع القائمة بدونها.</td></tr>
+      <tr><td>كيف تضمن صحة عرض RTL؟</td><td>40+ حالة اختبار بصرية آلية في CI، واتجاه أساسي RTL ثابت مع عزل الرموز بالاعتماد على شجرة التحليل.</td></tr>
+      <tr><td>هل الأرقام العربية الشرقية أم الغربية؟</td><td>كلتاهما مقبولتان، تمثيل داخلي موحد، عرض حسب الإعداد — ADR-0001.</td></tr>
+      <tr><td>ما حجم عينة الدراسة ولماذا؟</td><td>24–30 مشاركًا بتصميم بين المجموعات يكفي لكشف أثر متوسط؛ خطة بديلة داخل المجموعات إن تعذر العدد.</td></tr>
+      <tr><td>ما المهارات التي يغطيها المشروع؟</td><td>مترجمات، هندسة برمجيات، تطوير ويب، تفاعل إنسان–حاسوب، ذكاء اصطناعي تطبيقي، ومنهجية بحث تجريبي.</td></tr>
+    </tbody>
+  </table>
+  <h3>سيناريو العرض الحي (7 دقائق)</h3>
+  <ol>
+    <li>فتح الساحة من رمز QR على الشاشة — أعضاء اللجنة يفتحونها على هواتفهم.</li>
+    <li>كتابة برنامج «الأعداد الأولية» بالعربية مع إظهار الإكمال التلقائي والتلميحات.</li>
+    <li>تشغيله بالمفسر ثم بـ WASM مع عرض الزمن لكل منهما.</li>
+    <li>إدخال خطأ متعمد (جمع نص مع عدد) → رسالة ضاد-1003 → طلب التلميحات المتدرجة حتى الإصلاح.</li>
+    <li>إظهار سطر مختلط عربي/إنجليزي في محرر عادي مقابل محرر ضاد (قبل/بعد BiDi).</li>
+    <li>شريحة واحدة بنتائج التقييم: الأداء، SUS، أثر الشارح.</li>
+  </ol>
+</section>
+
+<!-- ======================= 18 ======================= -->
+<section class="section">
+  <h2><span class="num">18</span>المراجع<span class="mark" dir="ltr">QQS18QQ</span></h2>
+  <ol class="small refs" style="line-height:1.9">
+    <li>Alif Programming Language — لغة ألف العربية. الموقع الرسمي والمستودع المفتوح.</li>
+    <li>SultanC — لغة أنظمة عربية ذاتية الاستضافة؛ توثيق التمثيل الوسيط MSIR وأهداف التوليد (ELF, Mach-O, PE/COFF, WASM).</li>
+    <li>Zahra — مترجم عربي موحد (VM + QBE + LLVM) ومرحلة التحقق ZIR.</li>
+    <li>arabi-lang — لغة عربية موزعة عبر PyPI.</li>
+    <li>APL (2025) — استخدام نماذج اللغة الكبيرة كمترجم شبه آلي للكود العربي إلى Python (للمقارنة والتمييز).</li>
+    <li dir="ltr">Hermans, F. — Hedy: A Gradual Language for Programming Education. ICER 2020. (لغة تعليمية متعددة اللغات البشرية.)</li>
+    <li dir="ltr">Becker, B. A., et al. — Compiler Error Messages Considered Unhelpful: The Landscape of Text-Based Programming Error Message Research. ITiCSE-WGR 2019.</li>
+    <li dir="ltr">Brooke, J. — SUS: A “quick and dirty” usability scale. 1996. (المقياس المعياري لقابلية الاستخدام.)</li>
+    <li dir="ltr">Tree-sitter — An incremental parsing system for programming tools. التوثيق الرسمي.</li>
+    <li dir="ltr">Microsoft — Language Server Protocol Specification 3.17.</li>
+    <li dir="ltr">Microsoft — Debug Adapter Protocol Specification.</li>
+    <li dir="ltr">WebAssembly Community Group — WebAssembly Core Specification 2.0؛ WABT (wat2wasm)؛ صندوق wasm-encoder.</li>
+    <li dir="ltr">Unicode Consortium — UAX #9: Unicode Bidirectional Algorithm؛ UAX #15: Normalization Forms؛ UTS #39: Unicode Security Mechanisms (Confusables)؛ UAX #31: Identifier and Pattern Syntax.</li>
+    <li dir="ltr">CodeMirror 6 — توثيق دعم النص ثنائي الاتجاه والـ Decorations.</li>
+    <li dir="ltr">Guo, P. J. — Online Python Tutor: Embeddable Web-Based Program Visualization for CS Education. SIGCSE 2013.</li>
+    <li dir="ltr">Rust Project — Rust Compiler Error Index (نموذج أكواد الأخطاء الموثقة).</li>
+    <li dir="ltr">Sengupta, N., et al. — Jais and Jais-chat: Arabic-Centric Foundation and Instruction-Tuned Open Generative LLMs. 2023.</li>
+    <li dir="ltr">Wood, D., Bruner, J. S., Ross, G. — The Role of Tutoring in Problem Solving (مفهوم السقالات التعليمية). 1976.</li>
+  </ol>
+  <p class="small">تُستكمل الروابط وأرقام الإصدارات والصفحات في قائمة المراجع النهائية للتقرير وفق أسلوب التوثيق المعتمد في القسم (IEEE أو APA).</p>
+</section>
+
+<!-- ======================= APPENDIX A ======================= -->
+<section class="section">
+  <h2>الملحق أ — مسودة مواصفة اللغة (نحو مبسّط بصيغة EBNF)<span class="mark" dir="ltr">QQSAQQ</span></h2>
+<pre>برنامج        ::= { جملة }
+جملة          ::= تعريف_متغير | تعريف_ثابت | تعريف_دالة | إذا | طالما | لكل
+                | أرجع | توقف | استمر | استيراد | اختبار | تعبير
+تعريف_متغير   ::= "دع" معرّف [ ":" نوع ] "=" تعبير
+تعريف_ثابت    ::= "ثابت" معرّف "=" تعبير
+تعريف_دالة    ::= "دالة" معرّف "(" [ معرّف { فاصل معرّف } ] ")" كتلة
+إذا           ::= "إذا" تعبير كتلة { "وإلا" "إذا" تعبير كتلة } [ "وإلا" كتلة ]
+طالما         ::= "طالما" تعبير كتلة
+لكل           ::= "لكل" معرّف "في" تعبير كتلة
+أرجع          ::= "أرجع" [ تعبير ]
+استيراد       ::= "استورد" معرّف { "." معرّف }
+اختبار        ::= "اختبر" نص كتلة
+كتلة          ::= "{" { جملة } "}"
+تعبير         ::= منطقي_أو
+منطقي_أو      ::= منطقي_و { "أو" منطقي_و }
+منطقي_و       ::= مساواة { "و" مساواة }
+مساواة        ::= مقارنة { ( "==" | "!=" ) مقارنة }
+مقارنة        ::= جمع { ( "&lt;" | "&gt;" | "&lt;=" | "&gt;=" ) جمع }
+جمع           ::= ضرب { ( "+" | "-" ) ضرب }
+ضرب           ::= أحادي { ( "*" | "/" | "%" ) أحادي }
+أحادي         ::= ( "ليس" | "-" ) أحادي | استدعاء
+استدعاء       ::= أولي { "(" [ قائمة_معاملات ] ")" | "[" تعبير "]" | "." معرّف }
+أولي          ::= عدد | نص | "صحيح" | "خطأ" | "عدم" | معرّف | قائمة | مدى | "(" تعبير ")"
+قائمة         ::= "[" [ تعبير { فاصل تعبير } ] "]"
+مدى           ::= تعبير ".." تعبير
+فاصل          ::= "،" | ","
+عدد           ::= رقم { رقم } [ ( "." | "٫" ) رقم { رقم } ]      // رقم ∈ 0-9 ∪ ٠-٩
+نص            ::= '"' { محرف | "${" تعبير "}" } '"'
+معرّف         ::= حرف_بداية { حرف_تابع } [ "؟" ]
+   // حرف_بداية: أي حرف من فئة Letter (عربي أو لاتيني)؛ حرف_تابع: حرف أو رقم أو "_"
+   // تُطبَّق NFC وتُتجاهل الحركات والكشيدة وتُرفض المحارف المربكة وفق UTS #39
+تعليق         ::= "#" ... نهاية السطر | "##" تعليق_توثيق</pre>
+  <h3>الدلالات الأساسية (ملخص)</h3>
+  <ul>
+    <li><strong>الأنواع:</strong> عدد_صحيح (64-بت)، عدد_عشري (64-بت)، نص (UTF-8، الفهرسة بالمحارف لا البايتات)، منطقي، عدم، قائمة، قاموس، دالة.</li>
+    <li><strong>النطاقات:</strong> لغوية (lexical)؛ الكتل تُنشئ نطاقًا جديدًا؛ الدوال إغلاقات تلتقط البيئة.</li>
+    <li><strong>الحقيقة (truthiness):</strong> فقط <code>صحيح</code> و<code>خطأ</code> في الشروط؛ أي نوع آخر خطأ ضاد-1010 (قرار صريح لتقليل التباس المبتدئين).</li>
+    <li><strong>الجمع بـ +:</strong> عدد+عدد أو نص+نص فقط؛ غير ذلك خطأ ضاد-1003 (مع اقتراح <code>نص()</code> أو الدمج).</li>
+    <li><strong>القسمة:</strong> <code>/</code> تعطي عددًا عشريًا دائمًا؛ <code>//</code> قسمة صحيحة؛ القسمة على صفر خطأ وقت تشغيل ضاد-2001.</li>
+  </ul>
+</section>
+
+<!-- ======================= APPENDIX B ======================= -->
+<section class="section">
+  <h2>الملحق ب — فهرس أكواد الأخطاء الأولي<span class="mark" dir="ltr">QQSBQQ</span></h2>
+  <table class="compact">
+    <thead><tr><th style="width:12%">الكود</th><th style="width:34%">الرسالة</th><th>المساعدة المقترحة</th></tr></thead>
+    <tbody>
+      <tr><td>ضاد-0001</td><td>رمز غير متوقع</td><td>عرض الرمز المتوقع في هذا الموضع من القواعد</td></tr>
+      <tr><td>ضاد-0002</td><td>قوس غير مغلق</td><td>الإشارة إلى موضع القوس المفتوح المقابل</td></tr>
+      <tr><td>ضاد-0003</td><td>نص غير مغلق</td><td>أضف علامة الاقتباس الختامية "</td></tr>
+      <tr><td>ضاد-0004</td><td>معرّف يحتوي محارف مربكة من نصوص مختلفة</td><td>استخدم محارف عربية فقط أو لاتينية فقط في المعرّف الواحد</td></tr>
+      <tr><td>ضاد-0005</td><td>كلمة مفتاحية مستخدمة كاسم متغير</td><td>اختر اسمًا آخر؛ قائمة الكلمات المحجوزة</td></tr>
+      <tr><td>ضاد-1001</td><td>متغير غير معرَّف</td><td>اقتراح أقرب اسم موجود (مسافة ليفنشتاين بعد التطبيع)</td></tr>
+      <tr><td>ضاد-1002</td><td>إعادة تعريف ثابت</td><td>الثوابت لا تتغير؛ استخدم «دع» إن أردت التغيير</td></tr>
+      <tr><td>ضاد-1003</td><td>لا يمكن جمع نص مع عدد</td><td>استخدم نص(العدد) أو الدمج "${...}"</td></tr>
+      <tr><td>ضاد-1004</td><td>عدد المعاملات لا يطابق تعريف الدالة</td><td>عرض توقيع الدالة المتوقع</td></tr>
+      <tr><td>ضاد-1005</td><td>استدعاء قيمة ليست دالة</td><td>عرض نوع القيمة الفعلي</td></tr>
+      <tr><td>ضاد-1006</td><td>«أرجع» خارج دالة</td><td>انقل الجملة داخل دالة أو احذفها</td></tr>
+      <tr><td>ضاد-1007</td><td>«توقف»/«استمر» خارج حلقة</td><td>تُستخدمان داخل طالما أو لكل فقط</td></tr>
+      <tr><td>ضاد-1008</td><td>مقارنة بين نوعين غير متوافقين</td><td>حوّل أحد الطرفين</td></tr>
+      <tr><td>ضاد-1009</td><td>وحدة غير موجودة عند الاستيراد</td><td>قائمة الوحدات المتاحة</td></tr>
+      <tr><td>ضاد-1010</td><td>الشرط ليس قيمة منطقية</td><td>استخدم مقارنة صريحة مثل س != ٠</td></tr>
+      <tr><td>ضاد-2001</td><td>قسمة على صفر</td><td>تحقق من المقسوم عليه قبل القسمة</td></tr>
+      <tr><td>ضاد-2002</td><td>فهرس خارج حدود القائمة</td><td>الفهارس تبدأ من ٠ وتنتهي عند طول−١</td></tr>
+      <tr><td>ضاد-2003</td><td>مفتاح غير موجود في القاموس</td><td>تحقق بـ «في» قبل الوصول</td></tr>
+      <tr><td>ضاد-2004</td><td>تجاوز عمق الاستدعاء الذاتي</td><td>تحقق من شرط التوقف في الدالة</td></tr>
+      <tr><td>ضاد-2005</td><td>تجاوز المهلة الزمنية للتنفيذ</td><td>ربما توجد حلقة لا تنتهي؛ تحقق من شرط الحلقة</td></tr>
+      <tr><td>ضاد-3001</td><td>تحذير: متغير معرَّف وغير مستخدم</td><td>احذفه أو استخدمه</td></tr>
+      <tr><td>ضاد-3002</td><td>تحذير: معرّفان لا يختلفان إلا بالهمزة أو التاء المربوطة</td><td>وحّد التهجئة لتجنب الالتباس</td></tr>
+      <tr><td>ضاد-3003</td><td>تحذير: تشكيل داخل معرّف (تم تجاهله)</td><td>احذف الحركات من أسماء المتغيرات</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ======================= APPENDIX C/D/E ======================= -->
+<section class="section">
+  <h2>الملحق ج — قالب سجل القرار المعماري (ADR)<span class="mark" dir="ltr">QQSCQQ</span></h2>
+<pre># ADR-0001: التعامل مع الأرقام العربية الشرقية والغربية
+الحالة: مقبول — التاريخ: ____
+السياق: يختلف مستخدمو المشرق والمغرب في الأرقام المعتادة؛ المترجم يحتاج تمثيلًا واحدًا.
+القرار: يقبل المحلل الصنفين ويوحّدهما إلى الغربي داخليًا؛ العرض خاضع لإعداد المستخدم.
+البدائل المرفوضة: (١) الشرقية فقط — يُقصي المغرب العربي. (٢) الغربية فقط — يناقض هدف العربية الأصيلة.
+العواقب: + بساطة المترجم + مرونة العرض − الحاجة إلى اختبارات للصنفين في كل مكان.</pre>
+
+  <h2 style="margin-top:22pt">الملحق د — استبيان SUS (الترجمة العربية المعتمدة في الدراسة)</h2>
+  <p class="small">يُجاب عن كل عبارة بمقياس من 1 (لا أوافق بشدة) إلى 5 (أوافق بشدة). تُحسب الدرجة وفق معادلة Brooke القياسية (0–100).</p>
+  <ol class="small">
+    <li>أعتقد أنني سأرغب في استخدام هذه المنصة بشكل متكرر.</li>
+    <li>وجدت المنصة معقدة أكثر مما ينبغي.</li>
+    <li>اعتقدت أن المنصة سهلة الاستخدام.</li>
+    <li>أعتقد أنني سأحتاج إلى دعم شخص تقني لأتمكن من استخدام هذه المنصة.</li>
+    <li>وجدت أن الوظائف المختلفة في هذه المنصة متكاملة بشكل جيد.</li>
+    <li>اعتقدت أن هناك الكثير من التناقض في هذه المنصة.</li>
+    <li>أتصور أن معظم الناس سيتعلمون استخدام هذه المنصة بسرعة كبيرة.</li>
+    <li>وجدت المنصة مرهقة جدًا في الاستخدام.</li>
+    <li>شعرت بثقة كبيرة أثناء استخدام المنصة.</li>
+    <li>احتجت إلى تعلم الكثير من الأشياء قبل أن أتمكن من البدء باستخدام هذه المنصة.</li>
+  </ol>
+
+  <h2 style="margin-top:22pt">الملحق هـ — قاموس المصطلحات</h2>
+  <table class="compact">
+    <thead><tr><th style="width:26%">المصطلح</th><th>التعريف</th></tr></thead>
+    <tbody>
+      <tr><td>محلل تزايدي (Incremental Parser)</td><td>محلل يحدّث شجرة التحليل عند كل تعديل بدل إعادة بنائها، مما يتيح الاستجابة الفورية في المحرر.</td></tr>
+      <tr><td>شجرة التحليل (Syntax Tree)</td><td>تمثيل هرمي لبنية البرنامج يُستهلك من المفسر والمترجم والأدوات.</td></tr>
+      <tr><td>مفسر Tree-walking</td><td>مفسر ينفذ البرنامج بالمشي على شجرته مباشرة دون توليد كود وسيط.</td></tr>
+      <tr><td>WebAssembly (WASM)</td><td>صيغة ثنائية محمولة وآمنة تعمل في المتصفحات وخارجها بأداء قريب من الأصلي.</td></tr>
+      <tr><td>LSP</td><td>بروتوكول خادم اللغة؛ معيار يتيح لأي محرر الحصول على الإكمال والتشخيص من خادم واحد.</td></tr>
+      <tr><td>BiDi / UAX #9</td><td>خوارزمية Unicode لعرض النص ثنائي الاتجاه (عربي مع لاتيني وأرقام).</td></tr>
+      <tr><td>عزل اتجاهي (Isolation)</td><td>منع تسرب اتجاه مقطع نصي إلى جيرانه المحايدين.</td></tr>
+      <tr><td>RAG</td><td>التوليد المعزز بالاسترجاع: تزويد النموذج اللغوي بمصدر موثوق ليعتمد عليه بدل معرفته العامة.</td></tr>
+      <tr><td>حارس الجودة (Guardrail)</td><td>فحوص آلية على مخرجات النموذج قبل عرضها للمستخدم.</td></tr>
+      <tr><td>السقالات التعليمية (Scaffolding)</td><td>تقديم المساعدة تدريجيًا بقدر حاجة المتعلم ثم سحبها.</td></tr>
+      <tr><td>SUS</td><td>مقياس قابلية الاستخدام المعياري من 10 عبارات بدرجة 0–100 (المتوسط العالمي 68).</td></tr>
+      <tr><td>Fuzzing</td><td>اختبار المتانة بمدخلات عشوائية أو مشوّهة لاكتشاف الانهيارات.</td></tr>
+      <tr><td>ADR</td><td>سجل قرار معماري: وثيقة قصيرة تحفظ سياق قرار تصميمي وبدائله وعواقبه.</td></tr>
+      <tr><td>MoSCoW</td><td>أسلوب ترتيب أولويات: Must / Should / Could / Won’t.</td></tr>
+    </tbody>
+  </table>
+  <p class="footer-note">— نهاية الوثيقة — منصة ضاد · وثيقة مشروع التخرج الشاملة · الإصدار 2.0</p>
+</section>
+
+</body>
+</html>
