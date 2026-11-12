@@ -8,7 +8,7 @@
 //!
 //! تستورد الوحدة دالة واحدة من المضيف: `env.dhad_now_ms() -> f64` (ساعة المتصفح).
 
-use dhad_diagnostics::{explain, lookup, render, Diagnostic};
+use dhad_diagnostics::{explain, json_str, to_json as diag_json};
 use dhad_interp::Interp;
 use std::cell::RefCell;
 use std::io::Write;
@@ -48,62 +48,6 @@ impl Write for SharedBuf {
     fn flush(&mut self) -> std::io::Result<()> {
         Ok(())
     }
-}
-
-fn json_str(s: &str) -> String {
-    let mut out = String::with_capacity(s.len() + 2);
-    out.push('"');
-    for c in s.chars() {
-        match c {
-            '"' => out.push_str("\\\""),
-            '\\' => out.push_str("\\\\"),
-            '\n' => out.push_str("\\n"),
-            '\r' => out.push_str("\\r"),
-            '\t' => out.push_str("\\t"),
-            c if (c as u32) < 0x20 => out.push_str(&format!("\\u{:04x}", c as u32)),
-            c => out.push(c),
-        }
-    }
-    out.push('"');
-    out
-}
-
-/// إزاحة UTF-16 (وحدة المواضع في محررات المتصفح) لإزاحة بايت.
-fn utf16_offset(src: &str, byte: usize) -> usize {
-    src[..byte.min(src.len())].encode_utf16().count()
-}
-
-fn diag_json(d: &Diagnostic, src: &str) -> String {
-    let mut fields = vec![
-        format!("\"code\":{}", d.code),
-        format!("\"codeStr\":{}", json_str(&d.code_str())),
-        format!(
-            "\"severity\":{}",
-            json_str(match d.severity {
-                dhad_diagnostics::Severity::Error => "error",
-                dhad_diagnostics::Severity::Warning => "warning",
-            })
-        ),
-        format!("\"message\":{}", json_str(&d.message)),
-        format!("\"rendered\":{}", json_str(&render(d, src, "البرنامج.ضاد"))),
-    ];
-    if let Some(h) = &d.help {
-        fields.push(format!("\"help\":{}", json_str(h)));
-    }
-    if let Some(e) = lookup(d.code) {
-        fields.push(format!("\"title\":{}", json_str(e.title)));
-        fields.push(format!("\"explanation\":{}", json_str(e.explanation)));
-    }
-    if let Some(span) = d.span {
-        let (line, col) = dhad_diagnostics::line_col(src, span.start);
-        fields.push(format!("\"line\":{line},\"col\":{col}"));
-        fields.push(format!(
-            "\"from\":{},\"to\":{}",
-            utf16_offset(src, span.start),
-            utf16_offset(src, span.end)
-        ));
-    }
-    format!("{{{}}}", fields.join(","))
 }
 
 fn set_result(s: String) -> usize {

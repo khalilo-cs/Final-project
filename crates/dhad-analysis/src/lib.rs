@@ -190,6 +190,16 @@ impl Resolver<'_> {
         } else {
             None
         };
+        let raw = self.src.get(span.start..span.end).unwrap_or("");
+        if kind != SymbolKind::Module && raw.chars().any(dhad_syntax::unicode::is_tashkeel) {
+            self.an.diagnostics.push(
+                Diagnostic::warning(
+                    3003,
+                    format!("التشكيل في «{raw}» يُتجاهل؛ الاسم هو «{name}»"),
+                )
+                .with_span(span),
+            );
+        }
         self.an.symbols.push(Symbol {
             name: name.to_string(),
             kind,
@@ -713,6 +723,7 @@ mod tests {
         assert!(codes("دع _س = ١").is_empty());
         let c = codes("دع أسماء = ١\nدع اسماء = ٢\nاطبع(أسماء، اسماء)");
         assert_eq!(c, vec![3002]);
+        assert_eq!(codes("دع عَدَد = ٣\nاطبع(عدد)"), vec![3003]);
     }
 
     #[test]

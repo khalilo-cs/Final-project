@@ -28,9 +28,11 @@ const USAGE: &str = "\
 خيارات:
   --وقود <ن>  | --fuel <n>            حد أقصى لعدد خطوات التنفيذ
   --أرقام-شرقية | --eastern-digits    عرض الأرقام بالأرقام العربية الشرقية
+  --json                              مخرجات منظمة (للأدوات وشارح الأخطاء الذكي)
 ";
 
 struct Opts {
+    json: bool,
     out: Option<String>,
     wat: bool,
     fuel: Option<u64>,
@@ -40,6 +42,7 @@ struct Opts {
 
 fn parse_opts() -> Opts {
     let mut opts = Opts {
+        json: false,
         out: None,
         wat: false,
         fuel: None,
@@ -55,6 +58,7 @@ fn parse_opts() -> Opts {
             "--أرقام-شرقية" | "--eastern-digits" => opts.eastern = true,
             "-o" | "--out" | "--مخرج" => opts.out = args.next(),
             "--wat" => opts.wat = true,
+            "--json" => opts.json = true,
             "-h" | "--help" | "مساعدة" | "--مساعدة" => {
                 print!("{USAGE}");
                 std::process::exit(0);
@@ -84,9 +88,11 @@ fn real_main() -> ExitCode {
         Some("افحص" | "check") => check_file(&opts),
         Some("شرح" | "explain") => explain_cmd(&opts),
         Some("ترجم" | "compile") => compile_cmd(&opts),
+        Some("فهرس" | "catalog") => catalog_cmd(),
         Some(path) if path.ends_with(".ضاد") || path.ends_with(".dhad") => {
             // اختصار: dhad ملف.ضاد
             let mut o = Opts {
+                json: opts.json,
                 out: None,
                 wat: false,
                 fuel: opts.fuel,
@@ -117,6 +123,47 @@ fn read_source(opts: &Opts) -> Result<(String, String), ExitCode> {
     }
 }
 
+#[derive(Clone, Default)]
+struct SharedBuf(std::rc::Rc<std::cell::RefCell<Vec<u8>>>);
+
+impl Write for SharedBuf {
+    fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
+        self.0.borrow_mut().extend_from_slice(buf);
+        Ok(buf.len())
+    }
+    fn flush(&mut self) -> io::Result<()> {
+        Ok(())
+    }
+}
+
+/// كائن JSON واحد على المخرج القياسي: {ok, output, diagnostics, source}
+fn print_json(ok: bool, output: &str, diags: &[Diagnostic], src: &str) {
+    let items: Vec<String> = diags.iter().map(|d| dhad_diagnostics::to_json(d, src)).collect();
+    println!(
+        "{{\"ok\":{ok},\"output\":{},\"diagnostics\":[{}],\"source\":{}}}",
+        dhad_diagnostics::json_str(output),
+        items.join(","),
+        dhad_diagnostics::json_str(src)
+    );
+}
+
+fn catalog_cmd() -> ExitCode {
+    let items: Vec<String> = dhad_diagnostics::CATALOG
+        .iter()
+        .map(|e| {
+            format!(
+                "{{\"code\":{},\"title\":{},\"help\":{},\"explanation\":{}}}",
+                e.code,
+                dhad_diagnostics::json_str(e.title),
+                dhad_diagnostics::json_str(e.help),
+                dhad_diagnostics::json_str(e.explanation)
+            )
+        })
+        .collect();
+    println!("[{}]", items.join(","));
+    ExitCode::SUCCESS
+}
+
 fn report(diag: &Diagnostic, src: &str, path: &str) {
     eprintln!("{}", render(diag, src, path));
 }
@@ -126,6 +173,9 @@ fn run_file(opts: &Opts, tests: bool) -> ExitCode {
         Ok(v) => v,
         Err(c) => return c,
     };
+    if opts.json {
+        return run_json(opts, &src);
+    }
     let program = match dhad_syntax::parse(&src) {
         Ok(p) => p,
         Err(e) => {
@@ -157,6 +207,32 @@ fn run_file(opts: &Opts, tests: bool) -> ExitCode {
     ExitCode::SUCCESS
 }
 
+fn run_json(opts: &Opts, src: &str) -> ExitCode {
+    let program = match dhad_syntax::parse(src) {
+        Ok(p) => p,
+        Err(e) => {
+            print_json(false, "", &[e], src);
+            return ExitCode::from(1);
+        }
+    };
+    let buf = SharedBuf::default();
+    let mut it = Interp::new(Box::new(buf.clone()));
+    it.fuel = opts.fuel;
+    it.eastern_digits = opts.eastern;
+    let result = it.run(&program);
+    let output = String::from_utf8_lossy(&buf.0.borrow()).to_string();
+    match result {
+        Ok(()) => {
+            print_json(true, &output, &[], src);
+            ExitCode::SUCCESS
+        }
+        Err(e) => {
+            print_json(false, &output, &[e], src);
+            ExitCode::from(1)
+        }
+    }
+}
+
 fn check_file(opts: &Opts) -> ExitCode {
     let (path, src) = match read_source(opts) {
         Ok(v) => v,
@@ -169,6 +245,10 @@ fn check_file(opts: &Opts) -> ExitCode {
         .filter(|d| d.severity == dhad_diagnostics::Severity::Error)
         .count();
     let warnings = analysis.diagnostics.len() - errors;
+    if opts.json {
+        print_json(errors == 0, "", &analysis.diagnostics, &src);
+        return if errors == 0 { ExitCode::SUCCESS } else { ExitCode::from(1) };
+    }
     for d in &analysis.diagnostics {
         report(d, &src, &path);
     }

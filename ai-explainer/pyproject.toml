@@ -1,0 +1,17 @@
+[project]
+name = "dhad-explainer"
+version = "0.1.0"
+description = "شارح أخطاء ضاد الذكي: شروح عربية متدرجة مقيَّدة بالتوثيق الرسمي مع حارس جودة"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+dependencies = ["anthropic>=2.8"]
+
+[project.scripts]
+dhad-explain = "dhad_explainer.__main__:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["dhad_explainer"]
