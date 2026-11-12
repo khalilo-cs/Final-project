@@ -64,7 +64,7 @@
   .kpi span{font-size:9.2pt;color:var(--muted)}
   hr.soft{border:0;border-top:1pt solid var(--line);margin:12pt 0}
   .toc ol{list-style:none;padding:0;counter-reset:toc}
-  .toc li{display:flex;justify-content:space-between;border-bottom:1pt dotted var(--line);padding:3pt 0;font-size:10.8pt;line-height:1.7}
+  .toc li{display:flex;justify-content:space-between;border-bottom:1pt dotted var(--line);padding:2pt 0;font-size:10.4pt;line-height:1.6}
   .toc li span:first-child{font-weight:700}
   .toc li.sub{padding-right:16pt;font-size:9.8pt;font-weight:400;color:var(--muted)}
   .toc li.sub span:first-child{font-weight:400}
@@ -102,7 +102,7 @@
   <div class="ring"></div><div class="ring2"></div>
   <div>
     <span class="badge">مشروع تخرج — بكالوريوس علوم الحاسب</span>
-    <span class="badge">الإصدار 2.0 — نوفمبر 2026</span>
+    <span class="badge">الإصدار 3.0 — نوفمبر 2026 — يتضمن التنفيذ</span>
     <div class="brand" style="margin-top:22mm">ضاد<small>DHAD · ARABIC PROGRAMMING PLATFORM</small></div>
     <h1>منصة برمجة عربية متكاملة</h1>
     <div class="sub">لغة برمجة عربية بمحلل نحوي تزايدي، مفسر، مترجم إلى WebAssembly، خادم لغة (LSP)، محرر ويب بدعم RTL/BiDi أصيل، شارح أخطاء ذكي مقيَّد بالتوثيق، وبيئة تعلم تفاعلية — مع خطة تقييم تجريبي كاملة.</div>
@@ -139,7 +139,8 @@
     <li><span>15. التقنيات وهيكلة المستودع</span><span data-sec="S15"></span></li>
     <li><span>16. المخاطر وخطة التخفيف</span><span data-sec="S16"></span></li>
     <li><span>17. التموضع أمام اللجنة والأسئلة المتوقعة</span><span data-sec="S17"></span></li>
-    <li><span>18. المراجع</span><span data-sec="S18"></span></li>
+    <li><span>18. ما تم تنفيذه والنتائج</span><span data-sec="S18"></span></li>
+    <li><span>19. المراجع</span><span data-sec="S19"></span></li>
     <li><span>الملحق أ — مسودة مواصفة اللغة (EBNF)</span><span data-sec="SA"></span></li>
     <li><span>الملحق ب — فهرس أكواد الأخطاء الأولي</span><span data-sec="SB"></span></li>
     <li><span>الملاحق ج، د، هـ — قالب ADR، استبيان SUS، قاموس المصطلحات</span><span data-sec="SC"></span></li>
@@ -395,10 +396,11 @@
     <li><strong>المحارف المربكة (Confusables):</strong> رفض خلط محارف من نصوص مختلفة تتشابه بصريًا في المعرّف الواحد (مثل الكاف العربية والكاف الفارسية)، استنادًا إلى <span class="ltr">UTS #39</span>. هذه نقطة أصالة لم تعالجها اللغات العربية القائمة.</li>
     <li><strong>الأحرف الممدودة (الكشيدة ـ):</strong> تُتجاهل في المعرّفات لأنها محرف زخرفي.</li>
   </ul>
-  <h4>القرار 3 — Tree-sitter منذ البداية (مع ANTLR4 كخطة بديلة)</h4>
+  <h4>القرار 3 — Tree-sitter منذ البداية (مع ANTLR4 كخطة بديلة) <span class="tag could">عُدِّل أثناء التنفيذ</span></h4>
   <p>تُكتب القواعد في <code class="ltr">grammar.js</code> وتُولَّد بـ Tree-sitter CLI محللًا بلغة C يُربط بـ Rust. الفائدة الحاسمة: المحلل نفسه يعمل في المفسر وفي خادم LSP وفي المحرر (عبر <span class="ltr">web-tree-sitter</span> المترجم إلى WASM)، ويُنتج شجرة حتى عند وجود أخطاء (error recovery) وهو ما يحتاجه التشخيص أثناء الكتابة. إن ظهرت عقبة في دعم Unicode داخل القواعد يُبنى نموذج أولي بـ ANTLR4 الذي يدعم Unicode كاملًا.</p>
+  <div class="callout info"><span class="t">ما حدث فعلًا (ADR-0004)</span>أثناء التنفيذ تبيّن أن رسائل الخطأ الموجهة للمبتدئ وسياسة Unicode تحتاجان تحكمًا كاملًا، فصار <strong>محلل يدوي مرجعي</strong> (تنازلي عودي + Pratt) مصدرَ الدلالات لكل الأدوات، وبقيت <strong>قواعد Tree-sitter</strong> للمحررات والتلوين. اختبار آلي في CI يثبت تطابقهما على كل برامج المستودع (٣٦/٣٦). انظر القسم ١٨.</div>
   <h4>القرار 4 — Rust لغةَ تنفيذ</h4>
-  <p>الأداء، سلامة الذاكرة، نضج منظومة الأدوات ذات الصلة (<span class="ltr">tree-sitter</span>, <span class="ltr">tower-lsp</span>, <span class="ltr">wasm-encoder</span>, <span class="ltr">wasmtime</span>)، وإمكانية ترجمة المفسر نفسه إلى WASM ليعمل في المتصفح بلا خادم. SultanC وZahra أثبتتا جدوى Rust لهذا النوع من المشاريع.</p>
+  <p>الأداء، سلامة الذاكرة، نضج منظومة الأدوات ذات الصلة (<span class="ltr">tree-sitter</span>, <span class="ltr">lsp-server</span>, <span class="ltr">wasm-encoder</span>)، وإمكانية ترجمة المفسر نفسه إلى WASM ليعمل في المتصفح بلا خادم. SultanC وZahra أثبتتا جدوى Rust لهذا النوع من المشاريع.</p>
 
   <h3>6.5 نظام أكواد الأخطاء الموثَّق</h3>
   <p>كل خطأ يحمل كودًا بصيغة <code>ضاد-XXXX</code> ضمن نطاقات: 0001–0999 أخطاء تحليل نحوي، 1000–1999 أخطاء دلالية وأنواع، 2000–2999 أخطاء وقت تشغيل، 3000–3999 تحذيرات المدقق. ولكل كود صفحة توثيق عربية (السبب، أمثلة خاطئة وصحيحة، أخطاء مشابهة). مثال مخرجات المترجم:</p>
@@ -456,7 +458,7 @@
 <section class="section">
   <h2><span class="num">7</span>الطبقة الثانية: أدوات المطور<span class="mark" dir="ltr">QQS07QQ</span></h2>
   <h3>7.1 خادم اللغة (LSP)</h3>
-  <p>يُبنى بصندوق <span class="ltr">tower-lsp</span> ويعمل فوق شجرة Tree-sitter نفسها، فلا يحتاج إلى تشغيل البرنامج لإنتاج معلوماته. الخدمات المخططة بالترتيب:</p>
+  <p>يُبنى بصندوقي <span class="ltr">lsp-server</span> و<span class="ltr">lsp-types</span> فوق المحلل المرجعي والتحليل الثابت (<span class="ltr">dhad-analysis</span>)، فلا يحتاج إلى تشغيل البرنامج لإنتاج معلوماته. الخدمات المخططة بالترتيب:</p>
   <table class="compact">
     <thead><tr><th style="width:26%">الخدمة</th><th>الوصف</th><th style="width:14%">الأولوية</th></tr></thead>
     <tbody>
@@ -492,7 +494,7 @@
     <div class="card"><h4>ضاد دقّق (Linter)</h4><p>قواعد تحذير (نطاق 3000–3999): متغير غير مستخدم، تظليل متغير، معرّفات متشابهة بصريًا (همزة/تاء مربوطة)، مقارنة ثابتة دائمًا، حلقة بلا تغيير لشرطها. تُعرض عبر LSP كتحذيرات ويمكن تعطيل كل قاعدة بتعليق.</p></div>
   </div>
   <h3>7.5 ساحة التجريب (Playground)</h3>
-  <p>صفحة ويب واحدة بلا خادم تنفيذ: المحرر + المفسر المترجم إلى WASM يعمل في Web Worker + لوحة مخرجات RTL + REPL. زر «مشاركة» يولّد رابطًا دائمًا بالكود مضغوطًا في عنوان الصفحة (<span class="ltr">lz-string</span>)، وزر «رمز QR» ليفتحه أعضاء اللجنة على هواتفهم أثناء المناقشة. الساحة هي بوابة الدخول لكل الشخصيات المستهدفة وهي واجهة دراسة المستخدمين.</p>
+  <p>صفحة ويب واحدة بلا خادم تنفيذ: المحرر + المفسر المترجم إلى WASM يعمل في Web Worker + لوحة مخرجات RTL + REPL. زر «مشاركة» يولّد رابطًا دائمًا بالكود مضغوطًا في عنوان الصفحة (deflate عبر <span class="ltr">CompressionStream</span> في المتصفح، بلا مكتبة)، وزر «رمز QR» ليفتحه أعضاء اللجنة على هواتفهم أثناء المناقشة. الساحة هي بوابة الدخول لكل الشخصيات المستهدفة وهي واجهة دراسة المستخدمين.</p>
 </section>
 
 <!-- ======================= 8 ======================= -->
@@ -571,7 +573,7 @@
       <tr><td>6</td><td>الدوال</td><td>تعريف، معاملات، أرجع</td><td>دالة تختبر الأولية</td></tr>
       <tr><td>7</td><td>الأخطاء صديقتك</td><td>قراءة رسائل ضاد-XXXX، استخدام التلميحات</td><td>إصلاح برنامج فيه ٥ أخطاء</td></tr>
       <tr><td>8</td><td>النصوص بعمق</td><td>وحدة نصوص، التشكيل والتطبيع</td><td>عدّ الكلمات في فقرة</td></tr>
-      <tr><td>9</td><td>مشروع صغير</td><td>دمج المفاهيم</td><td>لعبة تخمين العدد</td></tr>
+      <tr><td>9</td><td>مشروع صغير</td><td>دمج المفاهيم</td><td>فز باز (فز/باز/فزباز)</td></tr>
       <tr><td>10</td><td>تحت الغطاء</td><td>المفسر مقابل WASM، لماذا أسرع؟</td><td>قياس زمن خوارزمية بالطريقتين</td></tr>
     </tbody>
   </table>
@@ -712,7 +714,7 @@
       <tr><td>3–5</td><td>كتابة <span class="ltr">grammar.js</span>؛ مجموعة اختبارات corpus (30 برنامجًا)؛ ملف تلوين <span class="ltr">highlights.scm</span>؛ ربط المحلل بـ Rust</td><td>المحلل يجتاز 100% من corpus؛ تلوين يعمل في VS Code بلا LSP</td></tr>
       <tr><td>6–9</td><td>المفسر: القيم والبيئات والدوال والإغلاقات؛ فهرس الأخطاء (أول 30 كودًا بصفحاتها)؛ REPL؛ نواة المكتبة القياسية</td><td>تنفيذ 50 برنامجًا مرجعيًا؛ <code>ضاد شرح 1003</code> يعمل</td></tr>
       <tr><td>10–12</td><td>مولّد WASM للمجموعة الرقمية؛ تحميل الوحدة في صفحة ويب؛ قياسات criterion الأولى</td><td>فيبوناتشي عربي يعمل كـ WASM في المتصفح + أول رسم أداء</td></tr>
-      <tr><td>13–14</td><td>خادم LSP (تشخيص + إكمال + تلميح) بـ tower-lsp؛ إضافة VS Code أولية؛ تقرير منتصف المشروع</td><td>إضافة تعمل محليًا؛ تقرير منتصف المشروع مُسلَّم</td></tr>
+      <tr><td>13–14</td><td>خادم LSP (تشخيص + إكمال + تلميح) بـ lsp-server؛ إضافة VS Code أولية؛ تقرير منتصف المشروع</td><td>إضافة تعمل محليًا؛ تقرير منتصف المشروع مُسلَّم</td></tr>
     </tbody>
   </table>
   <h3>13.2 الفصل الثاني — النظام البيئي والتقييم</h3>
@@ -785,8 +787,8 @@
     <tbody>
       <tr><td>القواعد والمحلل</td><td class="ltr">tree-sitter, tree-sitter-cli, web-tree-sitter</td><td>تزايدي، يتعافى من الأخطاء، يعمل في Rust والمتصفح</td></tr>
       <tr><td>المفسر والمترجم</td><td class="ltr">Rust, wasm-encoder, wasmtime (tests)</td><td>أداء وسلامة؛ توليد WASM ثنائي مباشر؛ يُترجم المفسر نفسه إلى WASM</td></tr>
-      <tr><td>خادم اللغة</td><td class="ltr">tower-lsp, lsp-types</td><td>تنفيذ LSP ناضج وغير متزامن في Rust</td></tr>
-      <tr><td>محرر الويب والساحة</td><td class="ltr">CodeMirror 6, TypeScript, Vite, Web Workers, lz-string</td><td>دعم RTL أصلي وDecorations قابلة للبرمجة؛ بناء سريع؛ عزل التنفيذ</td></tr>
+      <tr><td>خادم اللغة</td><td class="ltr">lsp-server, lsp-types</td><td>حلقة رسائل متزامنة بسيطة وموثوقة في Rust</td></tr>
+      <tr><td>محرر الويب والساحة</td><td class="ltr">CodeMirror 6, JavaScript, esbuild, Web Workers, CompressionStream</td><td>دعم RTL أصلي وDecorations قابلة للبرمجة؛ بناء سريع؛ عزل التنفيذ</td></tr>
       <tr><td>إضافة VS Code</td><td class="ltr">vscode-languageclient, TextMate grammar</td><td>الطريق القياسي لعميل LSP</td></tr>
       <tr><td>الذكاء الاصطناعي</td><td class="ltr">LLM API (Claude / GPT) + Ollama (Jais / AceGPT)</td><td>طبقة تجريد واحدة تتيح التبديل والمقارنة</td></tr>
       <tr><td>الاختبار والجودة</td><td class="ltr">cargo test, tree-sitter test, cargo-fuzz, criterion, Playwright, GitHub Actions</td><td>تغطية كل الطبقات آليًا</td></tr>
@@ -799,24 +801,25 @@
 │   ├── adr/              # 0001-numerals.md, 0002-unicode-policy.md, ...
 │   ├── spec/             # مواصفة اللغة (نحو EBNF + دلالات)
 │   └── errors/           # صفحة لكل كود: 1003.md ... (مصدر RAG)
-├── grammar/              # tree-sitter-dhad: grammar.js, queries/, test/corpus/
+├── grammar/              # tree-sitter-dhad: grammar.js, queries/, test/corpus/, check-programs.sh
 ├── crates/
-│   ├── dhad-syntax/      # ربط Tree-sitter + AST + Unicode policy
-│   ├── dhad-diagnostics/ # فهرس الأخطاء، التنسيق، أكواد ضاد-XXXX
-│   ├── dhad-interp/      # المفسر + REPL + fuel
-│   ├── dhad-wasm/        # مولّد WebAssembly
-│   ├── dhad-stdlib/      # المكتبة القياسية (Rust + ملفات .ضاد)
+│   ├── dhad-diagnostics/ # فهرس الأخطاء ضاد-XXXX، العرض النصي وJSON
+│   ├── dhad-syntax/      # سياسة Unicode + المحلل اللغوي والنحوي المرجعي + AST
+│   ├── dhad-analysis/    # حل الأسماء، التحذيرات، معلومات الأدوات (كان: dhad-lint)
+│   ├── dhad-interp/      # المفسر + المكتبة القياسية + عدّاد الوقود
+│   ├── dhad-wasmgen/     # مولّد WebAssembly + طابعة WAT
 │   ├── dhad-fmt/         # المنسّق
-│   ├── dhad-lint/        # المدقق
 │   ├── dhad-lsp/         # خادم اللغة
-│   └── dhad-cli/         # الأمر «ضاد»: شغّل، نسّق، اختبر، شرح، وثّق
+│   ├── dhad-wasm/        # كل ما سبق للمتصفح (C ABI)
+│   └── dhad-cli/         # الأمر «ضاد»: شغّل، افحص، اختبر، ترجم، نسّق، شرح، فهرس، REPL
 ├── editors/
 │   ├── vscode/           # الإضافة
 │   └── web/              # محرر الويب + طبقة BiDi + الساحة + الدروس
-├── ai-explainer/         # بناء البرومبت، RAG، الحارس، cache، مزوّدات النماذج
-├── examples/             # 50+ برنامج مرجعي بالعربية
-├── benchmarks/           # criterion + سكربت الرسوم
-├── evaluation/           # أدوات الدراسة، الاستبيانات، البيانات، دفاتر التحليل
+├── learn/                # الدروس العشرة ومصحّحها
+├── ai-explainer/         # الموجّه المقيَّد، الحارس، الذاكرة المؤقتة، المزودون، التقييم
+├── examples/  tests/corpus/   # ٣٧ برنامجًا بمخرجات ذهبية
+├── benchmarks/           # القياس والاختبار التفاضلي بين ثلاثة مسارات
+├── evaluation/           # بروتوكول دراسة المستخدمين ومواده وتحليله
 └── .github/workflows/    # CI: build, test, corpus, bidi-snapshots, bench</pre>
 </section>
 
@@ -868,9 +871,87 @@
   </ol>
 </section>
 
+
+<!-- ======================= 18 (implementation) ======================= -->
+<section class="section">
+  <h2><span class="num">18</span>ما تم تنفيذه والنتائج<span class="mark" dir="ltr">QQS18QQ</span></h2>
+  <p>هذا القسم يوثّق التنفيذ الفعلي في المستودع <span class="ltr">github.com/khalilo-cs/Final-project</span>. كل بنود فئتي <strong>Must</strong> و<strong>Should</strong> في القسم ١٤ منفَّذة ومختبرة آليًا، ومعها عدة بنود من فئة <strong>Could</strong> (المنسّق، المتتبّع عبر الدروس، الإصلاحات السريعة). الأرقام أدناه مولَّدة من المستودع نفسه ويمكن إعادة إنتاجها بأمر واحد.</p>
+  <div class="kpi">
+    <div><b>٩</b><span>حزم Rust (crates)</span></div>
+    <div><b>×١٠٣</b><span>تسريع WASM (متوسط هندسي)</span></div>
+    <div><b>٣١</b><span>كود خطأ موثّق بأمثلة تعمل</span></div>
+    <div><b>١٠</b><span>دروس بمصحّح آلي</span></div>
+  </div>
+
+  <h3>18.1 حالة المكوّنات</h3>
+  <table class="compact">
+    <thead><tr><th style="width:26%">المكوّن</th><th>ما بُني</th><th style="width:28%">الدليل الآلي</th></tr></thead>
+    <tbody>
+      <tr><td>النواة اللغوية</td><td>سياسة Unicode، محلل مرجعي، مفسر بإغلاقات وقوائم وقواميس ونصوص مدمجة واختبارات مدمجة، مكتبة قياسية بخمس وحدات</td><td>٣٧ برنامجًا بمخرجات ذهبية + اختبارات وحدة</td></tr>
+      <tr><td>التحليل الثابت</td><td>حل الأسماء، «هل تقصد؟»، استيراد ناقص، استخدام قبل التعريف، تحذيرات ٣٠٠١–٣٠٠٣</td><td>١١ اختبارًا + صمت تام على كل الأمثلة</td></tr>
+      <tr><td>مولّد WebAssembly</td><td>المجموعة العددية مع استنتاج الأنواع، وWAT من المترجم نفسه</td><td>اختبار تفاضلي ثلاثي + تطابق WAT تعليمةً بتعليمة</td></tr>
+      <tr><td>خادم LSP</td><td>تشخيص، إكمال (مقتطفات، أعضاء الوحدات، استيراد تلقائي)، تلميح، تعريف، مراجع، إعادة تسمية، توقيع بالفاصلة العربية، إصلاحات سريعة، تنسيق</td><td>جلسة محرر كاملة عبر JSON-RPC</td></tr>
+      <tr><td>Tree-sitter</td><td>قواعد كاملة بكلمات محجوزة واستعلامات تلوين</td><td>١٠ أشجار + تطابق ٣٦/٣٦ مع المحلل المرجعي</td></tr>
+      <tr><td>الساحة</td><td>CodeMirror 6 + عزل BiDi، تشخيص فوري، تشغيل معزول بمهلة، ترجمة وWAT، تنسيق، مشاركة وQR، وضع ليلي وهاتف</td><td>١٣ سيناريو في متصفح حقيقي + ١٥ حالة BiDi</td></tr>
+      <tr><td>VS Code</td><td>عميل LSP، قواعد TextMate، مقتطفات، أوامر، حزمة .vsix</td><td>اختبار القواعد بمحرك VS Code نفسه</td></tr>
+      <tr><td>الشارح الذكي</td><td>أربعة مستويات، موجّه مقيَّد ومخزَّن مؤقتًا، Claude/Ollama/بلا شبكة، حارس يتحقق من الكود بالمترجم، احتياطي حتمي</td><td>١٤ اختبارًا بلا شبكة + خط أساس تقييمي</td></tr>
+      <tr><td>بيئة التعلم</td><td>عشرة دروس، مصحّح آلي، تقدم محفوظ، الحل بعد محاولتين</td><td>كل حل ينجح وكل بداية تفشل</td></tr>
+      <tr><td>الجودة</td><td>CI بخمس وظائف، منسّق يثبت أنه لا يغيّر الرموز، صفحات أخطاء مولَّدة وأمثلتها مشغَّلة، ستة ADR</td><td>كل ما سبق في كل دفعة</td></tr>
+    </tbody>
+  </table>
+
+  <h3>18.2 الساحة</h3>
+  <div class="fig"><img src="img/playground.png" style="width:100%;border:1px solid var(--line);border-radius:8px"><div class="cap">الشكل ٥ — الساحة: برنامج الأعداد الأولية بعد التشغيل. المحرر باتجاه RTL، والمخرجات في اللوحة اليسرى، وشريط الحالة يعرض عدد الخطوات والزمن.</div></div>
+  <div class="fig"><img src="img/error-hints.png" style="width:100%;border:1px solid var(--line);border-radius:8px"><div class="cap">الشكل ٦ — خطأ ضاد-1003 بموضعه في المحرر (السطر ٣) وتلميحاته الثلاثة المتدرجة: ماذا، أين، كيف.</div></div>
+  <div class="fig"><img src="img/lesson.png" style="width:100%;border:1px solid var(--line);border-radius:8px"><div class="cap">الشكل ٧ — الدرس السادس في بيئة التعلم: نقاط التقدم، نص الدرس، وأزرار التصحيح والتلميح والحل.</div></div>
+
+  <h3>18.3 طبقة BiDi: قبل وبعد</h3>
+  <p>الأسطر نفسها في ثلاث بيئات. في محرر الكود التقليدي (LTR) يُقرأ كل سطر عربي معكوسًا. وفي RTL بلا عزل يتحول <span class="ltr" style="white-space:nowrap">x = y + 5 * z</span> إلى جزيرة يسارية داخل سطر يميني فيضطر القارئ لعكس اتجاه عينه وسط الجملة، ويختلط التعليق. في محرر ضاد يُعزل كل رمز لاتيني ورقم ونص وتعليق على حدة، فتُقرأ الجملة كلها من اليمين بالترتيب الذي كُتبت به (السطر الأول في الصف الثالث أدناه). المفارقة أن هذه الفقرة نفسها لا تستطيع كتابة السطر داخل النص دون أن يتشوه — وهذه هي المشكلة التي تحلها الطبقة.</p>
+  <table class="compact" style="table-layout:fixed;break-inside:avoid">
+    <tbody>
+      <tr><td style="width:24%;vertical-align:middle"><strong>محرر كود تقليدي (LTR)</strong><br><span class="small">كل سطر عربي يُقرأ معكوسًا</span></td><td><img src="img/bidi-ltr.png" style="width:78%"></td></tr>
+      <tr><td style="vertical-align:middle"><strong>RTL بلا عزل</strong><br><span class="small">جزر يسارية داخل الأسطر، وتعليق مختلط</span></td><td><img src="img/bidi-naive-rtl.png" style="width:78%"></td></tr>
+      <tr><td style="vertical-align:middle"><strong>محرر ضاد</strong><br><span class="small">عزل لكل رمز: قراءة يمينية متسقة</span></td><td><img src="img/bidi-dhad.png" style="width:78%"></td></tr>
+    </tbody>
+  </table>
+
+  <h3>18.4 الأداء: المفسر مقابل المترجم إلى WebAssembly</h3>
+  <p>كل برنامج يُشغَّل بثلاثة مسارات بعد التحقق من تطابق مخرجاتها حرفيًا. البيئة: linux x64، Intel(R) Xeon(R) Processor @ 2.10GHz (4 أنوية)، Node v22.23.4، الوسيط من 7 تكرارات. الهدف في القسم ٤ كان تسريعًا ≥ ٥×؛ <strong>المتحقق ×103 متوسطًا هندسيًا</strong> (×112 مقابل المفسر نفسه داخل WebAssembly).</p>
+  <table class="compact">
+    <thead><tr><th>البرنامج</th><th>المفسر الأصلي (ms)</th><th>المفسر في WASM (ms)</th><th>المترجم إلى WASM (ms)</th><th>التسريع</th><th>حجم الوحدة (بايت)</th></tr></thead>
+    <tbody><tr><td>فيبوناتشي ذاتي (٢٥)</td><td>127</td><td>128</td><td><strong>0.60</strong></td><td>×211</td><td>369</td></tr>
+<tr><td>الأعداد الأولية تحت ٢٠٠٠٠</td><td>178</td><td>189</td><td><strong>1.19</strong></td><td>×150</td><td>519</td></tr>
+<tr><td>ق.م.أ للأزواج حتى ٣٠٠</td><td>293</td><td>372</td><td><strong>3.20</strong></td><td>×91</td><td>507</td></tr>
+<tr><td>حلقة حسابية (٣٠٠ ألف)</td><td>235</td><td>239</td><td><strong>3.04</strong></td><td>×78</td><td>478</td></tr>
+<tr><td>كولاتز حتى ٣٠٠٠٠</td><td>1769</td><td>1907</td><td><strong>34</strong></td><td>×52</td><td>519</td></tr></tbody>
+  </table>
+  <div class="fig"><img src="img/compiled.png" style="width:100%;border:1px solid var(--line);border-radius:8px"><div class="cap">الشكل ٨ — «⚡ ترجم وشغّل»: البرنامج نفسه مترجمًا إلى WebAssembly في المتصفح، مع زمن الترجمة والتنفيذ وحجم الوحدة في شريط الحالة.</div></div>
+  <div class="fig"><img src="img/wat.png" style="width:62%;border:1px solid var(--line);border-radius:8px"><div class="cap">الشكل ٩ — الصيغة النصية (WAT) التي يولّدها المترجم، بتعليقات تحمل أسماء الدوال العربية.</div></div>
+
+  <h3>18.5 ما اختلف عن الخطة ولماذا</h3>
+  <table class="compact">
+    <thead><tr><th style="width:24%">البند</th><th style="width:30%">الخطة</th><th>التنفيذ والسبب</th></tr></thead>
+    <tbody>
+      <tr><td>المحلل</td><td>Tree-sitter لكل شيء</td><td>محلل مرجعي يدوي + Tree-sitter للمحررات، باختبار تطابق في CI — لرسائل خطأ أفضل وتحكم كامل في Unicode (ADR-0004)</td></tr>
+      <tr><td>خادم اللغة</td><td><span class="ltr">tower-lsp</span></td><td><span class="ltr">lsp-server</span>: حلقة متزامنة أبسط بلا وقت تشغيل غير متزامن</td></tr>
+      <tr><td>طباعة WAT</td><td>مكتبة طباعة</td><td>طابعة داخل المترجم: وحدة المتصفح انخفضت من ٢٫٨ إلى ٠٫٧ ميغابايت، واختبار يثبت مطابقتها للوحدة</td></tr>
+      <tr><td>اسم المدقق</td><td><span class="ltr">dhad-lint</span></td><td><span class="ltr">dhad-analysis</span>: يخدم المدقق وLSP والساحة معًا</td></tr>
+      <tr><td>مشاركة الروابط</td><td><span class="ltr">lz-string</span></td><td><span class="ltr">CompressionStream</span> المدمج في المتصفح: بلا اعتماديات</td></tr>
+      <tr><td>نموذج الشارح المحلي</td><td>Jais أو AceGPT</td><td>أي نموذج عبر Ollama؛ الافتراضي <span class="ltr">aya-expanse:8b</span> لتوفره المباشر، وقابل للتغيير</td></tr>
+    </tbody>
+  </table>
+
+  <h3>18.6 ما بقي</h3>
+  <ul>
+    <li><strong>تنفيذ دراسة المستخدمين</strong> مع مشاركين حقيقيين: البروتوكول ونموذج الموافقة والاختبارات وSUS ومهمة الإصلاح وسكربت التحليل جاهزة في <span class="ltr">evaluation/</span>.</li>
+    <li><strong>التقييم البشري للشارح الذكي</strong> بالمزودَين السحابي والمحلي: يحتاج مفتاح API ومقيّمَين؛ ورقة التقييم مزدوجة التعمية وحساب κ جاهزان.</li>
+    <li>من فئة Won’t: مترجم LLVM، منقّح DAP، مدير حزم، الأصناف، والتحليل التزايدي في خادم اللغة.</li>
+  </ul>
+</section>
+
 <!-- ======================= 18 ======================= -->
 <section class="section">
-  <h2><span class="num">18</span>المراجع<span class="mark" dir="ltr">QQS18QQ</span></h2>
+  <h2><span class="num">19</span>المراجع<span class="mark" dir="ltr">QQS19QQ</span></h2>
   <ol class="small refs" style="line-height:1.9">
     <li>Alif Programming Language — لغة ألف العربية. الموقع الرسمي والمستودع المفتوح.</li>
     <li>SultanC — لغة أنظمة عربية ذاتية الاستضافة؛ توثيق التمثيل الوسيط MSIR وأهداف التوليد (ELF, Mach-O, PE/COFF, WASM).</li>
@@ -1017,7 +1098,7 @@
       <tr><td>MoSCoW</td><td>أسلوب ترتيب أولويات: Must / Should / Could / Won’t.</td></tr>
     </tbody>
   </table>
-  <p class="footer-note">— نهاية الوثيقة — منصة ضاد · وثيقة مشروع التخرج الشاملة · الإصدار 2.0</p>
+  <p class="footer-note">— نهاية الوثيقة — منصة ضاد · وثيقة مشروع التخرج الشاملة · الإصدار 3.0</p>
 </section>
 
 </body>

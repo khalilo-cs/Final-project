@@ -10,47 +10,47 @@
   "rows": [
     {
       "program": "الأعداد_الأولية",
-      "native_interpreter_ms": 167.18,
-      "wasm_interpreter_ms": 212.32,
-      "compiled_wasm_ms": 1.195,
-      "speedup_vs_native": 140,
-      "speedup_vs_wasm_interpreter": 177.7,
+      "native_interpreter_ms": 178.5,
+      "wasm_interpreter_ms": 188.61,
+      "compiled_wasm_ms": 1.187,
+      "speedup_vs_native": 150.4,
+      "speedup_vs_wasm_interpreter": 158.9,
       "wasm_bytes": 519
     },
     {
       "program": "القاسم_المشترك",
-      "native_interpreter_ms": 304.41,
-      "wasm_interpreter_ms": 369.56,
-      "compiled_wasm_ms": 3.217,
-      "speedup_vs_native": 94.6,
-      "speedup_vs_wasm_interpreter": 114.9,
+      "native_interpreter_ms": 292.86,
+      "wasm_interpreter_ms": 372.41,
+      "compiled_wasm_ms": 3.204,
+      "speedup_vs_native": 91.4,
+      "speedup_vs_wasm_interpreter": 116.2,
       "wasm_bytes": 507
     },
     {
       "program": "حلقة_حسابية",
-      "native_interpreter_ms": 212.54,
-      "wasm_interpreter_ms": 247.22,
-      "compiled_wasm_ms": 3.067,
-      "speedup_vs_native": 69.3,
-      "speedup_vs_wasm_interpreter": 80.6,
+      "native_interpreter_ms": 235.3,
+      "wasm_interpreter_ms": 238.6,
+      "compiled_wasm_ms": 3.038,
+      "speedup_vs_native": 77.5,
+      "speedup_vs_wasm_interpreter": 78.5,
       "wasm_bytes": 478
     },
     {
       "program": "فيبوناتشي_ذاتي",
-      "native_interpreter_ms": 149.39,
-      "wasm_interpreter_ms": 131.5,
-      "compiled_wasm_ms": 0.594,
-      "speedup_vs_native": 251.6,
-      "speedup_vs_wasm_interpreter": 221.5,
+      "native_interpreter_ms": 126.74,
+      "wasm_interpreter_ms": 127.99,
+      "compiled_wasm_ms": 0.602,
+      "speedup_vs_native": 210.6,
+      "speedup_vs_wasm_interpreter": 212.6,
       "wasm_bytes": 369
     },
     {
       "program": "كولاتز",
-      "native_interpreter_ms": 1779.24,
-      "wasm_interpreter_ms": 1943.59,
-      "compiled_wasm_ms": 34.182,
-      "speedup_vs_native": 52.1,
-      "speedup_vs_wasm_interpreter": 56.9,
+      "native_interpreter_ms": 1768.98,
+      "wasm_interpreter_ms": 1907,
+      "compiled_wasm_ms": 33.801,
+      "speedup_vs_native": 52.3,
+      "speedup_vs_wasm_interpreter": 56.4,
       "wasm_bytes": 519
     }
   ]
