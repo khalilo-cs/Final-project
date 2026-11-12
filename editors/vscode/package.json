@@ -1,0 +1,139 @@
+{
+  "name": "dhad",
+  "displayName": "ضاد — لغة البرمجة العربية",
+  "description": "دعم لغة ضاد: تلوين، تشخيص فوري، إكمال، تلميحات، انتقال للتعريف، إعادة تسمية، وتشغيل البرامج",
+  "version": "0.1.0",
+  "publisher": "dhad-lang",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/khalilo-cs/Final-project"
+  },
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Snippets",
+    "Linters"
+  ],
+  "keywords": [
+    "arabic",
+    "عربي",
+    "ضاد",
+    "dhad",
+    "rtl"
+  ],
+  "icon": "images/icon.png",
+  "main": "./dist/extension.js",
+  "activationEvents": [],
+  "contributes": {
+    "languages": [
+      {
+        "id": "dhad",
+        "aliases": [
+          "ضاد",
+          "Dhad"
+        ],
+        "extensions": [
+          ".ضاد",
+          ".dhad"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "dhad",
+        "scopeName": "source.dhad",
+        "path": "./syntaxes/dhad.tmLanguage.json"
+      }
+    ],
+    "snippets": [
+      {
+        "language": "dhad",
+        "path": "./snippets/dhad.json"
+      }
+    ],
+    "commands": [
+      {
+        "command": "dhad.run",
+        "title": "ضاد: تشغيل الملف الحالي",
+        "icon": "$(play)"
+      },
+      {
+        "command": "dhad.test",
+        "title": "ضاد: تشغيل الاختبارات"
+      },
+      {
+        "command": "dhad.explain",
+        "title": "ضاد: شرح كود خطأ"
+      },
+      {
+        "command": "dhad.restartServer",
+        "title": "ضاد: إعادة تشغيل خادم اللغة"
+      }
+    ],
+    "menus": {
+      "editor/title/run": [
+        {
+          "command": "dhad.run",
+          "when": "editorLangId == dhad",
+          "group": "navigation"
+        }
+      ]
+    },
+    "keybindings": [
+      {
+        "command": "dhad.run",
+        "key": "ctrl+f5",
+        "mac": "cmd+f5",
+        "when": "editorLangId == dhad"
+      }
+    ],
+    "configuration": {
+      "title": "ضاد",
+      "properties": {
+        "dhad.serverPath": {
+          "type": "string",
+          "default": "dhad-lsp",
+          "description": "مسار خادم اللغة dhad-lsp"
+        },
+        "dhad.cliPath": {
+          "type": "string",
+          "default": "dhad",
+          "description": "مسار الأمر dhad لتشغيل البرامج"
+        },
+        "dhad.easternDigits": {
+          "type": "boolean",
+          "default": false,
+          "description": "عرض الأرقام العربية الشرقية في المخرجات"
+        }
+      }
+    },
+    "configurationDefaults": {
+      "[dhad]": {
+        "editor.fontFamily": "'Noto Kufi Arabic', 'Kawkab Mono', 'Noto Sans Arabic', monospace",
+        "editor.fontSize": 16,
+        "editor.lineHeight": 1.9,
+        "editor.tabSize": 4,
+        "editor.insertSpaces": true,
+        "editor.wordSeparators": "`~!@#$%^&*()-=+[{]}\\|;:'\",.<>/،؛«»"
+      }
+    }
+  },
+  "scripts": {
+    "build": "esbuild src/extension.js --bundle --platform=node --format=cjs --external:vscode --outfile=dist/extension.js --minify",
+    "test": "node test/grammar.test.mjs",
+    "package": "npm run build && vsce package --no-dependencies"
+  },
+  "dependencies": {
+    "vscode-languageclient": "9.0.1"
+  },
+  "devDependencies": {
+    "@vscode/vsce": "4.1.0",
+    "esbuild": "0.28.2",
+    "vscode-oniguruma": "2.0.1",
+    "vscode-textmate": "9.2.0"
+  }
+}

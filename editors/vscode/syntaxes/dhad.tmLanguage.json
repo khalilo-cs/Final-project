@@ -1,0 +1,205 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "ضاد",
+  "scopeName": "source.dhad",
+  "fileTypes": [
+    "ضاد",
+    "dhad"
+  ],
+  "patterns": [
+    {
+      "include": "#comment"
+    },
+    {
+      "include": "#string"
+    },
+    {
+      "include": "#guillemets"
+    },
+    {
+      "include": "#function-decl"
+    },
+    {
+      "include": "#keywords"
+    },
+    {
+      "include": "#constants"
+    },
+    {
+      "include": "#numbers"
+    },
+    {
+      "include": "#builtins"
+    },
+    {
+      "include": "#call"
+    },
+    {
+      "include": "#operators"
+    },
+    {
+      "include": "#punctuation"
+    },
+    {
+      "include": "#identifier"
+    }
+  ],
+  "repository": {
+    "comment": {
+      "patterns": [
+        {
+          "name": "comment.line.documentation.dhad",
+          "match": "##.*$"
+        },
+        {
+          "name": "comment.line.number-sign.dhad",
+          "match": "#.*$"
+        }
+      ]
+    },
+    "string": {
+      "name": "string.quoted.double.dhad",
+      "begin": "\"",
+      "end": "\"|$",
+      "patterns": [
+        {
+          "name": "constant.character.escape.dhad",
+          "match": "\\\\."
+        },
+        {
+          "name": "meta.interpolation.dhad",
+          "begin": "\\$\\{",
+          "end": "\\}",
+          "beginCaptures": {
+            "0": {
+              "name": "punctuation.section.interpolation.begin.dhad"
+            }
+          },
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.section.interpolation.end.dhad"
+            }
+          },
+          "contentName": "source.dhad.embedded",
+          "patterns": [
+            {
+              "include": "$self"
+            }
+          ]
+        }
+      ]
+    },
+    "guillemets": {
+      "name": "string.quoted.other.dhad",
+      "begin": "«",
+      "end": "»|$"
+    },
+    "function-decl": {
+      "match": "(?<![\\p{L}\\p{N}\\p{M}_])(دالة|دالّة)(?![\\p{L}\\p{N}\\p{M}_])\\s+([\\p{L}_][\\p{L}\\p{N}\\p{M}_]*[؟?]?)",
+      "captures": {
+        "1": {
+          "name": "storage.type.function.dhad"
+        },
+        "2": {
+          "name": "entity.name.function.dhad"
+        }
+      }
+    },
+    "keywords": {
+      "patterns": [
+        {
+          "name": "keyword.control.dhad",
+          "match": "(?<![\\p{L}\\p{N}\\p{M}_])(?:إذا|اذا|وإلا|والا|طالما|لكل|في|أرجع|ارجع|توقف|استمر)(?![\\p{L}\\p{N}\\p{M}_])"
+        },
+        {
+          "name": "storage.type.dhad",
+          "match": "(?<![\\p{L}\\p{N}\\p{M}_])(?:دع|ثابت|دالة|دالّة|استورد|اختبر)(?![\\p{L}\\p{N}\\p{M}_])"
+        },
+        {
+          "name": "keyword.operator.logical.dhad",
+          "match": "(?<![\\p{L}\\p{N}\\p{M}_])(?:و|أو|او|ليس)(?![\\p{L}\\p{N}\\p{M}_])"
+        }
+      ]
+    },
+    "constants": {
+      "patterns": [
+        {
+          "name": "constant.language.boolean.dhad",
+          "match": "(?<![\\p{L}\\p{N}\\p{M}_])(?:صحيح|خطأ|خطا)(?![\\p{L}\\p{N}\\p{M}_])"
+        },
+        {
+          "name": "constant.language.null.dhad",
+          "match": "(?<![\\p{L}\\p{N}\\p{M}_])عدم(?![\\p{L}\\p{N}\\p{M}_])"
+        }
+      ]
+    },
+    "numbers": {
+      "name": "constant.numeric.dhad",
+      "match": "(?<![\\p{L}_])[0-9٠-٩۰-۹][0-9٠-٩۰-۹_]*(?:[.٫][0-9٠-٩۰-۹]+)?"
+    },
+    "builtins": {
+      "patterns": [
+        {
+          "name": "support.function.builtin.dhad",
+          "match": "(?<![\\p{L}\\p{N}\\p{M}_])(?:اطبع|نص|عدد|طول|نوع|مدى|أضف|احذف|اقرأ|تأكد|أكبر|أصغر|مطلق|تقريب|جذر)(?![\\p{L}\\p{N}\\p{M}_])"
+        },
+        {
+          "name": "support.class.module.dhad",
+          "match": "(?<![\\p{L}\\p{N}\\p{M}_])(?:رياضيات|نصوص|قوائم|وقت|عشوائي)(?![\\p{L}\\p{N}\\p{M}_])"
+        }
+      ]
+    },
+    "call": {
+      "match": "([\\p{L}_][\\p{L}\\p{N}\\p{M}_]*[؟?]?)\\s*(?=\\()",
+      "captures": {
+        "1": {
+          "name": "entity.name.function.call.dhad"
+        }
+      }
+    },
+    "operators": {
+      "patterns": [
+        {
+          "name": "keyword.operator.range.dhad",
+          "match": "\\.\\."
+        },
+        {
+          "name": "keyword.operator.comparison.dhad",
+          "match": "==|!=|<=|>=|<|>|≠|≤|≥"
+        },
+        {
+          "name": "keyword.operator.arithmetic.dhad",
+          "match": "//|[-+*/%×÷−٪]"
+        },
+        {
+          "name": "keyword.operator.assignment.dhad",
+          "match": "="
+        }
+      ]
+    },
+    "punctuation": {
+      "patterns": [
+        {
+          "name": "punctuation.separator.comma.dhad",
+          "match": "[,،]"
+        },
+        {
+          "name": "punctuation.accessor.dhad",
+          "match": "\\."
+        },
+        {
+          "name": "punctuation.separator.key-value.dhad",
+          "match": ":"
+        },
+        {
+          "name": "punctuation.terminator.dhad",
+          "match": "[;؛]"
+        }
+      ]
+    },
+    "identifier": {
+      "name": "variable.other.dhad",
+      "match": "[\\p{L}_][\\p{L}\\p{N}\\p{M}_]*[؟?]?"
+    }
+  }
+}
