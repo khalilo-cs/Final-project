@@ -9,7 +9,7 @@
 ## الحالة الحالية
 
 المشروع في بدايته. المنجز حتى الآن يغطي تجهيز البيئة (أسبوع 3) وأول شريحة عاملة من
-محرك تحليل الكود (أسابيع 4، 6، 7) للغة Python:
+محرك تحليل الكود (أسابيع 4، 6، 7) للغتي Python و Java:
 
 | الخدمة | المنفذ | الحالة |
 |--------|--------|--------|
@@ -17,15 +17,24 @@
 | `project-service` | 8002 | المواد، تسجيل الطلاب فيها، رفع المشروع (ZIP + تقرير PDF/DOCX)، تشغيل التحليل تلقائياً وحفظ نتائجه |
 | `code-analyzer` | 8003 | رفع ZIP ← بنية الكود (AST)، التعقيد (Cyclomatic + Cognitive)، Code Smells، فحص أمني، درجتا الجودة والأمان |
 
-ما يكشفه الفحص الأمني حالياً (Python): SQL Injection، Command/Code Injection،
-Insecure Deserialization، تعطيل التحقق من TLS، `debug=True`، خوارزميات hash ضعيفة،
-و Hardcoded Secrets (لأي لغة).
+ما يكشفه الفحص الأمني حالياً:
+
+| | Python | Java |
+|---|---|---|
+| SQL Injection (concatenation، format، متغير بُني ديناميكياً) | ✅ | ✅ (JDBC، JPA، JdbcTemplate) |
+| Command Injection | ✅ | ✅ (`Runtime.exec`، `ProcessBuilder` مع shell) |
+| Insecure Deserialization | ✅ (pickle، yaml) | ✅ (`ObjectInputStream`، `XMLDecoder`) |
+| XSS | — | ✅ (مدخلات الطلب تُكتب في الـ response) |
+| Path Traversal | — | ✅ (`File`/`Paths.get` من مدخلات الطلب) |
+| تشفير / hash ضعيف | ✅ | ✅ (MD5، SHA-1، DES، ECB) |
+| `eval`، `debug=True`، `verify=False` | ✅ | — |
+| Hardcoded Secrets | ✅ لكل اللغات وملفات الإعداد | |
 
 ### لم يُنفَّذ بعد
 
 باقي الخدمات في الخطة (api-gateway، db-analyzer، report-analyzer،
-viva-engine، fraud-detector، sandbox-runner، report-generator)، الواجهة (React)، محلل Java
-وباقي اللغات، Knowledge Graph، كشف التكرار والـ Dead Code، و Alembic migrations.
+viva-engine، fraud-detector، sandbox-runner، report-generator)، الواجهة (React)، محللات
+JavaScript/C#/C++، Knowledge Graph، كشف التكرار والـ Dead Code، و Alembic migrations.
 
 ## التشغيل
 
@@ -83,8 +92,9 @@ docker-compose.yml   postgres + الخدمات (و redis/rabbitmq/minio عبر -
 ## اختلافات مقصودة عن الخطة
 
 - **PyJWT بدل python-jose** — مكتبة python-jose قليلة الصيانة.
-- **محلل Python يستخدم مكتبة `ast` القياسية** بدل Tree-sitter؛ أدق لـ Python وبدون
-  اعتماديات. Tree-sitter سيُستخدم لـ Java وباقي اللغات خلف نفس الواجهة `BaseAnalyzer`.
+- **محلل Python يستخدم مكتبة `ast` القياسية** بدل Tree-sitter؛ أدق لـ Python. محلل Java
+  يستخدم Tree-sitter، وكلاهما خلف نفس الواجهة `BaseAnalyzer` وبنفس قواعد حساب التعقيد
+  حتى تكون الدرجات قابلة للمقارنة بين اللغات.
 - **التحليل يعمل كـ background task داخل project-service** ويستدعي code-analyzer عبر
   HTTP؛ سينتقل إلى RabbitMQ worker لاحقاً. الملفات تُحفظ على القرص (MinIO لاحقاً).
 - **لا foreign key بين المشاريع وجدول المستخدمين** لأن كل خدمة لها قاعدة بياناتها؛

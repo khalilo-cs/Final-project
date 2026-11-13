@@ -138,3 +138,21 @@ def test_limits(monkeypatch):
 
     monkeypatch.setattr(settings, "max_upload_mb", 0)
     assert upload(make_zip({"a.py": CLEAN})).status_code == 413
+
+
+def test_mixed_python_and_java_project():
+    java = """
+    import java.sql.*;
+
+    public class UserDao {
+        public ResultSet find(Connection c, String name) throws SQLException {
+            return c.createStatement().executeQuery("SELECT * FROM users WHERE name='" + name + "'");
+        }
+    }
+    """
+    body = upload(make_zip({"web/app.py": CLEAN, "src/main/java/UserDao.java": java})).json()
+    assert body["code"]["languages"] == {"java": 1, "python": 1}
+    assert body["code"]["total_classes"] == 1
+    assert [(v["type"], v["file"]) for v in body["security"]["vulnerabilities"]] == [
+        ("SQL Injection", "src/main/java/UserDao.java")
+    ]

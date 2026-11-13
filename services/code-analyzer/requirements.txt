@@ -3,3 +3,5 @@ uvicorn[standard]~=0.54.0
 pydantic-settings~=2.16.2
 python-multipart~=0.0.33
 PyJWT~=2.15.1
+tree-sitter~=0.26.1
+tree-sitter-java~=0.23.5

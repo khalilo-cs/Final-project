@@ -5,14 +5,17 @@ from dataclasses import asdict
 from pathlib import Path
 
 from app.analyzers.base_analyzer import BaseAnalyzer, FileAnalysis
+from app.analyzers.java_analyzer import JavaAnalyzer
 from app.analyzers.python_analyzer import PythonAnalyzer
 from app.quality.code_smells import detect_smells
 from app.quality.score import quality_score, security_score
+from app.security.java_rules import scan_java
 from app.security.models import Severity, Vulnerability
 from app.security.python_rules import scan_python
 from app.security.secrets_scanner import scan_secrets
 
-ANALYZERS: list[BaseAnalyzer] = [PythonAnalyzer()]
+ANALYZERS: list[BaseAnalyzer] = [PythonAnalyzer(), JavaAnalyzer()]
+SECURITY_RULES = {"python": scan_python, "java": scan_java}
 _BY_EXTENSION = {ext: analyzer for analyzer in ANALYZERS for ext in analyzer.extensions}
 
 SKIPPED_DIRS = {
@@ -54,8 +57,8 @@ def analyze_project(root: Path) -> dict:
         if analyzer is None:
             continue
         files.append(analyzer.analyze(relative, source))
-        if analyzer.language == "python":
-            vulnerabilities.extend(scan_python(relative, source))
+        if rules := SECURITY_RULES.get(analyzer.language):
+            vulnerabilities.extend(rules(relative, source))
 
     return {
         "code": _code_summary(files, skipped),
