@@ -31,6 +31,23 @@ services:
       postgres:
         condition: service_healthy
 
+  project-service:
+    build: ./services/project-service
+    environment:
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET in .env}
+      STORAGE_DIR: /data
+      CODE_ANALYZER_URL: http://code-analyzer:8003
+    volumes:
+      - project-files:/data
+    ports:
+      - "127.0.0.1:8002:8002"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      code-analyzer:
+        condition: service_started
+
   code-analyzer:
     build: ./services/code-analyzer
     environment:
@@ -71,4 +88,5 @@ services:
 
 volumes:
   postgres-data:
+  project-files:
   minio-data:
