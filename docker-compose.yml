@@ -1,0 +1,74 @@
+# Local development stack.
+#   docker compose up --build                 -> postgres + implemented services
+#   docker compose --profile infra up -d      -> also redis, rabbitmq, minio (used by later phases)
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  auth-service:
+    build: ./services/auth-service
+    environment:
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET in .env}
+      ADMIN_USERNAME: ${ADMIN_USERNAME:-}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+    ports:
+      - "127.0.0.1:8001:8001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  code-analyzer:
+    build: ./services/code-analyzer
+    environment:
+      JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET in .env}
+    ports:
+      - "127.0.0.1:8003:8003"
+    read_only: true
+    tmpfs:
+      - /tmp:size=512m
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+
+  redis:
+    image: redis:7-alpine
+    profiles: [infra]
+
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    profiles: [infra]
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-aipe}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-}
+    ports:
+      - "127.0.0.1:15672:15672"
+
+  minio:
+    image: minio/minio
+    profiles: [infra]
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-aipe}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-}
+    volumes:
+      - minio-data:/data
+    ports:
+      - "127.0.0.1:9001:9001"
+
+volumes:
+  postgres-data:
+  minio-data:

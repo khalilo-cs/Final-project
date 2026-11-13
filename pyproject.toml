@@ -1,0 +1,15 @@
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "S", "SIM"]
+ignore = [
+    "B008", # FastAPI's Depends() in defaults is intended
+]
+
+[tool.ruff.lint.per-file-ignores]
+"**/tests/*" = ["S", "E402", "E501"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["app"]
