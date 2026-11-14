@@ -30,6 +30,9 @@ class Settings(BaseSettings):
 
     # -- learning ----------------------------------------------------------------------
     min_reviews_for_calibration: int = 3
+    # Background learning cycle (seconds; 0 disables it, e.g. in tests).
+    auto_learn_interval_seconds: int = 600
+    auto_learn_topics_per_cycle: int = 3
     # Knowledge sources faculty may add; empty = any public site (robots.txt respected).
     knowledge_allowed_domains: list[str] = []
     knowledge_max_page_kb: int = 2048

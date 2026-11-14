@@ -32,10 +32,23 @@ def add_item(db: Session, source_type: str, source_ref: str, text: str, title=No
     db.add(KnowledgeItem(source_type=source_type, source_ref=source_ref, title=title, text=text))
 
 
-def search(db: Session, query: str, k: int = 5, source_types: set[str] | None = None) -> list:
+# Knowledge that belongs to particular students: searchable by staff, never put in a
+# prompt or a question for someone else.
+PRIVATE_SOURCES = {"project", "reviewed_qa"}
+
+
+def search(
+    db: Session,
+    query: str,
+    k: int = 5,
+    source_types: set[str] | None = None,
+    exclude_types: set[str] | None = None,
+) -> list:
     query_items = select(KnowledgeItem)
     if source_types:
         query_items = query_items.where(KnowledgeItem.source_type.in_(source_types))
+    if exclude_types:
+        query_items = query_items.where(KnowledgeItem.source_type.not_in(exclude_types))
     items = {str(item.id): item for item in db.scalars(query_items)}
     if not items:
         return []

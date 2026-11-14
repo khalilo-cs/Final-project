@@ -3,6 +3,7 @@ import time
 import uuid
 
 os.environ["JWT_SECRET"] = "test-secret-test-secret-test-secret-1234"
+os.environ["AUTO_LEARN_INTERVAL_SECONDS"] = "0"  # tests run learning rounds explicitly
 
 import jwt
 import pytest

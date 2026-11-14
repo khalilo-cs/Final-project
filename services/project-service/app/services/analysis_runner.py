@@ -197,3 +197,21 @@ def run_analysis(project_id: uuid.UUID) -> None:
         project.status = ProjectStatus.analysis_failed if errors else ProjectStatus.analyzed
         project.analysis_error = "; ".join(errors) or None
         db.commit()
+        teach_viva_engine(db, project)
+
+
+def teach_viva_engine(db: Session, project: Project) -> None:
+    """Every analyzed project is a lesson for the AI: send it automatically (best effort)."""
+    from app.services.grading import load_results
+    from app.services.viva_context import build_context
+
+    try:
+        context = build_context(project, load_results(db, project.id))
+        internal_http.post_json(
+            get_settings().viva_engine_url,
+            "/internal/learn/project",
+            {"project_id": str(project.id), "context": context},
+            timeout=30,
+        )
+    except (httpx.HTTPError, ValueError):
+        log.warning("viva-engine could not learn from project %s", project.id)

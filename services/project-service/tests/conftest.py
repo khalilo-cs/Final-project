@@ -94,7 +94,10 @@ class Analyzer:
         self.report_calls: list[httpx.Request] = []
         self.forgotten: list[str] = []
         self.users: dict[str, dict] = {}  # served by the fake auth-service lookup
-        self.routes: dict[str, tuple] = {}  # path -> (status, json or callable)
+        # path -> (status, json or callable); the learner accepts lessons by default.
+        self.routes: dict[str, tuple] = {
+            "/internal/learn/project": (200, {"topics": [], "new_topics": []})
+        }
         self.route_calls: list[httpx.Request] = []
         self.auth_up = True
 

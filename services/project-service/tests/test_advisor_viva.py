@@ -84,7 +84,8 @@ def test_fixes_need_the_students_approval(client, users, project, ai):
     result = response.json()
     assert [a["id"] for a in result["applied"]] == ["abc123"]
     assert result["skipped"][0]["reason"] == "advice only, change it by hand"
-    sent = json.loads(_field(ai.route_calls[-1], "fix_ids"))
+    apply_call = next(r for r in ai.route_calls if r.url.path == "/api/v1/fixes/apply")
+    sent = json.loads(_field(apply_call, "fix_ids"))
     assert sent == ["abc123", "def456"]
 
     student = users["student"].headers
@@ -156,3 +157,20 @@ def test_viva_requires_analysis(client, users, course, analyzer):  # noqa: F811
     pid = submit(client, users["student"], course["id"], report=REPORT, database=SQL).json()["id"]
     response = client.post(f"/api/v1/viva/start/{pid}", headers=users["student"].headers)
     assert response.status_code == 409
+
+
+def test_every_analyzed_project_is_sent_to_the_learner(client, users, course, analyzer):  # noqa: F811
+    pid = submit(client, users["student"], course["id"], report=REPORT, database=SQL).json()["id"]
+    lessons = [r for r in analyzer.route_calls if r.url.path == "/internal/learn/project"]
+    assert len(lessons) == 1
+    body = json.loads(lessons[0].content)
+    assert body["project_id"] == pid
+    assert body["context"]["technologies"] == ["Flask"]
+    assert body["context"]["vulnerabilities"][0]["type"] == "SQL Injection"
+
+
+def test_learning_failure_never_breaks_analysis(client, users, course, analyzer):  # noqa: F811
+    analyzer.routes["/internal/learn/project"] = (503, {})
+    pid = submit(client, users["student"], course["id"]).json()["id"]
+    status = client.get(f"/api/v1/projects/{pid}/status", headers=users["student"].headers).json()
+    assert status["status"] == "analyzed"

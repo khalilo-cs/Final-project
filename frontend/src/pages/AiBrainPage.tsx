@@ -1,14 +1,18 @@
 import { useState } from "react";
 import { download, get, post } from "../api";
-import { Badge, Button, Card, ErrorBox, Input, Loading, Score, useLoad } from "../components/ui";
+import { Badge, Button, Card, Input, Loading, Score, useLoad } from "../components/ui";
 
-interface Status { providers: { name: string; available: boolean; kind: string }[]; sessions: number; answers: number; professor_reviews: number; knowledge_items: number }
+interface AutoStats { topics: number; topics_waiting: number; question_bank: Record<string, number>; auto_labels: number; learned_points: number; knowledge_by_source: Record<string, number> }
+interface Status { providers: { name: string; available: boolean; kind: string }[]; sessions: number; answers: number; professor_reviews: number; knowledge_items: number; auto_learning: AutoStats; training_data_policy: string }
+interface LearningEvent { kind: string; summary: string; created_at: string }
+interface TopicRow { key: string; title: string; source: string; seen_in_projects: number; docs_status: string; teacher_status: string; learned_at: string | null }
 interface QuestionStat { key: string; asked: number; average_score: number; discrimination: number | null; priority: number }
 interface Learning { provider_calibration: Record<string, { bias: number; mean_error: number; reviews: number }>; most_revealing_questions: QuestionStat[]; least_revealing_questions: QuestionStat[]; notes: string }
-interface Source { id: string; url: string; status: string; error: string | null; items: number; fetched_at: string | null }
 interface Hit { source: string; type: string; title: string | null; text: string; score: number }
 
 const PROVIDER_AR: Record<string, string> = { template: "المحرك المدمج", claude: "Claude", ollama: "نموذج محلي (Ollama)", openai_compatible: "خادم نماذج متوافق" };
+const SOURCE_AR: Record<string, string> = { builtin: "الحزمة المدمجة", "teacher:claude": "علّمه Claude", "teacher:ollama": "علّمه النموذج المحلي", "teacher:openai_compatible": "علّمه خادم النماذج", web: "التوثيق الرسمي", project: "المشاريع", reviewed_qa: "تصحيحات الدكاترة" };
+const EVENT_ICON: Record<string, string> = { builtin: "📦", project: "📁", session: "💬", web: "🌐", teacher: "🎓" };
 
 export function AiBrainPage() {
   const [status] = useLoad(() => get<Status>("viva", "/api/v1/ai/status"));
@@ -17,7 +21,7 @@ export function AiBrainPage() {
     <>
       <div>
         <h1 className="text-2xl font-black">🧠 عقل النظام</h1>
-        <p className="mt-1 text-sm text-slate-500">ما يعرفه النظام، ومن يتعلم، وأي النماذج يعمل معها. يعمل دائماً بمحركه المدمج، ويستعين بأي نموذج متاح.</p>
+        <p className="mt-1 text-sm text-slate-500">ما يعرفه النظام وكيف يتعلّم بنفسه، وأي النماذج يعمل معها. يعمل دائماً بمحركه المدمج، ويستعين بأي نموذج متاح.</p>
       </div>
       <div className="grid gap-4 md:grid-cols-4">
         <Card><Score count value={status?.sessions} label="جلسات مناقشة" /></Card>
@@ -37,6 +41,7 @@ export function AiBrainPage() {
           </div>
         )}
       </Card>
+      {status && <AutoLearning stats={status.auto_learning} />}
       {learning && (
         <div className="grid gap-6 md:grid-cols-2">
           <Card title="معايرة النماذج مقابل تقييم الدكاترة">
@@ -63,56 +68,91 @@ export function AiBrainPage() {
           </Card>
         </div>
       )}
-      <Knowledge />
+      <KnowledgeSearch />
       <Card title="بيانات التدريب" actions={<Button variant="secondary" onClick={() => void download("viva", "/api/v1/ai/dataset.jsonl", "viva-training.jsonl")}>⬇ تنزيل JSONL</Button>}>
-        <p className="text-sm text-slate-600">كل إجابة صحّحها دكتور تصبح مثال تدريب. استخدم الملف لتدريب (fine-tune) نموذج محلي خاص بالجامعة، ثم شغّله عبر Ollama ليصبح أحد مقيّمي النظام.</p>
+        <p className="text-sm text-slate-600">كل إجابة صحّحها دكتور تصبح مثال تدريب لنموذج محلي خاص بالجامعة (fine-tuning)، يُشغَّل بعدها عبر Ollama ليصبح أحد مقيّمي النظام. الملف يحتوي تقييمات الدكاترة فقط: ما كتبته النماذج الخارجية يُستخدم أثناء العمل ولا يُصدَّر للتدريب، احتراماً لشروط مزوّديها.</p>
       </Card>
     </>
   );
 }
 
-function Knowledge() {
-  const [sources, , reload] = useLoad(() => get<Source[]>("viva", "/api/v1/ai/knowledge/sources"));
-  const [url, setUrl] = useState("");
+function AutoLearning({ stats }: { stats: AutoStats }) {
+  const [events, , reloadEvents] = useLoad(() => get<LearningEvent[]>("viva", "/api/v1/ai/learning/events?limit=30"));
+  const [topics, , reloadTopics] = useLoad(() => get<TopicRow[]>("viva", "/api/v1/ai/topics"));
+  const [started, setStarted] = useState(false);
+  const learnNow = async () => {
+    await post("viva", "/api/v1/ai/learn/now");
+    setStarted(true);
+    setTimeout(() => { reloadEvents(); reloadTopics(); setStarted(false); }, 4000);
+  };
+  const statusBadge = (value: string, done: string) =>
+    value === "done" ? <Badge tone="green">{done}</Badge> : value === "pending" ? <Badge tone="amber">قيد التعلّم</Badge>
+      : value === "skipped" ? <Badge tone="blue">معروف مسبقاً</Badge> : <Badge>—</Badge>;
+  return (
+    <>
+      <Card title="🔄 التعلّم التلقائي" actions={<Button variant="secondary" disabled={started} onClick={() => void learnNow()}>{started ? "يتعلّم الآن…" : "دورة تعلّم الآن"}</Button>}>
+        <p className="mb-4 text-sm text-slate-600">
+          يتعلّم النظام بنفسه دون تدخّل: من كل مشروع يُحلَّل، ومن كل مناقشة تنتهي، ومن التوثيق الرسمي لكل تقنية يراها، ومن نموذج معلّم (Claude) للمواضيع الجديدة. دورة التعلّم تعمل تلقائياً في الخلفية.
+        </p>
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+          <Score count value={stats.topics} label="مواضيع يعرفها" />
+          <Score count value={stats.topics_waiting} label="مواضيع ينتظر تعلّمها" />
+          <Score count value={stats.learned_points} label="نقاط إجابة اكتشفها" />
+          <Score count value={stats.auto_labels} label="تقييمات تعلّمها بنفسه" />
+        </div>
+        <div className="mt-4 flex flex-wrap gap-2 text-xs">
+          <span className="text-slate-500">بنك الأسئلة:</span>
+          {Object.entries(stats.question_bank).map(([source, n]) => <Badge key={source} tone="purple">{SOURCE_AR[source] ?? source}: {n}</Badge>)}
+          <span className="mr-3 text-slate-500">المعرفة:</span>
+          {Object.entries(stats.knowledge_by_source).map(([source, n]) => <Badge key={source}>{SOURCE_AR[source] ?? source}: {n}</Badge>)}
+        </div>
+      </Card>
+      <div className="grid gap-6 md:grid-cols-2">
+        <Card title="ماذا تعلّم مؤخراً">
+          {!events ? <Loading /> : events.length === 0 ? <p className="text-sm text-slate-500">لا شيء بعد.</p> : (
+            <ul className="space-y-2 text-sm">{events.map((e, i) => (
+              <li key={i} className="flex gap-2">
+                <span>{EVENT_ICON[e.kind] ?? "•"}</span>
+                <div><div>{e.summary}</div><div className="text-xs text-slate-400">{new Date(e.created_at).toLocaleString("ar")}</div></div>
+              </li>
+            ))}</ul>
+          )}
+        </Card>
+        <Card title="المواضيع">
+          {!topics ? <Loading /> : (
+            <div className="max-h-96 overflow-y-auto">
+              <table className="w-full text-sm">
+                <thead><tr className="border-b text-right text-slate-500"><th className="py-2">الموضوع</th><th>في المشاريع</th><th>التوثيق</th><th>المعلّم</th></tr></thead>
+                <tbody>{topics.map((t) => (
+                  <tr key={t.key} className="border-b border-slate-100">
+                    <td className="py-1.5">{t.title} <span className="text-xs text-slate-400">{t.source === "builtin" ? "(مدمج)" : "(من المشاريع)"}</span></td>
+                    <td>{t.seen_in_projects}</td>
+                    <td>{statusBadge(t.docs_status, "تعلّمه")}</td>
+                    <td>{statusBadge(t.teacher_status, "شرحه")}</td>
+                  </tr>
+                ))}</tbody>
+              </table>
+            </div>
+          )}
+        </Card>
+      </div>
+    </>
+  );
+}
+
+function KnowledgeSearch() {
   const [query, setQuery] = useState("");
   const [hits, setHits] = useState<Hit[]>();
-  const [error, setError] = useState<unknown>();
-  const add = async () => {
-    setError(undefined);
-    try {
-      await post("viva", "/api/v1/ai/knowledge/sources", { url });
-      setUrl("");
-      setTimeout(reload, 1500);
-    } catch (reason) {
-      setError(reason);
-    }
-  };
   const search = async () => setHits(await get<Hit[]>("viva", `/api/v1/ai/knowledge/search?q=${encodeURIComponent(query)}`));
   return (
-    <Card title="📚 مصادر المعرفة">
-      <p className="mb-3 text-sm text-slate-500">أضف صفحات توثيق موثوقة (مثل OWASP أو توثيق Java) ليتعلم منها النظام ويستشهد بها عند كتابة الأسئلة. يحترم قواعد كل موقع (robots.txt).</p>
+    <Card title="📚 ابحث في معرفة النظام">
       <div className="flex gap-2">
-        <Input placeholder="https://cheatsheetseries.owasp.org/..." value={url} onChange={(e) => setUrl(e.target.value)} className="ltr" />
-        <Button disabled={!url} onClick={() => void add()}>تعلّم من هذه الصفحة</Button>
-      </div>
-      <ErrorBox error={error} />
-      {sources && sources.length > 0 && (
-        <ul className="mt-3 space-y-1 text-sm">{sources.map((s) => (
-          <li key={s.id} className="flex items-center gap-2">
-            <Badge tone={s.status === "indexed" ? "green" : s.status === "failed" ? "red" : "amber"}>{s.status}</Badge>
-            <span className="ltr truncate">{s.url}</span>
-            {s.items > 0 && <span className="text-slate-400">({s.items} مقطع)</span>}
-            {s.error && <span className="text-xs text-rose-600">{s.error}</span>}
-          </li>
-        ))}</ul>
-      )}
-      <div className="mt-4 flex gap-2 border-t pt-4">
-        <Input placeholder="ابحث في معرفة النظام…" value={query} onChange={(e) => setQuery(e.target.value)} />
+        <Input placeholder="مثال: prepared statement، تطبيع، Flask…" value={query} onChange={(e) => setQuery(e.target.value)} onKeyDown={(e) => e.key === "Enter" && query.length >= 2 && void search()} />
         <Button variant="secondary" disabled={query.length < 2} onClick={() => void search()}>بحث</Button>
       </div>
       {hits && (hits.length === 0 ? <p className="mt-2 text-sm text-slate-500">لا نتائج.</p> : (
         <ul className="mt-3 space-y-2 text-sm">{hits.map((h, i) => (
-          <li key={i} className="rounded-lg bg-slate-50 p-2"><div className="font-semibold">{h.title ?? h.source} <Badge>{h.type}</Badge></div><p className="ltr text-left text-xs text-slate-600">{h.text}</p></li>
+          <li key={i} className="rounded-lg bg-slate-50 p-2"><div className="font-semibold">{h.title ?? h.source} <Badge>{SOURCE_AR[h.type] ?? h.type}</Badge></div><p className="mt-1 text-xs text-slate-600">{h.text}</p></li>
         ))}</ul>
       ))}
     </Card>

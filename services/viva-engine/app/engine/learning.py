@@ -17,7 +17,7 @@ from sqlalchemy.orm import Session
 
 from app.config import get_settings
 from app.knowledge.bm25 import jaccard
-from app.models import Review, VivaQA, VivaSession
+from app.models import AutoLabel, Review, VivaQA, VivaSession
 
 MEMORY_MIN_SIMILARITY = 0.45
 
@@ -37,23 +37,46 @@ def reviewed_examples(db: Session, template_key: str | None = None, limit: int =
     return list(db.execute(query.order_by(Review.created_at.desc()).limit(limit)).all())
 
 
+AUTO_LABEL_WEIGHT = 0.5  # grades the graders agreed on count half as much as a professor's
+
+
 def memory_evaluation(db: Session, template_key: str, answer: str):
-    """Score from the most similar professor-graded answers to the same question type."""
-    neighbours = []
+    """Score from the most similar already-graded answers to the same question.
+
+    Professor reviews count fully; grades the system learned by itself (several graders
+    agreeing with high confidence) count half.
+    """
+    neighbours = []  # (weight, score, verdict, similarity)
+    reviewed_ids = set()
     for qa, review in reviewed_examples(db, template_key):
+        reviewed_ids.add(qa.id)
         similarity = jaccard(qa.answer, answer)
         if similarity >= MEMORY_MIN_SIMILARITY:
-            neighbours.append((similarity, review))
+            neighbours.append((similarity, review.score, review.verdict, similarity))
+    auto = db.execute(
+        select(VivaQA, AutoLabel)
+        .join(AutoLabel, AutoLabel.qa_id == VivaQA.id)
+        .where(VivaQA.template_key == template_key)
+        .limit(200)
+    ).all()
+    for qa, label in auto:
+        if qa.id in reviewed_ids:
+            continue
+        similarity = jaccard(qa.answer, answer)
+        if similarity >= MEMORY_MIN_SIMILARITY:
+            neighbours.append(
+                (similarity * AUTO_LABEL_WEIGHT, label.score, label.verdict, similarity)
+            )
     if not neighbours:
         return None
-    total = sum(s for s, _ in neighbours)
-    score = sum(s * r.score for s, r in neighbours) / total
+    total = sum(weight for weight, *_ in neighbours)
+    score = sum(weight * value for weight, value, *_ in neighbours) / total
     best = max(neighbours, key=lambda item: item[0])
     return {
         "score": round(score, 1),
-        "similarity": round(best[0], 2),
+        "similarity": round(best[3], 2),
         "neighbours": len(neighbours),
-        "verdict": best[1].verdict,
+        "verdict": best[2],
     }
 
 
@@ -167,7 +190,12 @@ def graded_examples(db: Session, template_key: str, limit: int = 4) -> list[dict
 
 
 def training_dataset(db: Session):
-    """JSONL rows for fine-tuning a local model on the professors' own judgements."""
+    """JSONL rows for fine-tuning a local model on the professors' own judgements.
+
+    Only human (professor) labels are exported. Text written by external models (teacher
+    lessons, model grades) is deliberately left out: their providers' terms may forbid
+    training other models on their outputs.
+    """
     for qa, review in reviewed_examples(db, limit=100000):
         yield {
             "messages": [

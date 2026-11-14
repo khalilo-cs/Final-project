@@ -9,7 +9,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.config import get_settings
-from app.engine import learning
+from app.engine import autolearn, learning
 from app.knowledge import store
 from app.models import VivaQA, VivaSession
 from app.providers.base import Provider, ProviderError, Question
@@ -22,6 +22,7 @@ _TEMPLATE = TemplateProvider()
 # Tests may replace these instances.
 PROVIDERS: list[Provider] = [ClaudeProvider(), OllamaProvider(), OpenAICompatibleProvider()]
 _LEVEL_WEIGHT = {1: 1.0, 2: 1.5, 3: 2.0, 4: 2.0}
+MAX_GENERAL_QUESTIONS = 2
 
 
 def active_providers() -> list[Provider]:
@@ -57,9 +58,13 @@ def start_session(
     settings = get_settings()
     examples = learning.good_question_examples(db)
     topics = " ".join(context.get("technologies", []) + [context.get("title", "")])
-    knowledge = [item.text for item, _ in store.search(db, topics, k=5)]
+    knowledge = [
+        item.text for item, _ in store.search(db, topics, k=5, exclude_types=store.PRIVATE_SOURCES)
+    ]
 
     pool = _TEMPLATE.generate_questions(context, language, settings.max_questions * 2, [], [])
+    # Questions the system learned (built-in pack, teacher models) for this project's topics.
+    pool += autolearn.bank_questions(db, list(autolearn.topics_from_context(context)), language)
     used = ["template"]
     for provider in active_providers():
         try:
@@ -115,14 +120,21 @@ def _pick(db: Session, session: VivaSession, previous: VivaQA | None) -> Questio
             return follow_up[0]
 
     stats = learning.question_effectiveness(db)
-    asked_types = [qa.question_type for qa in _answered(db, session)]
+    answered = _answered(db, session)
+    asked_types = [qa.question_type for qa in answered]
+    # General topic questions (from the knowledge bank) are a small part of a viva: the
+    # point is questions only the author of this code can answer.
+    general_asked = sum(1 for qa in answered if qa.template_key.startswith("bank:"))
+    if general_asked >= MAX_GENERAL_QUESTIONS:
+        candidates = [q for q in candidates if not q.key.startswith("bank:")] or candidates
 
     def rank(question: Question) -> tuple:
         distance = abs(question.level - session.level)
         repeated_type = asked_types[-1:] == [question.type]
+        general = question.key.startswith("bank:")
         priority = stats.get(question.key, {}).get("priority", 1.0)
-        model_written = question.source != "template"
-        return (distance, repeated_type, -priority, not model_written)
+        model_written = question.source not in ("template", "builtin")
+        return (distance, repeated_type, general, -priority, not model_written)
 
     return min(candidates, key=rank)
 
@@ -153,6 +165,8 @@ def _finish(db: Session, session: VivaSession, status: str = "completed") -> Non
     session.status = status if answers else "abandoned"
     session.current = None
     session.ended_at = datetime.now(UTC)
+    if answers:
+        autolearn.learn_from_session(db, session)
 
 
 def answer(db: Session, session: VivaSession, text: str) -> VivaQA:
@@ -160,7 +174,12 @@ def answer(db: Session, session: VivaSession, text: str) -> VivaQA:
     question = _as_question({k: v for k, v in current.items() if k != "asked_at"})
     asked_at = datetime.fromisoformat(current["asked_at"])
 
-    template = _TEMPLATE.evaluate(question, text, session.language, [])
+    # Key points learned from earlier strong answers count like the original ones.
+    learned = [p for p in autolearn.learned_points(db, question.key)
+               if p not in question.expected_points]  # fmt: skip
+    graded = Question(**{**_as_dict(question),
+                         "expected_points": question.expected_points + learned})  # fmt: skip
+    template = _TEMPLATE.evaluate(graded, text, session.language, [])
     scores = {"template": template.score}
     reasons = {"template": template.reasoning}
     examples = learning.graded_examples(db, question.key)

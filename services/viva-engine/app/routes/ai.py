@@ -9,9 +9,17 @@ from pydantic import BaseModel, Field
 from sqlalchemy import func, select
 
 from app.database import SessionLocal
-from app.engine import advisor, dialogue, learning
+from app.engine import advisor, autolearn, dialogue, learning
 from app.knowledge import store
-from app.models import KnowledgeItem, KnowledgeSource, Review, VivaQA, VivaSession
+from app.models import (
+    KnowledgeItem,
+    KnowledgeSource,
+    LearningEvent,
+    Review,
+    Topic,
+    VivaQA,
+    VivaSession,
+)
 from app.routes.deps import DbSession, Principal, require_service, require_staff
 
 router = APIRouter(prefix="/api/v1/ai", tags=["ai"])
@@ -40,6 +48,11 @@ def status(db: DbSession, _: Staff):
         "answers": count(VivaQA),
         "professor_reviews": count(Review),
         "knowledge_items": count(KnowledgeItem),
+        "auto_learning": autolearn.stats(db),
+        "training_data_policy": (
+            "The fine-tuning export contains professors' grades only; text written by "
+            "external models is used at runtime but never exported for training."
+        ),
     }
 
 
@@ -126,3 +139,48 @@ def dataset(db: DbSession, _: Staff):
 @internal.post("/advice/summary")
 def advice_summary(data: SummaryRequest, _: Annotated[Principal, Depends(require_service)]):
     return advisor.summarize(data.findings, data.language) or {"summary": None}
+
+
+@router.get("/learning/events")
+def learning_events(db: DbSession, _: Staff, limit: Annotated[int, Query(ge=1, le=200)] = 50):
+    rows = db.scalars(select(LearningEvent).order_by(LearningEvent.created_at.desc()).limit(limit))
+    return [
+        {"kind": e.kind, "summary": e.summary, "details": e.details,
+         "created_at": e.created_at.isoformat()}
+        for e in rows
+    ]  # fmt: skip
+
+
+@router.get("/topics")
+def topics(db: DbSession, _: Staff):
+    return [
+        {"key": t.key, "title": t.title, "source": t.source, "seen_in_projects": t.seen_in_projects,
+         "docs_status": t.docs_status, "teacher_status": t.teacher_status,
+         "learned_at": t.learned_at.isoformat() if t.learned_at else None}
+        for t in db.scalars(select(Topic).order_by(Topic.seen_in_projects.desc(), Topic.key))
+    ]  # fmt: skip
+
+
+def _cycle() -> None:
+    with SessionLocal() as db:
+        autolearn.run_cycle(db)
+
+
+@router.post("/learn/now", status_code=202)
+def learn_now(_: Staff, background: BackgroundTasks):
+    """Run a learning round now instead of waiting for the background schedule."""
+    background.add_task(_cycle)
+    return {"status": "started"}
+
+
+class ProjectLesson(BaseModel):
+    project_id: str = Field(min_length=1, max_length=64)
+    context: dict
+
+
+@internal.post("/learn/project")
+def learn_project(
+    data: ProjectLesson, db: DbSession, _: Annotated[Principal, Depends(require_service)]
+):
+    """Called by project-service after every analysis: the system learns from it."""
+    return autolearn.learn_from_project(db, data.project_id, data.context)

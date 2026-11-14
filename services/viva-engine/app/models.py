@@ -93,3 +93,69 @@ class KnowledgeSource(Base):
     items: Mapped[int] = mapped_column(Integer, default=0)
     added_by: Mapped[uuid.UUID] = mapped_column(Uuid)
     fetched_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class Topic(Base):
+    """Something the system knows (or must learn) about: a technology, vulnerability..."""
+
+    __tablename__ = "topics"
+
+    key: Mapped[str] = mapped_column(String(100), primary_key=True)  # e.g. tech:flask
+    title: Mapped[str] = mapped_column(String(200))
+    source: Mapped[str] = mapped_column(String(30))  # builtin, project
+    seen_in_projects: Mapped[int] = mapped_column(Integer, default=0)
+    docs_status: Mapped[str] = mapped_column(String(20), default="none")  # pending/done/none
+    teacher_status: Mapped[str] = mapped_column(
+        String(20), default="pending"
+    )  # pending/done/skipped
+    attempts: Mapped[int] = mapped_column(Integer, default=0)
+    learned_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class BankQuestion(Base):
+    """A reusable viva question about a topic (built-in or taught by a model)."""
+
+    __tablename__ = "question_bank"
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    topic: Mapped[str] = mapped_column(String(100), index=True)
+    language: Mapped[str] = mapped_column(String(2))
+    question_type: Mapped[str] = mapped_column(String(20))
+    level: Mapped[int] = mapped_column(Integer)
+    text: Mapped[str] = mapped_column(Text)
+    expected_points: Mapped[list] = mapped_column(JSON, default=list)
+    source: Mapped[str] = mapped_column(String(40))  # builtin, teacher:claude, ...
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+
+
+class AutoLabel(Base):
+    """A grade several independent graders agreed on: learned without a professor."""
+
+    __tablename__ = "auto_labels"
+
+    qa_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("viva_qa.id", ondelete="CASCADE"), primary_key=True
+    )
+    score: Mapped[float] = mapped_column(Float)
+    verdict: Mapped[str] = mapped_column(String(20))
+    agreement: Mapped[float] = mapped_column(Float)
+
+
+class LearnedPoint(Base):
+    """A key point the system discovered from strong answers to a question."""
+
+    __tablename__ = "learned_points"
+
+    template_key: Mapped[str] = mapped_column(String(80), primary_key=True)
+    point: Mapped[str] = mapped_column(String(100), primary_key=True)
+    support: Mapped[int] = mapped_column(Integer)
+
+
+class LearningEvent(Base):
+    __tablename__ = "learning_events"
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    kind: Mapped[str] = mapped_column(String(30))  # project, session, web, teacher, builtin
+    summary: Mapped[str] = mapped_column(Text)
+    details: Mapped[dict] = mapped_column(JSON, default=dict)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now, index=True)
