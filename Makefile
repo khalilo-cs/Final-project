@@ -1,4 +1,4 @@
-SERVICES := auth-service project-service code-analyzer
+SERVICES := auth-service project-service code-analyzer db-analyzer
 VENV ?= .venv
 PY := $(abspath $(VENV))/bin/python
 

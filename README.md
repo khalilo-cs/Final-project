@@ -8,14 +8,15 @@
 
 ## الحالة الحالية
 
-المشروع في بدايته. المنجز حتى الآن يغطي تجهيز البيئة (أسبوع 3) وأول شريحة عاملة من
-محرك تحليل الكود (أسابيع 4، 6، 7) للغتي Python و Java:
+المنجز حتى الآن: تجهيز البيئة (أسبوع 3)، محرك تحليل الكود (أسابيع 4، 6، 7) للغتي
+Python و Java، ومحلل قاعدة البيانات (أسابيع 8، 9):
 
 | الخدمة | المنفذ | الحالة |
 |--------|--------|--------|
 | `auth-service` | 8001 | تسجيل، دخول، JWT (access + refresh مع تدوير وإبطال)، ثلاثة أدوار، إدارة المستخدمين للـ admin |
-| `project-service` | 8002 | المواد، تسجيل الطلاب فيها، رفع المشروع (ZIP + تقرير PDF/DOCX)، تشغيل التحليل تلقائياً وحفظ نتائجه |
+| `project-service` | 8002 | المواد، تسجيل الطلاب فيها، رفع المشروع (ZIP + تقرير PDF/DOCX + ملف SQL)، تشغيل التحليلات تلقائياً وحفظ نتائجها |
 | `code-analyzer` | 8003 | رفع ZIP ← بنية الكود (AST)، التعقيد (Cyclomatic + Cognitive)، Code Smells، فحص أمني، درجتا الجودة والأمان |
+| `db-analyzer` | 8004 | ملف SQL (MySQL / PostgreSQL / SQLite) ← المفاتيح، التطبيع، أنواع البيانات، الاستعلامات، مخطط ER، درجة قاعدة البيانات |
 
 ما يكشفه الفحص الأمني حالياً:
 
@@ -32,7 +33,7 @@
 
 ### لم يُنفَّذ بعد
 
-باقي الخدمات في الخطة (api-gateway، db-analyzer، report-analyzer،
+باقي الخدمات في الخطة (api-gateway، report-analyzer،
 viva-engine، fraud-detector، sandbox-runner، report-generator)، الواجهة (React)، محللات
 JavaScript/C#/C++، Knowledge Graph، كشف التكرار والـ Dead Code، و Alembic migrations.
 
@@ -43,8 +44,7 @@ cp .env.example .env      # ثم املأ JWT_SECRET وكلمات المرور
 docker compose up --build
 ```
 
-- توثيق الـ API التفاعلي: <http://localhost:8001/docs>، <http://localhost:8002/docs>،
-  <http://localhost:8003/docs>
+- توثيق الـ API التفاعلي: `/docs` على كل منفذ (8001 إلى 8004).
 - أول حساب admin يُنشأ من `ADMIN_*` في `.env` عند أول تشغيل.
 
 مثال كامل (دكتور ينشئ مادة ويسجّل طالباً، والطالب يرفع مشروعه):
@@ -62,11 +62,27 @@ curl -s localhost:8002/api/v1/courses/$CID/students -H "Authorization: Bearer $F
   -H 'content-type: application/json' -d '{"student_ids":["<student-uuid>"]}'
 
 PID=$(curl -s localhost:8002/api/v1/projects -H "Authorization: Bearer $STU" \
-  -F title="نظام مكتبة" -F course_id=$CID -F code=@code.zip -F report=@report.pdf | jq -r .id)
+  -F title="نظام مكتبة" -F course_id=$CID -F code=@code.zip -F report=@report.pdf \
+  -F database=@schema.sql | jq -r .id)
 
 curl -s localhost:8002/api/v1/projects/$PID/status -H "Authorization: Bearer $STU"
 curl -s localhost:8002/api/v1/analysis/security/$PID/results -H "Authorization: Bearer $FAC"
+curl -s localhost:8002/api/v1/analysis/database/$PID/results -H "Authorization: Bearer $FAC"
+curl -s localhost:8002/api/v1/analysis/database/$PID/er-diagram -H "Authorization: Bearer $FAC"
 ```
+
+### ما يكشفه محلل قاعدة البيانات
+
+| الفئة | الفحوصات |
+|---|---|
+| المفاتيح | جدول بلا Primary Key، عمود `user_id` بلا Foreign Key (مع اقتراح الأمر المصحِّح)، مرجع لجدول/عمود غير موجود، مرجع لعمود ليس PK أو UNIQUE، اختلاف النوع بين FK والعمود المرجعي، FK بلا index (PostgreSQL/SQLite) |
+| التطبيع (تقديري) | 1NF: أعمدة مكررة `phone1, phone2` وقوائم في حقل واحد. 2NF: عمود يعتمد على جزء من مفتاح مركّب. 3NF: نسخ عمود من الجدول المرجعي (`customer_name` مع `customer_id`) |
+| أنواع البيانات | كلمة مرور بطول لا يكفي لـ hash، FLOAT للمبالغ المالية، تاريخ كنص، رقم هاتف كـ INT، علَم كنص |
+| الاستعلامات | `UPDATE`/`DELETE` بلا `WHERE`، `SELECT *` |
+
+يفهم ملفات `mysqldump` و phpMyAdmin كما هي (`DELIMITER`، تعليقات `/*!40101 */`،
+`LOCK TABLES`، و `ALTER TABLE ... ADD PRIMARY KEY` بعد الإنشاء)، ويتجاهل بيانات
+`INSERT` دون تحليلها. مخطط ER يُولَّد بصيغة Mermaid ويُعرض مباشرة في GitHub والواجهة.
 
 ## التطوير
 
@@ -85,6 +101,7 @@ services/
   auth-service/      FastAPI + SQLAlchemy (PostgreSQL)
   project-service/   FastAPI + SQLAlchemy — courses/ projects/ analysis results
   code-analyzer/     FastAPI — analyzers/ quality/ security/
+  db-analyzer/       FastAPI — parsers/ (SQL splitter + schema) analyzers/
 docs/PROJECT_PLAN.md الخطة الكاملة للمشروع
 docker-compose.yml   postgres + الخدمات (و redis/rabbitmq/minio عبر --profile infra)
 ```
@@ -99,6 +116,8 @@ docker-compose.yml   postgres + الخدمات (و redis/rabbitmq/minio عبر -
   HTTP؛ سينتقل إلى RabbitMQ worker لاحقاً. الملفات تُحفظ على القرص (MinIO لاحقاً).
 - **لا foreign key بين المشاريع وجدول المستخدمين** لأن كل خدمة لها قاعدة بياناتها؛
   هوية المستخدم ودوره تؤخذ من الـ JWT.
+- **التطبيع مستنتج من أسماء الأعمدة والمفاتيح**: لا يمكن إثبات الاعتماديات الوظيفية من
+  الـ Schema وحده، لذا كل ملاحظة تذكر سببها ليحكم عليها الدكتور. BCNF غير مُقدَّر.
 - **مخطط قاعدة البيانات في الخطة يستخدم `ENUM(...)` بصيغة MySQL** وهي غير صالحة في
   PostgreSQL؛ الجداول تُعرَّف عبر نماذج SQLAlchemy في كل خدمة.
 - **درجات الجودة والأمان حالياً معادلات بسيطة** (`code-analyzer/app/quality/score.py`)

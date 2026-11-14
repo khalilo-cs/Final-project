@@ -38,6 +38,7 @@ services:
       JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET in .env}
       STORAGE_DIR: /data
       CODE_ANALYZER_URL: http://code-analyzer:8003
+      DB_ANALYZER_URL: http://db-analyzer:8004
     volumes:
       - project-files:/data
     ports:
@@ -46,6 +47,8 @@ services:
       postgres:
         condition: service_healthy
       code-analyzer:
+        condition: service_started
+      db-analyzer:
         condition: service_started
 
   code-analyzer:
@@ -57,6 +60,19 @@ services:
     read_only: true
     tmpfs:
       - /tmp:size=512m
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+
+  db-analyzer:
+    build: ./services/db-analyzer
+    environment:
+      JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET in .env}
+    ports:
+      - "127.0.0.1:8004:8004"
+    read_only: true
+    tmpfs:
+      - /tmp:size=128m
     cap_drop: [ALL]
     security_opt:
       - no-new-privileges:true

@@ -1,6 +1,6 @@
 import json
 import uuid
-from typing import Annotated
+from typing import Annotated, Literal
 
 from fastapi import APIRouter, BackgroundTasks, File, Form, HTTPException, UploadFile, status
 from pydantic import TypeAdapter, ValidationError
@@ -11,7 +11,7 @@ from app.models.project import Project, ProjectStatus
 from app.routes.deps import CurrentPrincipal, DbSession, forbidden
 from app.schemas.schemas import ProjectOut, ProjectStatusOut
 from app.services import access, storage
-from app.services.analysis_runner import run_code_analysis
+from app.services.analysis_runner import run_analysis
 
 router = APIRouter(prefix="/api/v1/projects", tags=["projects"])
 
@@ -47,6 +47,10 @@ def submit_project(
     course_id: Annotated[uuid.UUID, Form()],
     code: Annotated[UploadFile, File(description="Source code as a ZIP archive")],
     report: Annotated[UploadFile | None, File(description="Report (PDF or DOCX)")] = None,
+    database: Annotated[
+        UploadFile | None, File(description="Database schema / dump (.sql)")
+    ] = None,
+    db_dialect: Annotated[Literal["mysql", "postgresql", "sqlite"], Form()] = "mysql",
     description: Annotated[str | None, Form(max_length=10_000)] = None,
     programming_languages: Annotated[str | None, Form()] = None,
     frameworks: Annotated[str | None, Form()] = None,
@@ -54,7 +58,8 @@ def submit_project(
 ):
     """A student submits a project for a course they are enrolled in.
 
-    Code analysis starts automatically; poll `GET /projects/{id}/status`.
+    Code (and database, when a .sql file is given) analysis starts automatically;
+    poll `GET /projects/{id}/status`.
     """
     if not principal.is_student:
         raise forbidden()
@@ -78,6 +83,11 @@ def submit_project(
                 settings.max_report_mb,
                 (storage.REPORT_EXTENSIONS[extension],),
             )
+        db_schema_path = None
+        if database is not None and database.filename:
+            storage.require_extension(database.filename, {".sql"}, "Database file")
+            db_schema_path = folder / "schema.sql"
+            storage.save_upload(database, db_schema_path, settings.max_sql_mb, None)
         project = Project(
             id=project_id,
             title=title.strip(),
@@ -89,6 +99,8 @@ def submit_project(
             git_url=git_url,
             code_path=str(code_path),
             report_path=str(report_path) if report_path else None,
+            db_schema_path=str(db_schema_path) if db_schema_path else None,
+            db_dialect=db_dialect if db_schema_path else None,
             status=ProjectStatus.analyzing,
         )
         db.add(project)
@@ -98,7 +110,7 @@ def submit_project(
         storage.delete_project_files(project_id)
         raise
 
-    background.add_task(run_code_analysis, project_id)
+    background.add_task(run_analysis, project_id)
     return to_out(project)
 
 

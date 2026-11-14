@@ -32,10 +32,12 @@ def course(client, users):
     return course
 
 
-def submit(client, user, course_id, code=None, report=None, **fields):
+def submit(client, user, course_id, code=None, report=None, database=None, **fields):
     files = {"code": ("code.zip", code if code is not None else make_zip(), "application/zip")}
     if report is not None:
         files["report"] = report
+    if database is not None:
+        files["database"] = database
     data = {"title": "نظام إدارة مكتبة", "course_id": course_id, **fields}
     return client.post("/api/v1/projects", data=data, files=files, headers=user.headers)
 
@@ -200,7 +202,7 @@ def test_rejected_archive(client, users, course, analyzer):
     pid = submit(client, users["student"], course["id"]).json()["id"]
     status = client.get(f"/api/v1/projects/{pid}/status", headers=users["student"].headers).json()
     assert status["status"] == "analysis_failed"
-    assert status["analysis_error"] == "Code archive rejected: unsafe path in archive: ../x"
+    assert status["analysis_error"] == "Code file rejected: unsafe path in archive: ../x"
 
 
 def test_project_visibility(client, users, course):
@@ -234,3 +236,70 @@ def test_delete_project(client, users, course):
 def test_rejects_bad_tokens(client, users):
     assert client.get("/api/v1/projects").status_code == 401
     assert client.get("/api/v1/projects", headers={"Authorization": "Bearer x"}).status_code == 401
+
+
+# ---- database analysis ---------------------------------------------------------------
+
+SQL = ("schema.sql", b"CREATE TABLE users (id INT PRIMARY KEY);", "application/sql")
+
+
+def test_database_analysis(client, users, course, analyzer):
+    response = submit(client, users["student"], course["id"], database=SQL, db_dialect="postgresql")
+    assert response.status_code == 201, response.text
+    project = response.json()
+    assert project["has_database"] is True and project["db_dialect"] == "postgresql"
+    assert len(analyzer.calls) == len(analyzer.db_calls) == 1
+    assert b'name="dialect"\r\n\r\npostgresql' in analyzer.db_calls[0].content
+
+    pid, faculty = project["id"], users["faculty"].headers
+    result = client.get(f"/api/v1/analysis/database/{pid}/results", headers=faculty).json()
+    assert result["normalization_level"] == "2NF"
+    assert result["missing_primary_keys"] == ["logs"]
+    diagram = client.get(f"/api/v1/analysis/database/{pid}/er-diagram", headers=faculty).json()
+    assert diagram["format"] == "mermaid" and diagram["diagram"].startswith("erDiagram")
+    hidden = client.get(
+        f"/api/v1/analysis/database/{pid}/results", headers=users["other_student"].headers
+    )
+    assert hidden.status_code == 404
+
+
+def test_no_database_file(client, users, course, analyzer):
+    pid = submit(client, users["student"], course["id"]).json()["id"]
+    assert analyzer.db_calls == []
+    faculty = users["faculty"].headers
+    assert (
+        client.get(f"/api/v1/analysis/database/{pid}/results", headers=faculty).status_code == 404
+    )
+    assert client.post(f"/api/v1/analysis/database/{pid}", headers=faculty).status_code == 404
+
+
+def test_database_upload_validation(client, users, course, analyzer):
+    student = users["student"]
+    wrong_ext = ("schema.txt", b"CREATE TABLE t (id INT);", "text/plain")
+    assert submit(client, student, course["id"], database=wrong_ext).status_code == 400
+    binary = ("schema.sql", b"\x00\x01\x02", "application/sql")
+    assert submit(client, student, course["id"], database=binary).status_code == 400
+    assert (
+        submit(client, student, course["id"], database=SQL, db_dialect="oracle").status_code == 422
+    )
+    assert analyzer.calls == []
+
+
+def test_one_failed_analysis_keeps_the_other(client, users, course, analyzer):
+    analyzer.db_status = 503
+    pid = submit(client, users["student"], course["id"], database=SQL).json()["id"]
+    student = users["student"].headers
+    status = client.get(f"/api/v1/projects/{pid}/status", headers=student).json()
+    assert status["status"] == "analysis_failed"
+    assert status["analysis_error"] == "Database analyzer unavailable (HTTPStatusError)"
+    # Code results were still stored.
+    assert client.get(f"/api/v1/analysis/code/{pid}/results", headers=student).status_code == 200
+
+    analyzer.db_status = 200
+    faculty = users["faculty"].headers
+    assert client.post(f"/api/v1/analysis/database/{pid}", headers=faculty).status_code == 202
+    status = client.get(f"/api/v1/projects/{pid}/status", headers=student).json()
+    assert (status["status"], status["analysis_error"]) == ("analyzed", None)
+    assert (
+        client.get(f"/api/v1/analysis/database/{pid}/results", headers=student).status_code == 200
+    )

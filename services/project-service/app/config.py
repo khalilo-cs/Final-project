@@ -15,10 +15,12 @@ class Settings(BaseSettings):
     jwt_algorithm: str = "HS256"
 
     code_analyzer_url: str = "http://localhost:8003"
+    db_analyzer_url: str = "http://localhost:8004"
     analyzer_timeout_seconds: float = 300
 
     max_code_mb: int = 50
     max_report_mb: int = 20
+    max_sql_mb: int = 20
 
 
 @lru_cache

@@ -43,6 +43,8 @@ class ProjectOut(BaseModel):
     frameworks: list[str]
     git_url: str | None
     has_report: bool
+    has_database: bool
+    db_dialect: str | None
     status: ProjectStatus
     analysis_error: str | None
     submitted_at: datetime
@@ -83,3 +85,24 @@ class SecurityResultOut(BaseModel):
     low_count: int
     overall_security_score: float
     analyzed_at: datetime
+
+
+class DbResultOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    project_id: uuid.UUID
+    total_tables: int
+    normalization_level: str | None
+    missing_primary_keys: list
+    missing_foreign_keys: list
+    missing_indexes: list
+    query_issues: list
+    overall_db_score: float
+    details: dict
+    analyzed_at: datetime
+
+
+class ErDiagramOut(BaseModel):
+    project_id: uuid.UUID
+    format: str = "mermaid"
+    diagram: str

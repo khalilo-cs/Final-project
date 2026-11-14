@@ -38,15 +38,35 @@ ANALYZER_RESPONSE = {
 }
 
 
+DB_ANALYZER_RESPONSE = {
+    "total_tables": 2,
+    "normalization_level": "2NF",
+    "missing_primary_keys": ["logs"],
+    "missing_foreign_keys": [],
+    "missing_indexes": [],
+    "query_issues": [],
+    "er_diagram_mermaid": "erDiagram\n    users {\n        int id PK\n    }\n",
+    "overall_db_score": 80.0,
+}
+
+
 class Analyzer:
-    """Fake code-analyzer; tests can change `status` / `body` or inspect `calls`."""
+    """Fake code-analyzer + db-analyzer.
+
+    Tests can change `status` / `body` (code) and `db_status` / `db_body` (database),
+    and inspect `calls` / `db_calls`.
+    """
 
     def __init__(self):
-        self.status = 200
-        self.body = ANALYZER_RESPONSE
+        self.status, self.body = 200, ANALYZER_RESPONSE
+        self.db_status, self.db_body = 200, DB_ANALYZER_RESPONSE
         self.calls: list[httpx.Request] = []
+        self.db_calls: list[httpx.Request] = []
 
     def __call__(self, request: httpx.Request) -> httpx.Response:
+        if request.url.path == "/api/v1/analysis/database":
+            self.db_calls.append(request)
+            return httpx.Response(self.db_status, json=self.db_body)
         self.calls.append(request)
         return httpx.Response(self.status, json=self.body)
 

@@ -34,6 +34,8 @@ class Project(Base):
     git_url: Mapped[str | None] = mapped_column(String(500))
     code_path: Mapped[str] = mapped_column(String(500))
     report_path: Mapped[str | None] = mapped_column(String(500))
+    db_schema_path: Mapped[str | None] = mapped_column(String(500))
+    db_dialect: Mapped[str | None] = mapped_column(String(20))
     status: Mapped[ProjectStatus] = mapped_column(
         Enum(ProjectStatus, name="project_status"), default=ProjectStatus.submitted
     )
@@ -44,6 +46,10 @@ class Project(Base):
     @property
     def has_report(self) -> bool:
         return self.report_path is not None
+
+    @property
+    def has_database(self) -> bool:
+        return self.db_schema_path is not None
 
 
 class CodeAnalysisResult(Base):
@@ -78,4 +84,23 @@ class SecurityAnalysisResult(Base):
     medium_count: Mapped[int] = mapped_column(Integer, default=0)
     low_count: Mapped[int] = mapped_column(Integer, default=0)
     overall_security_score: Mapped[float] = mapped_column(Float)
+    analyzed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+
+
+class DbAnalysisResult(Base):
+    __tablename__ = "db_analysis_results"
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    project_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("projects.id", ondelete="CASCADE"), unique=True
+    )
+    total_tables: Mapped[int] = mapped_column(Integer)
+    normalization_level: Mapped[str | None] = mapped_column(String(10))
+    missing_primary_keys: Mapped[list] = mapped_column(JSON)
+    missing_foreign_keys: Mapped[list] = mapped_column(JSON)
+    missing_indexes: Mapped[list] = mapped_column(JSON)
+    query_issues: Mapped[list] = mapped_column(JSON)
+    er_diagram: Mapped[str] = mapped_column(Text)  # Mermaid erDiagram source
+    overall_db_score: Mapped[float] = mapped_column(Float)
+    details: Mapped[dict] = mapped_column(JSON)  # full analyzer output
     analyzed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)

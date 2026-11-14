@@ -17,24 +17,39 @@ def project_dir(project_id: uuid.UUID) -> Path:
     return Path(get_settings().storage_dir).resolve() / str(project_id)
 
 
-def save_upload(upload: UploadFile, target: Path, max_mb: int, magic: tuple[bytes, ...]) -> None:
-    """Stream an upload to disk, enforcing a size limit and the file's magic bytes."""
+def save_upload(
+    upload: UploadFile, target: Path, max_mb: int, magic: tuple[bytes, ...] | None
+) -> None:
+    """Stream an upload to disk, enforcing a size limit and the file's magic bytes.
+
+    `magic=None` means a text file: the start of the file must not contain NUL bytes.
+    """
     target.parent.mkdir(parents=True, exist_ok=True)
-    head = upload.file.read(8)
-    if not head.startswith(magic):
+    head = upload.file.read(8192)
+    valid = b"\x00" not in head if magic is None else head.startswith(magic)
+    if not valid:
         raise HTTPException(
             status.HTTP_400_BAD_REQUEST, f"'{upload.filename}' is not a valid file of this type"
         )
-    size = len(head)
+    size, chunk = 0, head
     with open(target, "wb") as sink:
-        sink.write(head)
-        while chunk := upload.file.read(_MB):
+        while chunk:
             size += len(chunk)
             if size > max_mb * _MB:
                 raise HTTPException(
                     status.HTTP_413_CONTENT_TOO_LARGE, f"'{upload.filename}' exceeds {max_mb} MB"
                 )
             sink.write(chunk)
+            chunk = upload.file.read(_MB)
+
+
+def require_extension(filename: str | None, allowed: set[str], label: str) -> str:
+    extension = Path(filename or "").suffix.lower()
+    if extension not in allowed:
+        raise HTTPException(
+            status.HTTP_400_BAD_REQUEST, f"{label} must be one of: {', '.join(sorted(allowed))}"
+        )
+    return extension
 
 
 def report_extension(filename: str | None) -> str:
