@@ -7,6 +7,7 @@ from pathlib import Path
 from app.analyzers.base_analyzer import BaseAnalyzer, FileAnalysis
 from app.analyzers.java_analyzer import JavaAnalyzer
 from app.analyzers.python_analyzer import PythonAnalyzer
+from app.analyzers.technologies import MAX_MANIFEST_BYTES, TechnologyDetector
 from app.quality.code_smells import detect_smells
 from app.quality.score import quality_score, security_score
 from app.security.java_rules import scan_java
@@ -31,38 +32,52 @@ SECRET_SCAN_EXTENSIONS = {
 MAX_FILE_BYTES = 1_000_000
 
 
-def _source_files(root: Path):
+def _project_files(root: Path):
     for path in sorted(root.rglob("*")):
         relative = path.relative_to(root)
         if any(part in SKIPPED_DIRS for part in relative.parts[:-1]):
             continue
         if path.is_symlink() or not path.is_file():
             continue
-        if path.suffix.lower() in SECRET_SCAN_EXTENSIONS or path.name.startswith(".env"):
-            yield path, relative.as_posix()
+        yield path, relative.as_posix()
+
+
+def _is_scanned(path: Path) -> bool:
+    return path.suffix.lower() in SECRET_SCAN_EXTENSIONS or path.name.startswith(".env")
 
 
 def analyze_project(root: Path) -> dict:
     files: list[FileAnalysis] = []
     vulnerabilities: list[Vulnerability] = []
     skipped: list[dict] = []
+    technologies = TechnologyDetector()
 
-    for path, relative in _source_files(root):
-        if path.stat().st_size > MAX_FILE_BYTES:
+    for path, relative in _project_files(root):
+        technologies.feed_path(relative)
+        size = path.stat().st_size
+        if technologies.wants_content(relative) and size <= MAX_MANIFEST_BYTES:
+            technologies.feed_manifest(relative, path.read_text("utf-8", errors="replace"))
+        if not _is_scanned(path):
+            continue
+        if size > MAX_FILE_BYTES:
             skipped.append({"file": relative, "reason": "file too large"})
             continue
         source = path.read_text(encoding="utf-8", errors="replace")
         vulnerabilities.extend(scan_secrets(relative, source))
+        technologies.feed_text(relative, source)
         analyzer = _BY_EXTENSION.get(path.suffix.lower())
         if analyzer is None:
             continue
-        files.append(analyzer.analyze(relative, source))
+        analysis = analyzer.analyze(relative, source)
+        files.append(analysis)
+        technologies.feed_imports(relative, analysis.imports)
         if rules := SECURITY_RULES.get(analyzer.language):
             vulnerabilities.extend(rules(relative, source))
 
     return {
         "code": _code_summary(files, skipped),
         "security": _security_summary(vulnerabilities),
+        "stack": technologies.result(),
     }
 
 

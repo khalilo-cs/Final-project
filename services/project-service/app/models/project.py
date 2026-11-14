@@ -68,6 +68,8 @@ class CodeAnalysisResult(Base):
     code_smells: Mapped[list] = mapped_column(JSON)
     overall_quality_score: Mapped[float] = mapped_column(Float)
     details: Mapped[dict] = mapped_column(JSON)  # full analyzer output
+    # Languages, frameworks and architecture actually found in the code.
+    stack: Mapped[dict] = mapped_column(JSON, default=dict)
     analyzed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
 
 
@@ -102,5 +104,21 @@ class DbAnalysisResult(Base):
     query_issues: Mapped[list] = mapped_column(JSON)
     er_diagram: Mapped[str] = mapped_column(Text)  # Mermaid erDiagram source
     overall_db_score: Mapped[float] = mapped_column(Float)
+    details: Mapped[dict] = mapped_column(JSON)  # full analyzer output
+    analyzed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+
+
+class ReportAnalysisResult(Base):
+    __tablename__ = "report_analysis_results"
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    project_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("projects.id", ondelete="CASCADE"), unique=True
+    )
+    plagiarism_percentage: Mapped[float] = mapped_column(Float)
+    plagiarism_sources: Mapped[list] = mapped_column(JSON)
+    inconsistencies: Mapped[list] = mapped_column(JSON)
+    documentation_quality_score: Mapped[float] = mapped_column(Float)
+    overall_report_score: Mapped[float] = mapped_column(Float)
     details: Mapped[dict] = mapped_column(JSON)  # full analyzer output
     analyzed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)

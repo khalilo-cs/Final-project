@@ -303,3 +303,88 @@ def test_one_failed_analysis_keeps_the_other(client, users, course, analyzer):
     assert (
         client.get(f"/api/v1/analysis/database/{pid}/results", headers=student).status_code == 200
     )
+
+
+# ---- report analysis -----------------------------------------------------------------
+
+REPORT = ("report.pdf", PDF, "application/pdf")
+
+
+def _form_field(request, name: str) -> str:
+    marker = f'name="{name}"\r\n\r\n'.encode()
+    content = request.content
+    start = content.index(marker) + len(marker)
+    return content[start : content.index(b"\r\n--", start)].decode()
+
+
+def test_report_analysis_receives_code_and_db_facts(client, users, course, analyzer):
+    import json
+
+    pid = submit(client, users["student"], course["id"], report=REPORT, database=SQL).json()["id"]
+    (request,) = analyzer.report_calls
+    assert _form_field(request, "document_id") == pid
+    facts = json.loads(_form_field(request, "facts"))
+    assert facts == {
+        "languages": {"Python": 2},
+        "technologies": ["Flask"],
+        "architecture": [],
+        "total_tables": 2,
+    }
+    faculty = users["faculty"].headers
+    result = client.get(f"/api/v1/analysis/report/{pid}/results", headers=faculty).json()
+    assert result["plagiarism_percentage"] == 42.0
+    assert result["overall_report_score"] == 61.5
+    code = client.get(f"/api/v1/analysis/code/{pid}/results", headers=faculty).json()
+    assert code["stack"]["technologies"][0]["name"] == "Flask"
+
+
+def test_plagiarism_sources_hidden_from_students(client, users, course, analyzer):
+    first = submit(client, users["student"], course["id"], report=REPORT).json()["id"]
+    analyzer.report_body = {
+        **analyzer.report_body,
+        "plagiarism": {
+            "plagiarism_percentage": 42.0,
+            "sources": [{"document_id": first, "similarity": 0.42, "reverse_similarity": 0.3}],
+            "passages": [{"text": "copied text", "words": 30, "source": first}],
+        },
+    }
+    second = submit(client, users["student"], course["id"], report=REPORT).json()["id"]
+
+    staff = client.get(
+        f"/api/v1/analysis/report/{second}/plagiarism", headers=users["faculty"].headers
+    ).json()
+    assert staff["sources"][0]["project_id"] == first
+    assert staff["sources"][0]["title"] == "نظام إدارة مكتبة"
+    assert staff["passages"][0]["source"] == first
+
+    student = client.get(
+        f"/api/v1/analysis/report/{second}/plagiarism", headers=users["student"].headers
+    ).json()
+    assert student["sources"] == [{"similarity": 0.42, "reverse_similarity": 0.3}]
+    assert student["passages"] == [{"text": "copied text", "words": 30}]
+
+
+def test_no_report_no_report_analysis(client, users, course, analyzer):
+    pid = submit(client, users["student"], course["id"]).json()["id"]
+    assert analyzer.report_calls == []
+    faculty = users["faculty"].headers
+    assert client.post(f"/api/v1/analysis/report/{pid}", headers=faculty).status_code == 404
+
+
+def test_report_failure_and_rerun(client, users, course, analyzer):
+    analyzer.report_status = 400
+    analyzer.report_body = {"detail": "The PDF is password protected"}
+    pid = submit(client, users["student"], course["id"], report=REPORT).json()["id"]
+    student = users["student"].headers
+    status = client.get(f"/api/v1/projects/{pid}/status", headers=student).json()
+    assert status["analysis_error"] == "Report file rejected: The PDF is password protected"
+    assert client.get(f"/api/v1/analysis/code/{pid}/results", headers=student).status_code == 200
+
+
+def test_deleting_project_removes_report_from_index(client, users, course, analyzer):
+    with_report = submit(client, users["student"], course["id"], report=REPORT).json()["id"]
+    without = submit(client, users["student"], course["id"]).json()["id"]
+    student = users["student"].headers
+    client.delete(f"/api/v1/projects/{without}", headers=student)
+    client.delete(f"/api/v1/projects/{with_report}", headers=student)
+    assert analyzer.forgotten == [with_report]

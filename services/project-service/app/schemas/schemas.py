@@ -71,6 +71,7 @@ class CodeResultOut(BaseModel):
     code_smells: list
     overall_quality_score: float
     details: dict
+    stack: dict
     analyzed_at: datetime
 
 
@@ -106,3 +107,14 @@ class ErDiagramOut(BaseModel):
     project_id: uuid.UUID
     format: str = "mermaid"
     diagram: str
+
+
+class ReportResultOut(BaseModel):
+    project_id: uuid.UUID
+    plagiarism_percentage: float
+    plagiarism_sources: list
+    inconsistencies: list
+    documentation_quality_score: float
+    overall_report_score: float
+    details: dict
+    analyzed_at: datetime

@@ -9,7 +9,7 @@
 ## الحالة الحالية
 
 المنجز حتى الآن: تجهيز البيئة (أسبوع 3)، محرك تحليل الكود (أسابيع 4، 6، 7) للغتي
-Python و Java، ومحلل قاعدة البيانات (أسابيع 8، 9):
+Python و Java، محلل قاعدة البيانات (أسابيع 8، 9)، ومحلل التقارير (أسابيع 10، 11):
 
 | الخدمة | المنفذ | الحالة |
 |--------|--------|--------|
@@ -17,6 +17,7 @@ Python و Java، ومحلل قاعدة البيانات (أسابيع 8، 9):
 | `project-service` | 8002 | المواد، تسجيل الطلاب فيها، رفع المشروع (ZIP + تقرير PDF/DOCX + ملف SQL)، تشغيل التحليلات تلقائياً وحفظ نتائجها |
 | `code-analyzer` | 8003 | رفع ZIP ← بنية الكود (AST)، التعقيد (Cyclomatic + Cognitive)، Code Smells، فحص أمني، درجتا الجودة والأمان |
 | `db-analyzer` | 8004 | ملف SQL (MySQL / PostgreSQL / SQLite) ← المفاتيح، التطبيع، أنواع البيانات، الاستعلامات، مخطط ER، درجة قاعدة البيانات |
+| `report-analyzer` | 8005 | تقرير PDF/DOCX ← كشف الانتحال مقابل كل التقارير السابقة، التناقض بين التقرير والكود، جودة التوثيق، درجة التقرير |
 
 ما يكشفه الفحص الأمني حالياً:
 
@@ -33,7 +34,7 @@ Python و Java، ومحلل قاعدة البيانات (أسابيع 8، 9):
 
 ### لم يُنفَّذ بعد
 
-باقي الخدمات في الخطة (api-gateway، report-analyzer،
+باقي الخدمات في الخطة (api-gateway،
 viva-engine، fraud-detector، sandbox-runner، report-generator)، الواجهة (React)، محللات
 JavaScript/C#/C++، Knowledge Graph، كشف التكرار والـ Dead Code، و Alembic migrations.
 
@@ -44,7 +45,7 @@ cp .env.example .env      # ثم املأ JWT_SECRET وكلمات المرور
 docker compose up --build
 ```
 
-- توثيق الـ API التفاعلي: `/docs` على كل منفذ (8001 إلى 8004).
+- توثيق الـ API التفاعلي: `/docs` على كل منفذ (8001 إلى 8005).
 - أول حساب admin يُنشأ من `ADMIN_*` في `.env` عند أول تشغيل.
 
 مثال كامل (دكتور ينشئ مادة ويسجّل طالباً، والطالب يرفع مشروعه):
@@ -69,7 +70,29 @@ curl -s localhost:8002/api/v1/projects/$PID/status -H "Authorization: Bearer $ST
 curl -s localhost:8002/api/v1/analysis/security/$PID/results -H "Authorization: Bearer $FAC"
 curl -s localhost:8002/api/v1/analysis/database/$PID/results -H "Authorization: Bearer $FAC"
 curl -s localhost:8002/api/v1/analysis/database/$PID/er-diagram -H "Authorization: Bearer $FAC"
+curl -s localhost:8002/api/v1/analysis/report/$PID/results -H "Authorization: Bearer $FAC"
 ```
+
+### ما يكشفه محلل التقارير
+
+- **الانتحال (عربي + إنجليزي):** بصمات Winnowing (نفس فكرة MOSS) على مقاطع من 5 كلمات،
+  مقابل كل تقرير سُلِّم سابقاً في النظام (كل المواد والدفعات). أي مقطع منسوخ من 8 كلمات
+  فأكثر يُكتشف مضموناً. النص العربي يُوحَّد قبل المقارنة (التشكيل، التطويل، أشكال الألف،
+  ى/ي، ة/ه، الأرقام الهندية، وأشكال الحروف في ملفات PDF)، فتغيير التشكيل أو الهمزات لا
+  يخفي النسخ. العبارات المشتركة بين 30% من التقارير فأكثر (ترويسة الجامعة، عناوين القالب)
+  تُستبعد تلقائياً. النتيجة: النسبة، المشاريع المصدر، والمقاطع المنسوخة بنصها.
+  الدكتور يرى المشروع المصدر وصاحبه؛ الطالب يرى النسبة والمقاطع فقط.
+- **التناقض مع الكود:** محلل الكود يستخرج التقنيات المستخدمة فعلاً (من `package.json`،
+  `requirements.txt`، `pom.xml`، `composer.json`، الـ imports، ونصوص الاتصال مثل
+  `jdbc:mysql`) واللغات وبنية المجلدات. ثم يُقارَن بما يذكره التقرير: تقنية مذكورة غير
+  موجودة (Medium إن تكررت 3 مرات فأكثر، Low لذكر عابر قد يكون في الدراسات السابقة)، تقنية
+  مستخدمة لم تُوثَّق، ادعاء MVC بلا بنية MVC، وعدد جداول يخالف قاعدة البيانات المسلّمة.
+- **جودة التوثيق:** وجود الفصول الأساسية (مقدمة، المشكلة، الأهداف، الدراسات السابقة،
+  المتطلبات، التصميم، التنفيذ، الاختبار، الخاتمة، المراجع)، عدد المراجع، الأشكال والجداول،
+  والطول.
+
+حدود معروفة: لا مقارنة مع الإنترنت بعد (المقارنة داخل قاعدة النظام فقط)، والتقارير
+الممسوحة ضوئياً (صور بلا نص) تُعطي تحذيراً بدل نتيجة لأن OCR غير مدعوم بعد.
 
 ### ما يكشفه محلل قاعدة البيانات
 
@@ -102,6 +125,7 @@ services/
   project-service/   FastAPI + SQLAlchemy — courses/ projects/ analysis results
   code-analyzer/     FastAPI — analyzers/ quality/ security/
   db-analyzer/       FastAPI — parsers/ (SQL splitter + schema) analyzers/
+  report-analyzer/   FastAPI — parsers/ (PDF, DOCX) text/ (Arabic) analyzers/ (winnowing…)
 docs/PROJECT_PLAN.md الخطة الكاملة للمشروع
 docker-compose.yml   postgres + الخدمات (و redis/rabbitmq/minio عبر --profile infra)
 ```

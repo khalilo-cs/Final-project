@@ -4,6 +4,7 @@ Runs as a FastAPI background task for now; moves to the RabbitMQ worker later.
 Each analysis is independent: one failing does not discard the others' results.
 """
 
+import json
 import logging
 import time
 import uuid
@@ -11,7 +12,7 @@ from pathlib import Path
 
 import httpx
 import jwt
-from sqlalchemy import delete
+from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
 from app.config import get_settings
@@ -21,6 +22,7 @@ from app.models.project import (
     DbAnalysisResult,
     Project,
     ProjectStatus,
+    ReportAnalysisResult,
     SecurityAnalysisResult,
 )
 
@@ -95,6 +97,7 @@ def _store_code(db: Session, project: Project) -> None:
             code_smells=code["code_smells"],
             overall_quality_score=code["overall_quality_score"],
             details=code,
+            stack=result.get("stack") or {},
         )
     )
     db.add(
@@ -137,9 +140,65 @@ def _store_database(db: Session, project: Project) -> None:
     )
 
 
+def _facts(db: Session, project: Project) -> dict | None:
+    """What the code and database really contain, for the report consistency check."""
+    code = db.scalar(select(CodeAnalysisResult).where(CodeAnalysisResult.project_id == project.id))
+    if code is None:
+        return None
+    stack = code.stack or {}
+    facts = {
+        "languages": stack.get("languages", {}),
+        "technologies": [t["name"] for t in stack.get("technologies", [])],
+        "architecture": stack.get("architecture", []),
+    }
+    database = db.scalar(select(DbAnalysisResult).where(DbAnalysisResult.project_id == project.id))
+    if database is not None:
+        facts["total_tables"] = database.total_tables
+    return facts
+
+
+def _store_report(db: Session, project: Project) -> None:
+    path = Path(project.report_path)
+    facts = _facts(db, project)
+    data = {"document_id": str(project.id), "index": "true"}
+    if facts is not None:
+        data["facts"] = json.dumps(facts)
+    result = _post(
+        get_settings().report_analyzer_url, "/api/v1/analysis/report", path, path.name, data
+    )
+    db.execute(delete(ReportAnalysisResult).where(ReportAnalysisResult.project_id == project.id))
+    db.add(
+        ReportAnalysisResult(
+            project_id=project.id,
+            plagiarism_percentage=result["plagiarism"]["plagiarism_percentage"],
+            plagiarism_sources=result["plagiarism"]["sources"],
+            inconsistencies=result["consistency"]["inconsistencies"],
+            documentation_quality_score=result["documentation"]["documentation_quality_score"],
+            overall_report_score=result["overall_report_score"],
+            details=result,
+        )
+    )
+
+
+def forget_report(project_id: uuid.UUID) -> None:
+    """Remove a deleted project's report from the plagiarism corpus (best effort)."""
+    try:
+        with httpx.Client(
+            base_url=get_settings().report_analyzer_url, timeout=30, transport=transport
+        ) as client:
+            client.delete(
+                f"/api/v1/documents/{project_id}",
+                headers={"Authorization": f"Bearer {_service_token()}"},
+            ).raise_for_status()
+    except httpx.HTTPError:
+        log.warning("could not remove report of project %s from the index", project_id)
+
+
+# Order matters: the report check compares against the code and database results.
 _ANALYSES = [
     ("Code", lambda project: True, _store_code),
     ("Database", lambda project: project.db_schema_path is not None, _store_database),
+    ("Report", lambda project: project.report_path is not None, _store_report),
 ]
 
 

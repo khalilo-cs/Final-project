@@ -35,6 +35,11 @@ ANALYZER_RESPONSE = {
         "low_count": 0,
         "overall_security_score": 75.0,
     },
+    "stack": {
+        "languages": {"Python": 2},
+        "technologies": [{"name": "Flask", "evidence": ["app.py"]}],
+        "architecture": [],
+    },
 }
 
 
@@ -50,6 +55,21 @@ DB_ANALYZER_RESPONSE = {
 }
 
 
+REPORT_ANALYZER_RESPONSE = {
+    "plagiarism": {
+        "plagiarism_percentage": 42.0,
+        "sources": [{"document_id": "", "similarity": 0.42, "reverse_similarity": 0.3}],
+        "passages": [{"text": "copied text", "words": 30, "source": ""}],
+    },
+    "consistency": {
+        "inconsistencies": [{"type": "claimed_not_found", "severity": "Medium"}],
+        "checked": True,
+    },
+    "documentation": {"documentation_quality_score": 70.0},
+    "overall_report_score": 61.5,
+}
+
+
 class Analyzer:
     """Fake code-analyzer + db-analyzer.
 
@@ -60,10 +80,19 @@ class Analyzer:
     def __init__(self):
         self.status, self.body = 200, ANALYZER_RESPONSE
         self.db_status, self.db_body = 200, DB_ANALYZER_RESPONSE
+        self.report_status, self.report_body = 200, REPORT_ANALYZER_RESPONSE
         self.calls: list[httpx.Request] = []
         self.db_calls: list[httpx.Request] = []
+        self.report_calls: list[httpx.Request] = []
+        self.forgotten: list[str] = []
 
     def __call__(self, request: httpx.Request) -> httpx.Response:
+        if request.url.path.startswith("/api/v1/documents/"):
+            self.forgotten.append(request.url.path.rsplit("/", 1)[-1])
+            return httpx.Response(204)
+        if request.url.path == "/api/v1/analysis/report":
+            self.report_calls.append(request)
+            return httpx.Response(self.report_status, json=self.report_body)
         if request.url.path == "/api/v1/analysis/database":
             self.db_calls.append(request)
             return httpx.Response(self.db_status, json=self.db_body)

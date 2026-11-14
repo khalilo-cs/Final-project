@@ -11,7 +11,7 @@ from app.models.project import Project, ProjectStatus
 from app.routes.deps import CurrentPrincipal, DbSession, forbidden
 from app.schemas.schemas import ProjectOut, ProjectStatusOut
 from app.services import access, storage
-from app.services.analysis_runner import run_analysis
+from app.services.analysis_runner import forget_report, run_analysis
 
 router = APIRouter(prefix="/api/v1/projects", tags=["projects"])
 
@@ -138,7 +138,9 @@ def get_status(project_id: uuid.UUID, db: DbSession, principal: CurrentPrincipal
 
 
 @router.delete("/{project_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_project(project_id: uuid.UUID, db: DbSession, principal: CurrentPrincipal):
+def delete_project(
+    project_id: uuid.UUID, db: DbSession, principal: CurrentPrincipal, background: BackgroundTasks
+):
     """Students may withdraw a submission until it is graded; staff may always delete."""
     project = access.get_project_for(db, principal, project_id)
     is_owner = project.student_id == principal.id
@@ -146,6 +148,9 @@ def delete_project(project_id: uuid.UUID, db: DbSession, principal: CurrentPrinc
         raise HTTPException(status.HTTP_409_CONFLICT, "Graded projects cannot be withdrawn")
     if not is_owner:
         access.require_project_staff(db, principal, project)
+    had_report = project.report_path is not None
     db.delete(project)
     db.commit()
     storage.delete_project_files(project_id)
+    if had_report:
+        background.add_task(forget_report, project_id)
