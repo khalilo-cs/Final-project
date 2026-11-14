@@ -9,6 +9,7 @@ from app.analyzers.treesitter import walk
 
 _LOOPS = {"for_statement", "enhanced_for_statement", "while_statement", "do_statement"}
 _LOGICAL = {"&&", "||"}
+_DECISIONS = _LOOPS | {"if_statement", "catch_clause", "ternary_expression"}
 # Bodies that add nesting without being a flow break themselves.
 _NESTING_ONLY = {"lambda_expression", "class_body"}
 
@@ -23,10 +24,17 @@ def cyclomatic_complexity(body: Node | None) -> int:
         return 1
     score = 1
     for node in walk(body):
-        kind = node.type
-        if kind in _LOOPS or kind in ("if_statement", "catch_clause", "ternary_expression") or kind == "switch_label" and node.named_child_count > 0 or kind == "binary_expression" and _operator(node) in _LOGICAL:
-            score += 1
+        score += _is_decision_point(node)
     return score
+
+
+def _is_decision_point(node: Node) -> bool:
+    kind = node.type
+    if kind in _DECISIONS:
+        return True
+    if kind == "switch_label":
+        return node.named_child_count > 0  # `default` adds nothing
+    return kind == "binary_expression" and _operator(node) in _LOGICAL
 
 
 def cognitive_complexity(body: Node | None) -> tuple[int, int]:

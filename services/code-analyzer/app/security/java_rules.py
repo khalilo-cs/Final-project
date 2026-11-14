@@ -19,8 +19,9 @@ _WRITE_METHODS = {"print", "println", "write", "append", "printf", "format"}
 _SHELLS = {"sh", "bash", "/bin/sh", "/bin/bash", "cmd", "cmd.exe", "powershell"}
 _WEAK_DIGESTS = {"md5", "md2", "sha1", "sha-1"}
 _LITERALS = {
-    "string_literal", "decimal_integer_literal", "hex_integer_literal", "decimal_floating_point_literal",
-    "character_literal", "true", "false", "null_literal", "text_block",
+    "string_literal", "decimal_integer_literal", "hex_integer_literal",
+    "decimal_floating_point_literal", "character_literal", "true", "false", "null_literal",
+    "text_block",
 }  # fmt: skip
 
 
