@@ -4,7 +4,7 @@ from fastapi import FastAPI
 
 from app.database import Base, engine
 from app.models import grading as _grading_models  # noqa: F401  (register tables)
-from app.routes import analysis, courses, dashboard, grades, projects
+from app.routes import advice, analysis, courses, dashboard, grades, projects, viva
 
 
 @asynccontextmanager
@@ -20,6 +20,8 @@ app.include_router(projects.router)
 app.include_router(analysis.router)
 app.include_router(grades.router)
 app.include_router(dashboard.router)
+app.include_router(advice.router)
+app.include_router(viva.router)
 
 
 @app.get("/health", tags=["meta"])

@@ -4,17 +4,21 @@ import uuid
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.models.grading import FinalGrade, GradingCriterion
 from app.models.project import (
+    AiFixLog,
     CodeAnalysisResult,
     DbAnalysisResult,
     Project,
+    ProjectStatus,
     ReportAnalysisResult,
     SecurityAnalysisResult,
+    VivaLink,
 )
+from app.services import internal_http
 
 # Default weights from the project plan (section 8). They sum to 100.
 DEFAULT_WEIGHTS = {
@@ -44,6 +48,9 @@ class ProjectResults:
     security: SecurityAnalysisResult | None = None
     database: DbAnalysisResult | None = None
     report: ReportAnalysisResult | None = None
+    viva_score: float | None = None
+    viva_questions: int | None = None
+    ai_fixes: int = 0
 
 
 @dataclass
@@ -68,12 +75,41 @@ def load_results(db: Session, project_id: uuid.UUID) -> ProjectResults:
     def one(model):
         return db.scalar(select(model).where(model.project_id == project_id))
 
+    viva = latest_viva(db, project_id)
     return ProjectResults(
         code=one(CodeAnalysisResult),
         security=one(SecurityAnalysisResult),
         database=one(DbAnalysisResult),
         report=one(ReportAnalysisResult),
+        viva_score=viva.score if viva else None,
+        ai_fixes=db.scalar(
+            select(func.count()).select_from(AiFixLog).where(AiFixLog.project_id == project_id)
+        ),
     )
+
+
+def latest_viva(db: Session, project_id: uuid.UUID) -> VivaLink | None:
+    """The newest completed viva, refreshing its score from viva-engine once it ends."""
+    links = db.scalars(
+        select(VivaLink)
+        .where(VivaLink.project_id == project_id)
+        .order_by(VivaLink.started_at.desc())
+    ).all()
+    for link in links:
+        if link.status == "in_progress":
+            summary = internal_http.viva_summary(link.session_id)
+            if summary and summary["status"] != "in_progress":
+                link.status, link.score = summary["status"], summary["overall_score"]
+                project = db.get(Project, project_id)
+                if summary["status"] == "completed" and project.status in (
+                    ProjectStatus.analyzed,
+                    ProjectStatus.viva_scheduled,
+                ):
+                    project.status = ProjectStatus.viva_completed
+                db.commit()
+        if link.status == "completed" and link.score is not None:
+            return link
+    return None
 
 
 def _scores(results: ProjectResults) -> dict[str, float | None]:
@@ -86,7 +122,8 @@ def _scores(results: ProjectResults) -> dict[str, float | None]:
         scores["database"] = results.database.overall_db_score
     if results.report:
         scores["report"] = results.report.overall_report_score
-    # viva, authenticity and performance come from services not built yet.
+    scores["viva"] = results.viva_score
+    # authenticity and performance come from services not built yet.
     return scores
 
 
@@ -122,6 +159,8 @@ def _justify(criterion: str, results: ProjectResults) -> str | None:
             f"{len(report.inconsistencies)} report/code inconsistencies; "
             f"documentation {report.documentation_quality_score}/100"
         )
+    if criterion == "viva" and results.viva_score is not None:
+        return f"viva score {results.viva_score}/100 (adaptive questions on the student's code)"
     return None
 
 

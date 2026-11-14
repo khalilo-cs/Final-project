@@ -26,6 +26,14 @@ ANALYZER_RESPONSE = {
         "cognitive_complexity_avg": 1.0,
         "code_smells": [],
         "overall_quality_score": 95.0,
+        "files": [
+            {
+                "path": "main.py",
+                "functions": [
+                    {"qualified_name": "main", "line": 1, "end_line": 4, "cyclomatic_complexity": 3}
+                ],
+            }
+        ],
     },
     "security": {
         "vulnerabilities": [{"type": "SQL Injection", "severity": "Critical", "line": 3}],
@@ -86,9 +94,19 @@ class Analyzer:
         self.report_calls: list[httpx.Request] = []
         self.forgotten: list[str] = []
         self.users: dict[str, dict] = {}  # served by the fake auth-service lookup
+        self.routes: dict[str, tuple] = {}  # path -> (status, json or callable)
+        self.route_calls: list[httpx.Request] = []
         self.auth_up = True
 
     def __call__(self, request: httpx.Request) -> httpx.Response:
+        path = request.url.path
+        if path in self.routes:
+            self.route_calls.append(request)
+            status, body = self.routes[path]
+            return httpx.Response(status, json=body(request) if callable(body) else body)
+        if path.startswith("/internal/sessions/") and "/internal/sessions/*" in self.routes:
+            status, body = self.routes["/internal/sessions/*"]
+            return httpx.Response(status, json=body)
         if request.url.path == "/api/v1/internal/users/lookup":
             if not self.auth_up:
                 return httpx.Response(503)

@@ -34,6 +34,8 @@ class Project(Base):
     git_url: Mapped[str | None] = mapped_column(String(500))
     code_path: Mapped[str] = mapped_column(String(500))
     report_path: Mapped[str | None] = mapped_column(String(500))
+    # The code exactly as first submitted, kept once AI fixes change code_path.
+    original_code_path: Mapped[str | None] = mapped_column(String(500))
     db_schema_path: Mapped[str | None] = mapped_column(String(500))
     db_dialect: Mapped[str | None] = mapped_column(String(20))
     status: Mapped[ProjectStatus] = mapped_column(
@@ -122,3 +124,36 @@ class ReportAnalysisResult(Base):
     overall_report_score: Mapped[float] = mapped_column(Float)
     details: Mapped[dict] = mapped_column(JSON)  # full analyzer output
     analyzed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+
+
+class AiFixLog(Base):
+    """A fix the AI applied with the student's approval (shown to faculty)."""
+
+    __tablename__ = "ai_fix_log"
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    project_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("projects.id", ondelete="CASCADE"), index=True
+    )
+    fix_id: Mapped[str] = mapped_column(String(20))
+    file: Mapped[str] = mapped_column(String(500))
+    line: Mapped[int] = mapped_column(Integer)
+    type: Mapped[str] = mapped_column(String(100))
+    title: Mapped[str] = mapped_column(String(300))
+    approved_by: Mapped[uuid.UUID] = mapped_column(Uuid)
+    applied_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+
+
+class VivaLink(Base):
+    """A viva session run by viva-engine for this project."""
+
+    __tablename__ = "viva_links"
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    project_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("projects.id", ondelete="CASCADE"), index=True
+    )
+    session_id: Mapped[uuid.UUID] = mapped_column(Uuid, unique=True)
+    status: Mapped[str] = mapped_column(String(20), default="in_progress")
+    score: Mapped[float | None] = mapped_column(Float)
+    started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)

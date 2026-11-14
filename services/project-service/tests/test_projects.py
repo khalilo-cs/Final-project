@@ -7,7 +7,7 @@ import pytest
 def make_zip() -> bytes:
     buffer = io.BytesIO()
     with zipfile.ZipFile(buffer, "w") as bundle:
-        bundle.writestr("main.py", "print('hi')\n")
+        bundle.writestr("main.py", "def main():\n    x = 1\n    print('hi')\n    return x\n")
     return buffer.getvalue()
 
 

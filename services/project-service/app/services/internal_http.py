@@ -51,3 +51,21 @@ def lookup_users(ids: set[uuid.UUID]) -> dict[str, dict]:
     except (httpx.HTTPError, ValueError):
         log.warning("user lookup failed; names will be missing")
         return {}
+
+
+def viva_summary(session_id) -> dict | None:
+    try:
+        with client(get_settings().viva_engine_url, timeout=10) as http:
+            response = http.get(f"/internal/sessions/{session_id}")
+            response.raise_for_status()
+            return response.json()
+    except (httpx.HTTPError, ValueError):
+        log.warning("viva-engine unreachable for session %s", session_id)
+        return None
+
+
+def post_json(base_url: str, path: str, payload: dict, timeout: float = 120) -> dict:
+    with client(base_url, timeout=timeout) as http:
+        response = http.post(path, json=payload)
+        response.raise_for_status()
+        return response.json()

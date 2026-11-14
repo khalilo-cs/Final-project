@@ -44,6 +44,13 @@ def project_alerts(project: Project, results: ProjectResults) -> list[dict]:
             "High",
             f"{results.security.critical_count} critical security vulnerabilities",
         )
+    if results.ai_fixes:
+        add(
+            "ai_fixes_applied",
+            "Low",
+            f"The student applied {results.ai_fixes} AI-proposed fixes; the original code "
+            "is kept and the fixes are listed with the project",
+        )
     if results.database and results.database.missing_primary_keys:
         tables = ", ".join(results.database.missing_primary_keys[:5])
         add("database_design", "Low", f"Tables without a primary key: {tables}")
