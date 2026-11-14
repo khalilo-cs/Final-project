@@ -13,7 +13,7 @@ from sqlalchemy.pool import StaticPool
 
 from app import database
 from app.config import get_settings
-from app.services import analysis_runner
+from app.services import internal_http
 
 ANALYZER_RESPONSE = {
     "code": {
@@ -85,8 +85,17 @@ class Analyzer:
         self.db_calls: list[httpx.Request] = []
         self.report_calls: list[httpx.Request] = []
         self.forgotten: list[str] = []
+        self.users: dict[str, dict] = {}  # served by the fake auth-service lookup
+        self.auth_up = True
 
     def __call__(self, request: httpx.Request) -> httpx.Response:
+        if request.url.path == "/api/v1/internal/users/lookup":
+            if not self.auth_up:
+                return httpx.Response(503)
+            import json
+
+            ids = json.loads(request.content)["ids"]
+            return httpx.Response(200, json=[self.users[i] for i in ids if i in self.users])
         if request.url.path.startswith("/api/v1/documents/"):
             self.forgotten.append(request.url.path.rsplit("/", 1)[-1])
             return httpx.Response(204)
@@ -103,7 +112,7 @@ class Analyzer:
 @pytest.fixture
 def analyzer(monkeypatch):
     fake = Analyzer()
-    monkeypatch.setattr(analysis_runner, "transport", httpx.MockTransport(fake))
+    monkeypatch.setattr(internal_http, "transport", httpx.MockTransport(fake))
     return fake
 
 

@@ -6,12 +6,10 @@ Each analysis is independent: one failing does not discard the others' results.
 
 import json
 import logging
-import time
 import uuid
 from pathlib import Path
 
 import httpx
-import jwt
 from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
@@ -25,45 +23,21 @@ from app.models.project import (
     ReportAnalysisResult,
     SecurityAnalysisResult,
 )
+from app.services import internal_http
 
 log = logging.getLogger(__name__)
-
-# Tests replace this with an httpx.MockTransport.
-transport: httpx.BaseTransport | None = None
 
 
 class AnalysisRejected(Exception):
     """The analyzer refused the input (bad archive / file); retrying will not help."""
 
 
-def _service_token() -> str:
-    settings = get_settings()
-    now = int(time.time())
-    payload = {
-        "sub": "00000000-0000-0000-0000-000000000000",
-        "role": "service",
-        "type": "access",
-        "iat": now,
-        "exp": now + 600,
-    }
-    return jwt.encode(payload, settings.jwt_secret, algorithm=settings.jwt_algorithm)
-
-
 def _post(base_url: str, path: str, file: Path, filename: str, data: dict | None = None) -> dict:
     with (
-        httpx.Client(
-            base_url=base_url,
-            timeout=get_settings().analyzer_timeout_seconds,
-            transport=transport,
-        ) as client,
+        internal_http.client(base_url, get_settings().analyzer_timeout_seconds) as http,
         open(file, "rb") as handle,
     ):
-        response = client.post(
-            path,
-            files={"file": (filename, handle)},
-            data=data,
-            headers={"Authorization": f"Bearer {_service_token()}"},
-        )
+        response = http.post(path, files={"file": (filename, handle)}, data=data)
     if response.status_code in (400, 413, 422):
         raise AnalysisRejected(response.json().get("detail", "invalid file"))
     response.raise_for_status()
@@ -183,13 +157,8 @@ def _store_report(db: Session, project: Project) -> None:
 def forget_report(project_id: uuid.UUID) -> None:
     """Remove a deleted project's report from the plagiarism corpus (best effort)."""
     try:
-        with httpx.Client(
-            base_url=get_settings().report_analyzer_url, timeout=30, transport=transport
-        ) as client:
-            client.delete(
-                f"/api/v1/documents/{project_id}",
-                headers={"Authorization": f"Bearer {_service_token()}"},
-            ).raise_for_status()
+        with internal_http.client(get_settings().report_analyzer_url, timeout=30) as http:
+            http.delete(f"/api/v1/documents/{project_id}").raise_for_status()
     except httpx.HTTPError:
         log.warning("could not remove report of project %s from the index", project_id)
 

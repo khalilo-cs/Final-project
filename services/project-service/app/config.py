@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     jwt_secret: str = Field(min_length=32)
     jwt_algorithm: str = "HS256"
 
+    auth_service_url: str = "http://localhost:8001"
     code_analyzer_url: str = "http://localhost:8003"
     db_analyzer_url: str = "http://localhost:8004"
     report_analyzer_url: str = "http://localhost:8005"

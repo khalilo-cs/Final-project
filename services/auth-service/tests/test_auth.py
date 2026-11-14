@@ -127,3 +127,29 @@ def test_user_can_read_only_own_profile(client):
     assert client.get(f"/api/v1/users/{own_id}", headers=student).status_code == 200
     assert client.get(f"/api/v1/users/{other_id}", headers=student).status_code == 403
     assert client.get(f"/api/v1/users/{other_id}", headers=admin_headers(client)).status_code == 200
+
+
+def service_headers(role="service"):
+    import time
+
+    import jwt
+
+    from app.config import get_settings
+
+    payload = {"sub": "svc", "role": role, "type": "access", "exp": time.time() + 60}
+    return bearer(jwt.encode(payload, get_settings().jwt_secret, algorithm="HS256"))
+
+
+def test_internal_user_lookup(client):
+    own_id = register(client).json()["id"]
+    url = "/api/v1/internal/users/lookup"
+    missing = "00000000-0000-0000-0000-000000000001"
+    body = {"ids": [own_id, missing]}
+    assert client.post(url, json=body).status_code == 401
+    # Even an admin's browser token cannot use internal endpoints.
+    assert client.post(url, json=body, headers=admin_headers(client)).status_code == 403
+    assert client.post(url, json=body, headers=service_headers("admin")).status_code == 403
+    found = client.post(url, json=body, headers=service_headers()).json()
+    assert found == [
+        {"id": own_id, "username": "khalid", "full_name": "خالد أحمد", "student_id": "2022001"}
+    ]

@@ -40,6 +40,7 @@ services:
       CODE_ANALYZER_URL: http://code-analyzer:8003
       DB_ANALYZER_URL: http://db-analyzer:8004
       REPORT_ANALYZER_URL: http://report-analyzer:8005
+      AUTH_SERVICE_URL: http://auth-service:8001
     volumes:
       - project-files:/data
     ports:

@@ -3,7 +3,8 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from app.database import Base, engine
-from app.routes import analysis, courses, projects
+from app.models import grading as _grading_models  # noqa: F401  (register tables)
+from app.routes import analysis, courses, dashboard, grades, projects
 
 
 @asynccontextmanager
@@ -17,6 +18,8 @@ app = FastAPI(title="AI Project Examiner — Project Service", version="0.1.0", 
 app.include_router(courses.router)
 app.include_router(projects.router)
 app.include_router(analysis.router)
+app.include_router(grades.router)
+app.include_router(dashboard.router)
 
 
 @app.get("/health", tags=["meta"])

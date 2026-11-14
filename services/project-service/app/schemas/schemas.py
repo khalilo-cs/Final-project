@@ -118,3 +118,50 @@ class ReportResultOut(BaseModel):
     overall_report_score: float
     details: dict
     analyzed_at: datetime
+
+
+class CriterionOut(BaseModel):
+    criterion: str
+    label_ar: str
+    weight: float
+    is_default: bool
+
+
+class WeightsUpdate(BaseModel):
+    weights: dict[str, float] = Field(description="criterion -> weight; must sum to 100")
+
+
+class GradeBreakdown(BaseModel):
+    criterion: str
+    label_ar: str
+    weight: float
+    score: float | None
+    points: float | None
+    justification: str | None
+
+
+class GradeOut(BaseModel):
+    project_id: uuid.UUID
+    status: ProjectStatus
+    suggested_total: float | None
+    coverage: float
+    missing_criteria: list[str]
+    breakdown: list[GradeBreakdown]
+    final_total: float | None
+    faculty_notes: str | None
+    graded_at: datetime | None
+    alerts: list[dict]
+
+
+class StudentGradeOut(BaseModel):
+    """What a student sees: only the final decision, once it exists."""
+
+    project_id: uuid.UUID
+    status: ProjectStatus
+    final_total: float | None
+    graded_at: datetime | None
+
+
+class GradeUpdate(BaseModel):
+    total: float = Field(ge=0, le=100)
+    notes: str | None = Field(default=None, max_length=5000)
