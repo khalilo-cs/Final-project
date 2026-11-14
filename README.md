@@ -46,6 +46,27 @@ cp .env.example .env      # ثم املأ JWT_SECRET وكلمات المرور
 docker compose up --build
 ```
 
+ثم افتح الواجهة: <http://localhost:8080>
+
+للتطوير: شغّل الخدمات ثم `make web` (Vite على <http://localhost:5173>).
+
+### الواجهات
+
+React + TypeScript + Tailwind، عربية من اليمين لليسار.
+
+- **الطالب:** تسليم المشروع، نتائج التحليل، **المستشار الذكي** (نقاط القوة والضعف وما
+  يمكن تطويره)، الإصلاحات المقترحة كـ diff مع مربع اختيار لكل إصلاح وزر "موافق" (لا يتغير
+  شيء قبل موافقته، وتظهر له رسالة توضح أن النسخة الأصلية محفوظة وأن الدكتور سيرى
+  الإصلاحات)، و**المناقشة الذكية**: السؤال مع مقتطف من كوده، المستوى الحالي، والتقدم.
+- **الدكتور:** لوحة تحكم بالتنبيهات والمتوسطات، صفحة المادة (إضافة طالب باسم المستخدم،
+  جدول الدرجات، أوزان التقييم، تصدير Excel)، صفحة المشروع (الدرجة المقترحة مع التبرير
+  واعتماد الدرجة)، و**مراجعة المناقشة** لتصحيح تقييم كل إجابة (وهذا ما يتعلم منه النظام).
+- **عقل النظام:** النماذج المتصلة، معايرة كل نموذج مقابل الدكاترة، أكثر الأسئلة كشفاً
+  للفهم، مصادر المعرفة (إضافة صفحة توثيق والبحث فيها)، وتنزيل بيانات التدريب.
+
+nginx في الإنتاج يوجّه `/svc/auth` و `/svc/projects` و `/svc/viva` للخدمات، ويحجب
+نقاط `internal` عن المتصفح، ويضيف ترويسات الأمان (CSP وغيرها).
+
 - توثيق الـ API التفاعلي: `/docs` على كل منفذ (8001 إلى 8006).
 - أول حساب admin يُنشأ من `ADMIN_*` في `.env` عند أول تشغيل.
 
@@ -191,6 +212,9 @@ services/
   code-analyzer/     FastAPI — analyzers/ quality/ security/
   db-analyzer/       FastAPI — parsers/ (SQL splitter + schema) analyzers/
   report-analyzer/   FastAPI — parsers/ (PDF, DOCX) text/ (Arabic) analyzers/ (winnowing…)
+  viva-engine/       FastAPI — providers/ (built-in, Claude, Ollama, OpenAI-compatible)
+                     engine/ (dialogue, learning, advisor) knowledge/ (BM25, web)
+frontend/            React + TypeScript + Tailwind (RTL)، nginx في الإنتاج
 docs/PROJECT_PLAN.md الخطة الكاملة للمشروع
 docker-compose.yml   postgres + الخدمات (و redis/rabbitmq/minio عبر --profile infra)
 ```

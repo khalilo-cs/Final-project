@@ -2,7 +2,7 @@ SERVICES := auth-service project-service code-analyzer db-analyzer report-analyz
 VENV ?= .venv
 PY := $(abspath $(VENV))/bin/python
 
-.PHONY: install lint format test up down
+.PHONY: install lint format test up down web
 
 install:
 	python3 -m venv $(VENV)
@@ -24,3 +24,6 @@ up:
 
 down:
 	docker compose down
+
+web:
+	cd frontend && npm install && npx vite

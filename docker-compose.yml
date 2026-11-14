@@ -3,6 +3,15 @@
 #   docker compose --profile infra up -d      -> also redis, rabbitmq, minio (used by later phases)
 
 services:
+  frontend:
+    build: ./frontend
+    ports:
+      - "127.0.0.1:8080:80"
+    depends_on:
+      - auth-service
+      - project-service
+      - viva-engine
+
   postgres:
     image: postgres:16-alpine
     environment:

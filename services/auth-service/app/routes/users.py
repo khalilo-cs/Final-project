@@ -39,6 +39,19 @@ def create_user(data: CreateUserRequest, db: DbSession):
         ) from exc
 
 
+@router.get(
+    "/by-username/{username}",
+    response_model=UserOut,
+    dependencies=[Depends(require_roles(Role.admin, Role.faculty))],
+)
+def find_student(username: str, db: DbSession):
+    """Faculty enrol students by username; only student accounts can be found this way."""
+    user = db.scalar(select(User).where(User.username == username.strip().lower()))
+    if user is None or user.role is not Role.student:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Student not found")
+    return user
+
+
 @router.get("/{user_id}", response_model=UserOut)
 def get_user(user_id: uuid.UUID, db: DbSession, current: CurrentUser):
     if current.role is not Role.admin and current.id != user_id:

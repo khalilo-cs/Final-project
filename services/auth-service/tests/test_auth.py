@@ -153,3 +153,18 @@ def test_internal_user_lookup(client):
     assert found == [
         {"id": own_id, "username": "khalid", "full_name": "خالد أحمد", "student_id": "2022001"}
     ]
+
+
+def test_faculty_find_students_by_username(client):
+    register(client)
+    admin = admin_headers(client)
+    faculty = {"username": "dr.ali", "email": "ali@example.com", "password": "faculty-pass",
+               "full_name": "د. علي", "role": "faculty"}  # fmt: skip
+    client.post("/api/v1/users", json=faculty, headers=admin)
+    doctor = bearer(login(client, "dr.ali", "faculty-pass").json()["access_token"])
+    student = bearer(login(client).json()["access_token"])
+    found = client.get("/api/v1/users/by-username/KHALID", headers=doctor)
+    assert found.status_code == 200 and found.json()["full_name"] == "خالد أحمد"
+    assert client.get("/api/v1/users/by-username/khalid", headers=student).status_code == 403
+    # Staff accounts are not exposed through this lookup.
+    assert client.get("/api/v1/users/by-username/admin", headers=doctor).status_code == 404
