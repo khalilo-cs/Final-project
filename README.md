@@ -14,7 +14,7 @@
 |--------|--------|--------|
 | `auth-service` | 8001 | تسجيل، دخول، JWT (access + refresh مع تدوير وإبطال)، ثلاثة أدوار، إدارة المستخدمين للـ admin |
 | `project-service` | 8002 | المواد، تسجيل الطلاب فيها، رفع المشروع (ZIP + تقرير PDF/DOCX + ملف SQL)، تشغيل التحليلات تلقائياً وحفظ نتائجها، الدرجة المقترحة مع التبرير، أوزان التقييم لكل مادة، تنبيهات الدكتور، كشف الدرجات Excel |
-| `code-analyzer` | 8003 | Python و Java و JavaScript و TypeScript: بنية الكود، التعقيد (Cyclomatic + Cognitive)، Code Smells، الكود المكرر والميت، فحص أمني، الإصلاحات المقترحة، درجتا الجودة والأمان |
+| `code-analyzer` | 8003 | Python و Java و JavaScript و TypeScript و C# و C/C++: بنية الكود، التعقيد (Cyclomatic + Cognitive)، Code Smells، الكود المكرر والميت، فحص أمني، الإصلاحات المقترحة، درجتا الجودة والأمان |
 | `db-analyzer` | 8004 | ملف SQL (MySQL / PostgreSQL / SQLite) ← المفاتيح، التطبيع، أنواع البيانات، الاستعلامات، مخطط ER، درجة قاعدة البيانات |
 | `viva-engine` | 8006 | المناقشة الذكية التكيّفية، تقييم الإجابات بعدة نماذج مع التعلّم من تصحيحات الدكتور، قاعدة المعرفة، ملخص المستشار |
 | `fraud-detector` | 8007 | كشف نسخ الكود بين المشاريع (يقاوم تغيير الأسماء)، تحليل تاريخ Git، ثبات أسلوب الكتابة |
@@ -35,9 +35,19 @@
 | `eval`، `debug=True`، `verify=False` | ✅ | — | ✅ (`eval`، `new Function`) |
 | Hardcoded Secrets | ✅ لكل اللغات وملفات الإعداد | | |
 
+**C#** (ADO.NET، Entity Framework، Dapper، WinForms، ASP.NET): حقن SQL في `SqlCommand`
+و `CommandText` و `SqlDataAdapter` و `ExecuteSqlRaw` (بما فيها النص المبني من
+`txtUser.Text` على أكثر من سطر بـ `+=`)، `Process.Start` بمدخلات، `BinaryFormatter`
+و `TypeNameHandling.All`، MD5/SHA-1/DES و ECB، `Response.Write` و `Html.Raw`
+و `[ValidateInput(false)]`، وتعطيل التحقق من شهادات TLS.
+**C/C++**: `gets`، `strcpy`/`strcat`/`sprintf` بلا حد، `scanf("%s")`، `printf(var)`
+(Format String)، `system`/`popen` بمدخلات، و `mysql_query`/`sqlite3_exec` بنص مركّب.
+لكل ثغرة في C# و C++ اقتراح إصلاح مع مثال آمن. ويُكتشف من مشاريع .NET و C++ أيضاً:
+SQL Server، MS Access، Windows Forms، WPF، ASP.NET، Entity Framework، Qt، OpenCV.
+
 ### لم يُنفَّذ بعد
 
-محللات C# و C++، Knowledge Graph (Neo4j)، التشابه الدلالي بنماذج مثل CodeBERT، خدمة
+Knowledge Graph (Neo4j)، التشابه الدلالي بنماذج مثل CodeBERT، خدمة
 الإشعارات (بريد/SMS)، الدخول عبر LDAP/OAuth للجامعة، تحويل الصوت إلى نص على الخادم
 (Whisper)، و Alembic migrations (الجداول تُنشأ حالياً بـ `create_all`). تشغيل
 sandbox-runner الحقيقي يحتاج Docker على الخادم، وقد اختُبر هنا ببديل محلي فقط.
@@ -282,8 +292,8 @@ docker-compose.yml   postgres + الخدمات (و redis/rabbitmq/minio عبر -
 ## اختلافات مقصودة عن الخطة
 
 - **PyJWT بدل python-jose** — مكتبة python-jose قليلة الصيانة.
-- **محلل Python يستخدم مكتبة `ast` القياسية** بدل Tree-sitter؛ أدق لـ Python. محللا Java و
-  JavaScript/TypeScript يستخدمان Tree-sitter، وكلها خلف نفس الواجهة `BaseAnalyzer` وبنفس قواعد حساب التعقيد
+- **محلل Python يستخدم مكتبة `ast` القياسية** بدل Tree-sitter؛ أدق لـ Python. محللات Java و
+  JavaScript/TypeScript و C# و C/C++ تستخدم Tree-sitter، وكلها خلف نفس الواجهة `BaseAnalyzer` وبنفس قواعد حساب التعقيد
   حتى تكون الدرجات قابلة للمقارنة بين اللغات.
 - **التحليل يعمل كـ background task داخل project-service** ويستدعي code-analyzer عبر
   HTTP؛ سينتقل إلى RabbitMQ worker لاحقاً. الملفات تُحفظ على القرص (MinIO لاحقاً).

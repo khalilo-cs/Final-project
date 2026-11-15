@@ -5,6 +5,8 @@ from dataclasses import asdict
 from pathlib import Path
 
 from app.analyzers.base_analyzer import BaseAnalyzer, FileAnalysis
+from app.analyzers.cpp_analyzer import CppAnalyzer
+from app.analyzers.csharp_analyzer import CSharpAnalyzer
 from app.analyzers.java_analyzer import JavaAnalyzer
 from app.analyzers.javascript_analyzer import JavaScriptAnalyzer
 from app.analyzers.python_analyzer import PythonAnalyzer
@@ -13,30 +15,37 @@ from app.quality.code_smells import detect_smells
 from app.quality.dead_code import java_dead_code, python_dead_code
 from app.quality.duplication import find_duplicates
 from app.quality.score import quality_score, security_score
+from app.security.cpp_rules import scan_cpp
+from app.security.csharp_rules import scan_csharp
 from app.security.java_rules import scan_java
 from app.security.js_rules import scan_javascript
 from app.security.models import Severity, Vulnerability
 from app.security.python_rules import scan_python
 from app.security.secrets_scanner import scan_secrets
 
-ANALYZERS: list[BaseAnalyzer] = [PythonAnalyzer(), JavaAnalyzer(), JavaScriptAnalyzer()]
+ANALYZERS: list[BaseAnalyzer] = [
+    PythonAnalyzer(), JavaAnalyzer(), JavaScriptAnalyzer(), CSharpAnalyzer(), CppAnalyzer(),
+]  # fmt: skip
 SECURITY_RULES = {
     "python": scan_python,
     "java": scan_java,
     "javascript": scan_javascript,
     "typescript": scan_javascript,
+    "csharp": scan_csharp,
+    "cpp": scan_cpp,
 }
 _BY_EXTENSION = {ext: analyzer for analyzer in ANALYZERS for ext in analyzer.extensions}
 
 SKIPPED_DIRS = {
     ".git", ".hg", ".svn", "node_modules", "venv", ".venv", "env", "__pycache__",
     "dist", "build", "target", ".idea", ".vscode", "site-packages", "vendor",
+    "bin", "obj", ".vs", "packages", "Debug", "Release", "x64", "cmake-build-debug",
 }  # fmt: skip
 # Text files worth scanning for secrets even without a language analyzer.
 SECRET_SCAN_EXTENSIONS = {
-    ".py", ".java", ".js", ".jsx", ".ts", ".tsx", ".cs", ".cpp", ".c", ".h", ".hpp", ".php",
-    ".rb", ".go", ".json", ".yml", ".yaml", ".xml", ".properties", ".ini", ".cfg", ".conf",
-    ".env", ".sql", ".sh",
+    ".py", ".java", ".js", ".jsx", ".ts", ".tsx", ".cs", ".cpp", ".cc", ".cxx", ".c", ".h",
+    ".hpp", ".php", ".rb", ".go", ".json", ".yml", ".yaml", ".xml", ".properties",
+    ".ini", ".cfg", ".conf", ".env", ".sql", ".sh",
 }  # fmt: skip
 MAX_FILE_BYTES = 1_000_000
 
@@ -76,7 +85,7 @@ def analyze_project(root: Path) -> dict:
             continue
         source = path.read_text(encoding="utf-8", errors="replace")
         vulnerabilities.extend(scan_secrets(relative, source))
-        technologies.feed_text(relative, source)
+        technologies.feed_text(relative, source.lower())
         analyzer = _BY_EXTENSION.get(path.suffix.lower())
         if analyzer is None:
             continue

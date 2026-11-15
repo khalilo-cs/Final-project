@@ -239,3 +239,21 @@ def test_api_analyze_and_forget(client):
     assert post(client, report("x"), document_id="../etc").status_code == 422
     auth = {"Authorization": f"Bearer {token()}"}
     assert client.delete("/api/v1/documents/proj-1", headers=auth).status_code == 204
+
+
+def test_dotnet_report_consistency():
+    facts = {
+        "languages": {"C#": 8},
+        "technologies": ["SQL Server", "Windows Forms", "ASP.NET Core"],
+        "architecture": [],
+    }
+    text = (
+        "تم تطوير النظام بلغة سي شارب باستخدام Windows Forms وقاعدة بيانات SQL Server. "
+        "ولوحة الويب مبنية بـ ASP.NET. واستخدمنا Qt في نسخة سابقة."
+    )
+    result = check_consistency(text, facts)
+    assert {"C#", "Windows Forms", "SQL Server", "ASP.NET"} <= set(result["mentioned_technologies"])
+    assert [(i["type"], i["report_claim"]) for i in result["inconsistencies"]] == [
+        ("claimed_not_found", "The report mentions Qt (1 times)"),
+        ("undocumented", "The report never mentions ASP.NET Core"),
+    ]

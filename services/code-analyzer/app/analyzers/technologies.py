@@ -47,6 +47,19 @@ _IMPORTS = {
     "javax.persistence": "JPA", "jakarta.persistence": "JPA", "android": "Android",
     "com.mysql": "MySQL", "org.postgresql": "PostgreSQL", "com.mongodb": "MongoDB",
     "io.jsonwebtoken": "JWT",
+    # C# (using) and C/C++ (#include)
+    "System.Data.SqlClient": "SQL Server", "Microsoft.Data.SqlClient": "SQL Server",
+    "MySql.Data": "MySQL", "MySqlConnector": "MySQL", "Npgsql": "PostgreSQL",
+    "System.Data.SQLite": "SQLite", "Microsoft.Data.Sqlite": "SQLite", "MongoDB.Driver": "MongoDB",
+    "System.Data.OleDb": "MS Access", "System.Windows.Forms": "Windows Forms",
+    "System.Windows.Controls": "WPF", "Microsoft.AspNetCore": "ASP.NET Core",
+    "System.Web.Mvc": "ASP.NET MVC", "System.Web": "ASP.NET",
+    "Microsoft.EntityFrameworkCore": "Entity Framework", "System.Data.Entity": "Entity Framework",
+    "Dapper": "Dapper", "Newtonsoft.Json": "Json.NET",
+    "mysql.h": "MySQL", "mysql/mysql.h": "MySQL", "sqlite3.h": "SQLite", "libpq-fe.h": "PostgreSQL",
+    "opencv2": "OpenCV", "QApplication": "Qt", "QtWidgets": "Qt", "QtCore": "Qt", "QtSql": "Qt",
+    "QWidget": "Qt", "QMainWindow": "Qt", "SFML": "SFML", "GL/glut.h": "OpenGL",
+    "GL/gl.h": "OpenGL", "GLFW": "OpenGL", "boost": "Boost",
     # JavaScript / TypeScript (import "x" or require("x"))
     "react": "React", "vue": "Vue.js", "@angular/core": "Angular", "next": "Next.js",
     "express": "Express", "@nestjs/core": "NestJS", "mongoose": "MongoDB", "mongodb": "MongoDB",
@@ -59,11 +72,16 @@ _TEXT_SIGNALS = [
     ("jdbc:mysql", "MySQL"), ("jdbc:postgresql", "PostgreSQL"), ("jdbc:sqlite", "SQLite"),
     ("mongodb://", "MongoDB"), ("mongodb+srv://", "MongoDB"), ("mysql://", "MySQL"),
     ("postgresql://", "PostgreSQL"), ("spring-boot", "Spring Boot"),
-    ("mysql-connector", "MySQL"), ("org.postgresql", "PostgreSQL"), ("hibernate", "Hibernate"),
+    ("mysql-connector", "MySQL"), ("initial catalog=", "SQL Server"),
+    ("microsoft.ace.oledb", "MS Access"), ("microsoft.jet.oledb", "MS Access"),
+    ("microsoft.net.sdk.web", "ASP.NET Core"), ("<usewindowsforms>true", "Windows Forms"),
+    ("<usewpf>true", "WPF"), ("find_package(qt", "Qt"),
+    ("org.postgresql", "PostgreSQL"), ("hibernate", "Hibernate"),
 ]  # fmt: skip
 
 _MANIFESTS = {"package.json", "requirements.txt", "pyproject.toml", "pipfile", "composer.json"}
 _BUILD_FILES = {"pom.xml", "build.gradle", "build.gradle.kts", "pubspec.yaml"}
+_BUILD_SUFFIXES = (".csproj", ".vcxproj", "cmakelists.txt", ".pro", "packages.config")
 _REQUIREMENT = re.compile(r"^\s*([A-Za-z0-9_.\-\[\]]+)")
 MAX_MANIFEST_BYTES = 512_000
 
@@ -88,7 +106,7 @@ class TechnologyDetector:
 
     def wants_content(self, relative: str) -> bool:
         name = PurePosixPath(relative).name.lower()
-        return name in _MANIFESTS or name in _BUILD_FILES
+        return name in _MANIFESTS or name in _BUILD_FILES or name.endswith(_BUILD_SUFFIXES)
 
     def feed_manifest(self, relative: str, content: str) -> None:
         name = PurePosixPath(relative).name.lower()
@@ -96,7 +114,7 @@ class TechnologyDetector:
             technology = _PACKAGES.get(package.lower())
             if technology:
                 self._found(technology, relative)
-        if name in _BUILD_FILES:
+        if name in _BUILD_FILES or name.endswith(_BUILD_SUFFIXES):
             self.feed_text(relative, content.lower())
             if name == "pubspec.yaml" and "flutter" in content:
                 self._found("Flutter", relative)

@@ -8,11 +8,17 @@ from pathlib import Path, PurePosixPath
 
 from app.fixes.java_fixes import propose_java
 from app.fixes.models import Fix, apply_edits
+from app.fixes.native_fixes import propose_cpp, propose_csharp
 from app.fixes.python_fixes import propose_python
 from app.security.python_rules import scan_python
 from app.services.project_analyzer import MAX_FILE_BYTES, _project_files
 
-_PROPOSERS = {".py": propose_python, ".java": propose_java}
+_PROPOSERS = {
+    ".py": propose_python,
+    ".java": propose_java,
+    ".cs": propose_csharp,
+    **dict.fromkeys((".cpp", ".cc", ".cxx", ".c", ".h", ".hpp"), propose_cpp),
+}
 
 
 def _sources(root: Path):
@@ -52,8 +58,11 @@ def apply(root: Path, archive: Path, fix_ids: list[str]) -> tuple[bytes, list, l
         fixes = [f for f in proposer(relative, source) if f.id in wanted]
         found |= {f.id for f in fixes}
         patches = [f for f in fixes if f.kind == "patch"]
-        skipped += [{"id": f.id, "reason": "advice only, change it by hand"} for f in fixes
-                    if f.kind != "patch"]  # fmt: skip
+        skipped += [
+            {"id": f.id, "reason": "advice only, change it by hand"}
+            for f in fixes
+            if f.kind != "patch"
+        ]
         if not patches:
             continue
         edits = [edit for fix in patches for edit in fix.edits]
@@ -66,8 +75,10 @@ def apply(root: Path, archive: Path, fix_ids: list[str]) -> tuple[bytes, list, l
             skipped += [{"id": f.id, "reason": problem} for f in patches]
             continue
         changed[relative] = after
-        applied += [{"id": f.id, "file": f.file, "line": f.line, "type": f.type,
-                     "title": f.title} for f in patches]  # fmt: skip
+        applied += [
+            {"id": f.id, "file": f.file, "line": f.line, "type": f.type, "title": f.title}
+            for f in patches
+        ]
     skipped += [{"id": i, "reason": "fix no longer applies"} for i in sorted(wanted - found)]
     return _rebuild(archive, changed), applied, skipped
 

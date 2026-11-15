@@ -34,6 +34,21 @@ def js_parser(dialect: str = "javascript") -> Parser:
     return Parser(Language(language))
 
 
+@cache
+def csharp_parser() -> Parser:
+    import tree_sitter_c_sharp
+
+    return Parser(Language(tree_sitter_c_sharp.language()))
+
+
+@cache
+def cpp_parser() -> Parser:
+    """Also used for C: the C++ grammar parses ordinary C code."""
+    import tree_sitter_cpp
+
+    return Parser(Language(tree_sitter_cpp.language()))
+
+
 def text(node: Node | None) -> str:
     if node is None or node.text is None:
         return ""

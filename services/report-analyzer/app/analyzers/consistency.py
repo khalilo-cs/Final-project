@@ -45,9 +45,22 @@ _TECHNOLOGIES = {
     "TensorFlow": [r"\btensorflow\b"],
     "PyTorch": [r"\bpytorch\b"],
     "Bootstrap": [r"\bbootstrap\b"],
+    "SQL Server": [r"\bsql\s*server\b", r"\bmssql\b", r"اس\s*كيو\s*ال\s*سيرفر"],
+    "MS Access": [r"\b(?:ms|microsoft)\s*access\b", r"اكسس"],
+    "Windows Forms": [r"\bwindows\s*forms?\b", r"\bwinforms?\b"],
+    "WPF": [r"\bwpf\b"],
+    "ASP.NET": [r"\basp\s*\.?\s*net\b"],
+    "ASP.NET Core": [r"\basp\s*\.?\s*net\s*core\b"],
+    "ASP.NET MVC": [r"\basp\s*\.?\s*net\s*mvc\b"],
+    "Entity Framework": [r"\bentity\s*framework\b"],
+    "Qt": [r"\bqt\b"],
+    "OpenCV": [r"\bopencv\b"],
 }
 # Technologies implied by others (Spring Boot implies Spring, JPA/Hibernate etc.).
-_IMPLIES = {"Spring Boot": {"Spring"}, "React Native": {"React"}}
+_IMPLIES = {
+    "Spring Boot": {"Spring"}, "React Native": {"React"},
+    "ASP.NET Core": {"ASP.NET"}, "ASP.NET MVC": {"ASP.NET"},
+}  # fmt: skip
 _MVC = [r"\bmvc\b", r"model[\s-]*view[\s-]*controller"]
 _TABLE_COUNT = [
     re.compile(r"(\d{1,3})\s*(?:جداول|جدولا|جدول)"),
