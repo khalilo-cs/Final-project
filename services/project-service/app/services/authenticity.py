@@ -43,27 +43,40 @@ def compute(results) -> dict | None:
     if earlier >= 0.3:
         flags.append({"type": "code_similarity", "severity": "High" if earlier >= 0.5 else "Medium",
                       "evidence": f"{round(earlier * 100)}% of the code matches a project "
-                      "submitted earlier"})  # fmt: skip
+                      "submitted earlier",
+                      "evidence_ar": f"{round(earlier * 100)}% من الكود يطابق مشروعاً سُلِّم "
+                      "قبله"})  # fmt: skip
     if later >= 0.3:
         flags.append({"type": "code_shared", "severity": "Medium",
                       "evidence": f"A project submitted later matches {round(later * 100)}% of "
-                      "this code: it may have been shared"})  # fmt: skip
+                      "this code: it may have been shared",
+                      "evidence_ar": f"مشروع سُلِّم بعده يطابق {round(later * 100)}% من هذا "
+                      "الكود: ربما شارك الطالب كوده"})  # fmt: skip
 
     git = fraud.git_analysis or {}
     if git.get("available"):
         parts["git_history"] = float(git["score"])
         for flag in git.get("flags", []):
             if flag["severity"] != "low":
-                flags.append({"type": f"git_{flag['type']}", "severity": "Medium",
-                              "evidence": flag["evidence"]})  # fmt: skip
+                flags.append(
+                    {
+                        "type": f"git_{flag['type']}",
+                        "severity": "Medium",
+                        "evidence": flag["evidence"],
+                        "evidence_ar": flag.get("evidence_ar") or flag["evidence"],
+                    }
+                )
 
     style = fraud.style or {}
     if style.get("style_consistency_score") is not None:
         parts["style"] = style["style_consistency_score"]
         for outlier in style.get("outliers", [])[:3]:
+            features = ", ".join(outlier["differs"])
             flags.append({"type": "style_outlier", "severity": "Low",
                           "evidence": f"{outlier['file']} is written in a different style "
-                          f"({', '.join(outlier['differs'])})"})  # fmt: skip
+                          f"({features})",
+                          "evidence_ar": f"الملف {outlier['file']} مكتوب بأسلوب مختلف عن باقي "
+                          f"المشروع ({features})"})  # fmt: skip
 
     if results.viva_score is not None and results.code is not None:
         gap = results.code.overall_quality_score - results.viva_score
@@ -74,7 +87,12 @@ def compute(results) -> dict | None:
                 f"Code quality {quality:.0f} but viva {results.viva_score:.0f}: "
                 "the student may not have written it"
             )
-            flags.append({"type": "viva_gap", "severity": "High", "evidence": evidence})
+            evidence_ar = (
+                f"جودة الكود {quality:.0f} لكن المناقشة {results.viva_score:.0f}: "
+                "قد لا يكون الطالب كاتب الكود"
+            )
+            flags.append({"type": "viva_gap", "severity": "High", "evidence": evidence,
+                          "evidence_ar": evidence_ar})  # fmt: skip
 
     if results.report is not None:
         parts["report"] = round(100 - results.report.plagiarism_percentage, 1)

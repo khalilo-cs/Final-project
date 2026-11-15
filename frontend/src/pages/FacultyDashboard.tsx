@@ -34,7 +34,7 @@ export function FacultyDashboard() {
               <Link key={i} to={`/projects/${a.project_id}`} className="flex items-center gap-3 py-2 text-sm hover:bg-slate-50">
                 <Badge tone={severityTone(a.severity)}>{a.severity}</Badge>
                 <span className="font-semibold">{a.project_title}</span>
-                <span className="ltr flex-1 truncate text-left text-slate-500">{a.message}</span>
+                <span className="flex-1 truncate text-slate-500">{a.message_ar ?? a.message}</span>
               </Link>
             ))}
           </div>

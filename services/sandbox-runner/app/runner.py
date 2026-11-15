@@ -32,55 +32,48 @@ def score(result: dict) -> tuple[float, list[dict]]:
     """0-100 with the reasons; starting weights, to be calibrated on real projects."""
     flags = []
 
-    def flag(kind, severity, evidence, penalty):
-        flags.append({"type": kind, "severity": severity, "evidence": evidence})
+    def flag(kind, severity, evidence, evidence_ar, penalty):
+        flags.append(
+            {"type": kind, "severity": severity, "evidence": evidence, "evidence_ar": evidence_ar}
+        )
         return penalty
 
     if not result.get("runs_successfully"):
+        error = result.get("error") or "The project did not start"
         return 0.0, [
-            {
-                "type": "does_not_run",
-                "severity": "High",
-                "evidence": result.get("error") or "The project did not start",
-            }
-        ]
+            {"type": "does_not_run", "severity": "High", "evidence": error,
+             "evidence_ar": f"المشروع لم يعمل: {error}"}
+        ]  # fmt: skip
     penalty = 0
     if (startup := result.get("startup_seconds") or 0) > 20:
-        penalty += flag("slow_startup", "Low", f"Startup took {startup}s", 10)
+        penalty += flag("slow_startup", "Low", f"Startup took {startup}s",
+                        f"التشغيل استغرق {startup} ثانية", 10)  # fmt: skip
     if levels := result.get("load_test"):
         worst = levels[-1]
-        if worst["p95_ms"] is not None and worst["p95_ms"] > 1000:
-            penalty += flag(
-                "slow_under_load",
-                "Medium",
-                f"p95 {worst['p95_ms']} ms with {worst['concurrent_users']} users",
-                20,
-            )
-        elif worst["p95_ms"] is not None and worst["p95_ms"] > 300:
-            penalty += flag(
-                "slow_under_load",
-                "Low",
-                f"p95 {worst['p95_ms']} ms with {worst['concurrent_users']} users",
-                10,
-            )
+        p95, users = worst["p95_ms"], worst["concurrent_users"]
+        if p95 is not None and p95 > 300:
+            severity, cost = ("Medium", 20) if p95 > 1000 else ("Low", 10)
+            penalty += flag("slow_under_load", severity, f"p95 {p95} ms with {users} users",
+                            f"زمن الاستجابة (p95) {p95} ms مع {users} مستخدماً", cost)  # fmt: skip
         if worst["error_rate"] > 0:
-            penalty += flag(
-                "errors_under_load",
-                "Medium",
-                f"{round(worst['error_rate'] * 100)}% failed requests with "
-                f"{worst['concurrent_users']} users",
-                min(40, worst["error_rate"] * 100),
-            )
+            percent = round(worst["error_rate"] * 100)
+            penalty += flag("errors_under_load", "Medium",
+                            f"{percent}% failed requests with {users} users",
+                            f"{percent}% من الطلبات فشلت مع {users} مستخدماً",
+                            min(40, worst["error_rate"] * 100))  # fmt: skip
     if result.get("unresponsive_under_load"):
-        penalty += flag(
-            "unresponsive", "High", "Most requests timed out under load (possible deadlock)", 30
-        )
+        penalty += flag("unresponsive", "High",
+                        "Most requests timed out under load (possible deadlock)",
+                        "معظم الطلبات لم تُجب تحت الضغط (احتمال deadlock)", 30)  # fmt: skip
     if result.get("memory_leak_suspected"):
-        penalty += flag("memory_growth", "Medium", "Memory kept growing across load rounds", 15)
+        penalty += flag("memory_growth", "Medium", "Memory kept growing across load rounds",
+                        "الذاكرة تزداد باستمرار مع كل جولة ضغط (احتمال تسرّب)", 15)  # fmt: skip
     if (memory := result.get("memory_peak_mb") or 0) > 400:
-        penalty += flag("high_memory", "Low", f"Peak memory {memory} MB", 10)
+        penalty += flag("high_memory", "Low", f"Peak memory {memory} MB",
+                        f"استهلاك ذاكرة مرتفع: {memory} MB", 10)  # fmt: skip
     if any(e["status"] >= 500 for e in result.get("endpoints", [])):
-        penalty += flag("server_errors", "Medium", "Some pages return HTTP 5xx", 15)
+        penalty += flag("server_errors", "Medium", "Some pages return HTTP 5xx",
+                        "بعض الصفحات تُرجع خطأ خادم (5xx)", 15)  # fmt: skip
     return max(0.0, 100.0 - penalty), flags
 
 

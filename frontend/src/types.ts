@@ -13,7 +13,7 @@ export interface Advice {
   summary: { summary: string; written_by: string } | null;
 }
 export interface Breakdown { criterion: string; label_ar: string; weight: number; score: number | null; points: number | null; justification: string | null }
-export interface Alert { type: string; severity: string; message: string; project_id: string; project_title: string; course_id: string }
+export interface Alert { type: string; severity: string; message: string; message_ar?: string; project_id: string; project_title: string; course_id: string }
 export interface Grade {
   project_id: string; status: string; suggested_total: number | null; coverage: number; missing_criteria: string[];
   breakdown: Breakdown[]; final_total: number | null; faculty_notes: string | null; graded_at: string | null; alerts: Alert[];

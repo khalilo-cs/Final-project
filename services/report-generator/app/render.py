@@ -47,8 +47,11 @@ def _bar_chart(breakdown: list[dict], audience: str) -> str:
         f'<div style="height:{bar + gap}px;line-height:{bar}px">{_escape(r["label_ar"])}</div>'
         for r in rows
     )
-    return (f'<div style="display:flex;gap:8px;align-items:flex-start;margin:6px 0">'
-            f'<div style="width:120px;font-size:9pt">{labels}</div>{"".join(parts)}</div>')  # fmt: skip
+    svg = "".join(parts)
+    return (
+        '<div style="display:flex;gap:8px;align-items:flex-start;margin:6px 0">'
+        f'<div style="width:120px;font-size:9pt">{labels}</div>{svg}</div>'
+    )
 
 
 def _escape(text: str) -> str:

@@ -2,7 +2,7 @@ import { ApiError, get } from "../api";
 import { Badge, Card, Score, severityTone, useLoad } from "../components/ui";
 
 interface Component { factor: string; label_ar: string; weight: number; score: number | null }
-interface Flag { type: string; severity: string; evidence: string }
+interface Flag { type: string; severity: string; evidence: string; evidence_ar?: string }
 interface Match { file: string; lines: [number, number]; other_file: string; other_lines: [number, number]; fingerprints: number }
 interface Similar { document_id: string; submitted: "earlier" | "later"; title: string; student_name: string | null; course: string | null; similarity: number; reverse_similarity: number | null; matched_files: Match[] }
 interface Git { available: boolean; error?: string; total_commits?: number; span_days?: number; active_days?: number; authors?: { author: string; commits: number }[]; flags?: Flag[] }
@@ -32,7 +32,7 @@ export function AuthenticityPanel({ id }: { id: string }) {
       </div>
       {data.flags.length > 0 && (
         <ul className="mt-4 space-y-1 text-sm">
-          {data.flags.map((f, i) => <li key={i} className="flex items-center gap-2"><Badge tone={severityTone(f.severity)}>{f.severity}</Badge><span className="ltr">{f.evidence}</span></li>)}
+          {data.flags.map((f, i) => <li key={i} className="flex items-center gap-2"><Badge tone={severityTone(f.severity)}>{f.severity}</Badge><span>{f.evidence_ar ?? f.evidence}</span></li>)}
         </ul>
       )}
       {data.similar_projects.length > 0 && (

@@ -66,15 +66,20 @@ def analyze_git(root: Path) -> dict | None:
     biggest = max(commits, key=lambda c: c["added"])
     flags = []
 
-    def flag(kind, severity, evidence):
-        flags.append({"type": kind, "severity": severity, "evidence": evidence})
+    def flag(kind, severity, evidence, evidence_ar):
+        flags.append(
+            {"type": kind, "severity": severity, "evidence": evidence, "evidence_ar": evidence_ar}
+        )
 
     if len(commits) == 1:
-        flag("single_commit", "high", "The whole project was committed at once")
+        flag("single_commit", "high", "The whole project was committed at once",
+             "رُفع المشروع كله في commit واحد")  # fmt: skip
     elif len(commits) < 5:
-        flag("few_commits", "medium", f"Only {len(commits)} commits")
+        flag("few_commits", "medium", f"Only {len(commits)} commits",
+             f"عدد الـ commits قليل جداً: {len(commits)}")  # fmt: skip
     if len(commits) > 1 and span_hours < 48:
-        flag("short_span", "medium", f"All commits within {span_hours:.1f} hours")
+        flag("short_span", "medium", f"All commits within {span_hours:.1f} hours",
+             f"كل العمل خلال {span_hours:.1f} ساعة فقط")  # fmt: skip
     # A dump: one commit creates most of the project and those files are hardly worked on
     # afterwards. A first commit that later gets developed is just how projects start.
     if (
@@ -90,9 +95,14 @@ def analyze_git(root: Path) -> dict | None:
                 f"{round(evolved * 100)}% of them were changed afterwards: "
                 f"“{biggest['message']}”"
             )
-            flag("bulk_commit", "medium", evidence)
+            evidence_ar = (
+                f"commit واحد أضاف {biggest['added']} من {len(created)} ملفات، ولم يُعدَّل "
+                f"منها بعده إلا {round(evolved * 100)}%"
+            )
+            flag("bulk_commit", "medium", evidence, evidence_ar)
     if len(authors) > 1:
-        flag("multiple_authors", "low", f"{len(authors)} different authors")
+        flag("multiple_authors", "low", f"{len(authors)} different authors",
+             f"{len(authors)} مؤلفين مختلفين في تاريخ Git")  # fmt: skip
 
     score = max(0, 100 - sum(_PENALTY[f["severity"]] for f in flags))
     return {

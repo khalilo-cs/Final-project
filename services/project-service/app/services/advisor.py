@@ -174,7 +174,9 @@ def build_advice(results: ProjectResults) -> dict:
             )
         for flag in performance.details.get("flags", []):
             if flag["type"] != "does_not_run":
-                weaknesses.append(_item("performance", flag["type"], flag["evidence"]))
+                weaknesses.append(
+                    _item("performance", flag.get("evidence_ar") or flag["type"], flag["evidence"])
+                )
 
     order = {"critical": -1, "high": 0, "medium": 1, "low": 2}
     improvements.sort(key=lambda i: order.get(i.get("priority"), 3))

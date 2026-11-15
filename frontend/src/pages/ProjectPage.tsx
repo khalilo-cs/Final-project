@@ -314,7 +314,7 @@ function GradePanel({ id }: { id: string }) {
       </table>
       {grade.alerts.length > 0 && (
         <div className="mt-4 space-y-1">
-          {grade.alerts.map((a, i) => <div key={i} className="flex items-center gap-2 text-sm"><Badge tone={severityTone(a.severity)}>{a.severity}</Badge><span className="ltr">{a.message}</span></div>)}
+          {grade.alerts.map((a, i) => <div key={i} className="flex items-center gap-2 text-sm"><Badge tone={severityTone(a.severity)}>{a.severity}</Badge><span>{a.message_ar ?? a.message}</span></div>)}
         </div>
       )}
       <div className="mt-4 flex flex-wrap items-end gap-3 border-t pt-4">

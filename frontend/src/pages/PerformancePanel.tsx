@@ -4,7 +4,7 @@ import { Badge, Button, Card, ErrorBox, Score, severityTone, useLoad } from "../
 
 interface Level { concurrent_users: number; requests: number; error_rate: number; requests_per_second: number | null; p50_ms: number | null; p95_ms: number | null }
 interface Endpoint { path: string; status: number; avg_ms: number; max_ms: number }
-interface Details { stack?: string; startup_seconds?: number; endpoints?: Endpoint[]; load_test?: Level[]; memory_peak_mb?: number; cpu_peak_percent?: number; flags?: { type: string; severity: string; evidence: string }[]; logs?: string; notes?: string[] }
+interface Details { stack?: string; startup_seconds?: number; endpoints?: Endpoint[]; load_test?: Level[]; memory_peak_mb?: number; cpu_peak_percent?: number; flags?: { type: string; severity: string; evidence: string; evidence_ar?: string }[]; logs?: string; notes?: string[] }
 interface Perf { status: string; runs_successfully: boolean | null; overall_performance_score: number | null; error: string | null; details: Details }
 
 export function PerformancePanel({ id, canRun }: { id: string; canRun: boolean }) {
@@ -51,7 +51,7 @@ export function PerformancePanel({ id, canRun }: { id: string; canRun: boolean }
           </div>
           {d.flags && d.flags.length > 0 && (
             <ul className="mt-3 space-y-1 text-sm">{d.flags.map((f, i) => (
-              <li key={i} className="flex items-center gap-2"><Badge tone={severityTone(f.severity)}>{f.severity}</Badge><span className="ltr">{f.evidence}</span></li>
+              <li key={i} className="flex items-center gap-2"><Badge tone={severityTone(f.severity)}>{f.severity}</Badge><span>{f.evidence_ar ?? f.evidence}</span></li>
             ))}</ul>
           )}
           {d.load_test && d.load_test.length > 0 && (

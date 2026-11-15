@@ -233,3 +233,10 @@ def test_the_original_author_is_not_treated_as_the_copier(client, users, course,
     assert similarity["score"] == 51.0  # 100 - 0.98 x 50: shared, not copied
     assert [f["type"] for f in result["flags"]] == ["code_shared"]
     assert result["similar_projects"][0]["submitted"] == "later"
+
+
+def test_alerts_and_evidence_have_arabic_text(client, users, project, analyzer):  # noqa: F811
+    alerts = client.get("/api/v1/dashboard/faculty/alerts", headers=users["faculty"].headers).json()
+    assert alerts and all(a["message_ar"] for a in alerts)
+    plagiarism = next(a for a in alerts if a["type"] == "plagiarism")
+    assert plagiarism["message_ar"] == "42.0% من التقرير يطابق تقارير أخرى"
