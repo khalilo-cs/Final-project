@@ -5,6 +5,7 @@ from fastapi import FastAPI
 from app.database import engine
 from app.migrate import migrate
 from app.models import grading as _grading_models  # noqa: F401  (register tables)
+from app.models import notification as _notification_models  # noqa: F401
 from app.routes import (
     advice,
     analysis,
@@ -12,6 +13,7 @@ from app.routes import (
     dashboard,
     fraud,
     grades,
+    notifications,
     projects,
     reports,
     sandbox,
@@ -21,7 +23,6 @@ from app.routes import (
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
-    # Tables are created directly for now; Alembic migrations replace this later.
     migrate(engine)
     yield
 
@@ -37,6 +38,7 @@ app.include_router(viva.router)
 app.include_router(fraud.router)
 app.include_router(sandbox.router)
 app.include_router(reports.router)
+app.include_router(notifications.router)
 
 
 @app.get("/health", tags=["meta"])

@@ -28,6 +28,15 @@ class Settings(BaseSettings):
     max_report_mb: int = 20
     max_sql_mb: int = 20
 
+    # Optional e-mail copies of notifications (in-app notifications always work).
+    smtp_host: str = ""
+    smtp_port: int = 587
+    smtp_user: str = ""
+    smtp_password: str = ""
+    smtp_starttls: bool = True
+    smtp_from: str = "AI Project Examiner <no-reply@localhost>"
+    public_url: str = "http://localhost:8080"
+
 
 @lru_cache
 def get_settings() -> Settings:

@@ -1,11 +1,16 @@
 """Things a faculty member should look at first (FR-10.6). Every alert has an Arabic text."""
 
 from app.models.project import Project, ProjectStatus
+from app.services.arabic import count_phrase
 from app.services.grading import ProjectResults
 
 PLAGIARISM_HIGH = 30.0
 PLAGIARISM_MEDIUM = 15.0
 _ORDER = {"High": 0, "Medium": 1, "Low": 2}
+
+
+def fixes_phrase(n: int) -> str:
+    return count_phrase(n, "إصلاحاً واحداً", "إصلاحين", "إصلاحات", "إصلاحاً")
 
 
 def project_alerts(project: Project, results: ProjectResults) -> list[dict]:
@@ -54,7 +59,13 @@ def project_alerts(project: Project, results: ProjectResults) -> list[dict]:
             "critical_vulnerability",
             "High",
             f"{count} critical security vulnerabilities",
-            f"{count} ثغرات أمنية حرجة",
+            count_phrase(
+                count,
+                "ثغرة أمنية حرجة واحدة",
+                "ثغرتان أمنيتان حرجتان",
+                "ثغرات أمنية حرجة",
+                "ثغرة أمنية حرجة",
+            ),
         )
 
     authenticity = results.authenticity
@@ -89,7 +100,7 @@ def project_alerts(project: Project, results: ProjectResults) -> list[dict]:
             "Low",
             f"The student applied {results.ai_fixes} AI-proposed fixes; the original code "
             "is kept and the fixes are listed with the project",
-            f"طبّق الطالب {results.ai_fixes} إصلاحات اقترحها الذكاء الاصطناعي؛ الكود الأصلي "
+            f"طبّق الطالب {fixes_phrase(results.ai_fixes)} اقترحها الذكاء الاصطناعي؛ الكود الأصلي "
             "محفوظ والإصلاحات مسجّلة مع المشروع",
         )
 

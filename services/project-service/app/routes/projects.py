@@ -10,7 +10,7 @@ from app.config import get_settings
 from app.models.project import Project, ProjectStatus
 from app.routes.deps import CurrentPrincipal, DbSession, forbidden
 from app.schemas.schemas import ProjectOut, ProjectStatusOut
-from app.services import access, storage
+from app.services import access, notify, storage
 from app.services.analysis_runner import forget_report, run_analysis
 
 router = APIRouter(prefix="/api/v1/projects", tags=["projects"])
@@ -104,12 +104,21 @@ def submit_project(
             status=ProjectStatus.analyzing,
         )
         db.add(project)
+        sent = notify.notify(
+            db,
+            notify.course_faculty(db, course_id),
+            "new_submission",
+            f"مشروع جديد: {project.title}",
+            "سلّم طالب مشروعاً جديداً، والتحليل جارٍ الآن.",
+            project,
+        )
         db.commit()
     except BaseException:
         db.rollback()
         storage.delete_project_files(project_id)
         raise
 
+    notify.send_emails(sent)
     background.add_task(run_analysis, project_id)
     return to_out(project)
 

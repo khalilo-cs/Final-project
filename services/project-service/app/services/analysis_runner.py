@@ -24,7 +24,7 @@ from app.models.project import (
     ReportAnalysisResult,
     SecurityAnalysisResult,
 )
-from app.services import internal_http
+from app.services import internal_http, notify
 
 log = logging.getLogger(__name__)
 
@@ -228,11 +228,40 @@ def run_analysis(project_id: uuid.UUID) -> None:
             return
         project.status = ProjectStatus.analysis_failed if errors else ProjectStatus.analyzed
         project.analysis_error = "; ".join(errors) or None
+        sent = _notify_analyzed(db, project)
         db.commit()
+        notify.send_emails(sent)
         teach_viva_engine(db, project)
         from app.services.performance import start_run
 
         start_run(db, project)  # minutes-long: runs in the background on sandbox-runner
+
+
+def _notify_analyzed(db: Session, project: Project) -> list:
+    """Tell the student the result is ready, and the faculty member what needs attention."""
+    from app.services.alerts import project_alerts
+    from app.services.grading import load_results
+
+    if project.status is ProjectStatus.analysis_failed:
+        sent = notify.notify(
+            db, [project.student_id], "analysis_failed", f"تعذّر تحليل «{project.title}»",
+            "فشل جزء من التحليل؛ راجع صفحة المشروع أو أعد رفع الملفات.", project,
+        )  # fmt: skip
+    else:
+        sent = notify.notify(
+            db, [project.student_id], "analysis_done", f"اكتمل تحليل «{project.title}»",
+            "النتائج والمستشار الذكي جاهزة، ويمكنك بدء المناقشة.", project,
+        )  # fmt: skip
+    serious = [
+        a for a in project_alerts(project, load_results(db, project.id)) if a["severity"] == "High"
+    ]
+    if serious or project.status is ProjectStatus.analysis_failed:
+        lines = [a["message_ar"] for a in serious[:5]] or [project.analysis_error or ""]
+        sent += notify.notify(
+            db, notify.course_faculty(db, project.course_id), "project_alert",
+            f"يحتاج «{project.title}» إلى مراجعتك", "\n".join(lines), project,
+        )  # fmt: skip
+    return sent
 
 
 def teach_viva_engine(db: Session, project: Project) -> None:

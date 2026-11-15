@@ -151,7 +151,13 @@ def test_internal_user_lookup(client):
     assert client.post(url, json=body, headers=service_headers("admin")).status_code == 403
     found = client.post(url, json=body, headers=service_headers()).json()
     assert found == [
-        {"id": own_id, "username": "khalid", "full_name": "خالد أحمد", "student_id": "2022001"}
+        {
+            "id": own_id,
+            "username": "khalid",
+            "full_name": "خالد أحمد",
+            "student_id": "2022001",
+            "email": "khalid@example.com",
+        }
     ]
 
 

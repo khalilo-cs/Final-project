@@ -1,14 +1,19 @@
 """Bring the database schema up to date with Alembic at startup.
 
 Databases created before migrations existed (by `create_all`) have the tables but no
-`alembic_version`; they are stamped with the baseline revision, then upgraded.
+`alembic_version`. One that already matches the models is stamped as current; an older
+one is stamped with the baseline revision and upgraded from there.
 """
 
 from pathlib import Path
 
 from alembic import command
+from alembic.autogenerate import compare_metadata
 from alembic.config import Config
+from alembic.migration import MigrationContext
 from sqlalchemy import Engine, inspect
+
+from app.database import Base
 
 BASELINE = "0001"
 _SCRIPTS = Path(__file__).parent / "migrations"
@@ -26,5 +31,7 @@ def migrate(engine: Engine) -> None:
         config.attributes["connection"] = connection
         tables = set(inspect(connection).get_table_names())
         if tables and "alembic_version" not in tables:
-            command.stamp(config, BASELINE)
+            context = MigrationContext.configure(connection)
+            current = not compare_metadata(context, Base.metadata)
+            command.stamp(config, "head" if current else BASELINE)
         command.upgrade(config, "head")

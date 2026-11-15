@@ -14,8 +14,9 @@ from sqlalchemy import select
 from app.config import get_settings
 from app.models.project import AiFixLog, ProjectStatus
 from app.routes.deps import CurrentPrincipal, DbSession
-from app.services import access, grading, internal_http
+from app.services import access, grading, internal_http, notify
 from app.services.advisor import build_advice
+from app.services.alerts import fixes_phrase
 from app.services.analysis_runner import run_analysis
 
 router = APIRouter(prefix="/api/v1/projects", tags=["advisor"])
@@ -120,7 +121,17 @@ def apply_fixes(
                 )
             )
         project.status = ProjectStatus.analyzing
+        count = len(result["applied"])
+        sent = notify.notify(
+            db,
+            notify.course_faculty(db, project.course_id),
+            "fixes_applied",
+            f"طبّق الطالب {fixes_phrase(count)} على «{project.title}»",
+            "النسخة الأصلية محفوظة، وسجل الإصلاحات في صفحة المشروع.",
+            project,
+        )
         db.commit()
+        notify.send_emails(sent)
         background.add_task(run_analysis, project.id)
     return {"applied": result["applied"], "skipped": result["skipped"],
             "status": project.status.value}  # fmt: skip

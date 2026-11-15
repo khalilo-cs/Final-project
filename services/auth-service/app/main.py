@@ -12,7 +12,6 @@ from app.services import auth_service
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
-    # Tables are created directly for now; Alembic migrations replace this later.
     migrate(engine)
     with SessionLocal() as db:
         auth_service.ensure_admin(db)

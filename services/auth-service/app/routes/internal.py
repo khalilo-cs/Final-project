@@ -45,6 +45,7 @@ class UserSummary(BaseModel):
     username: str
     full_name: str
     student_id: str | None
+    email: str
 
 
 @router.post(
@@ -56,6 +57,12 @@ def lookup_users(data: LookupRequest, db: DbSession):
         return []
     users = db.scalars(select(User).where(User.id.in_(set(data.ids)))).all()
     return [
-        UserSummary(id=u.id, username=u.username, full_name=u.full_name, student_id=u.student_id)
+        UserSummary(
+            id=u.id,
+            username=u.username,
+            full_name=u.full_name,
+            student_id=u.student_id,
+            email=u.email,
+        )
         for u in users
     ]

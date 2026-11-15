@@ -15,7 +15,7 @@ from app.schemas.schemas import (
     StudentGradeOut,
     WeightsUpdate,
 )
-from app.services import access, grading, internal_http
+from app.services import access, grading, internal_http, notify
 from app.services.alerts import project_alerts
 from app.services.excel import grade_sheet
 
@@ -145,7 +145,16 @@ def set_grade(project_id: uuid.UUID, data: GradeUpdate, db: DbSession, principal
         )
     )
     project.status = ProjectStatus.graded
+    sent = notify.notify(
+        db,
+        [project.student_id],
+        "grade_final",
+        f"اعتُمدت درجتك في «{project.title}»",
+        f"الدرجة النهائية: {data.total:g} من 100.",
+        project,
+    )
     db.commit()
+    notify.send_emails(sent)
     return _grade_out(db, project)
 
 

@@ -53,6 +53,12 @@ services:
       VIVA_ENGINE_URL: http://viva-engine:8006
       FRAUD_DETECTOR_URL: http://fraud-detector:8007
       SANDBOX_RUNNER_URL: http://sandbox-runner:8008
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_FROM: ${SMTP_FROM:-AI Project Examiner <no-reply@localhost>}
+      PUBLIC_URL: ${PUBLIC_URL:-http://localhost:8080}
       REPORT_GENERATOR_URL: http://report-generator:8009
     volumes:
       - project-files:/data

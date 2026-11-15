@@ -26,3 +26,15 @@ def test_database_created_before_migrations_is_adopted(tmp_path):
         version = connection.execute(text("SELECT version_num FROM alembic_version")).scalar()
     assert version is not None
     engine.dispose()
+
+
+def test_older_database_is_upgraded_from_the_baseline(tmp_path):
+    engine = create_engine(f"sqlite:///{tmp_path / 'v1.db'}")
+    baseline = [t for name, t in Base.metadata.tables.items() if name != "notifications"]
+    Base.metadata.create_all(engine, tables=baseline)
+    migrate(engine)
+    with engine.connect() as connection:
+        assert "notifications" in inspect(connection).get_table_names()
+        context = MigrationContext.configure(connection, opts={"compare_type": True})
+        assert compare_metadata(context, Base.metadata) == []
+    engine.dispose()
