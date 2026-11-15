@@ -21,6 +21,7 @@ class Settings(BaseSettings):
     viva_engine_url: str = "http://localhost:8006"
     fraud_detector_url: str = "http://localhost:8007"
     sandbox_runner_url: str = "http://localhost:8008"
+    report_generator_url: str = "http://localhost:8009"
     analyzer_timeout_seconds: float = 300
 
     max_code_mb: int = 50

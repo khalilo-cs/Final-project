@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<title>تقرير تقييم — {{ project.title }}</title>
+<style>
+  @page { size: A4; margin: 18mm 15mm 20mm;
+    @bottom-center { content: "صفحة " counter(page) " من " counter(pages); font-size: 8pt; color: #64748b; } }
+  body { font-family: "Noto Naskh Arabic", "Noto Sans Arabic", "DejaVu Sans", sans-serif; font-size: 10pt; color: #0f172a; line-height: 1.6; }
+  h1 { font-size: 18pt; margin: 0; color: #3730a3; }
+  h2 { font-size: 13pt; color: #3730a3; border-bottom: 2px solid #c7d2fe; padding-bottom: 3px; margin: 18px 0 8px; break-after: avoid; }
+  .header { border-bottom: 3px solid #4f46e5; padding-bottom: 8px; margin-bottom: 12px; }
+  .muted { color: #64748b; font-size: 9pt; }
+  .meta td { padding: 2px 8px 2px 0; }
+  .scores { display: flex; gap: 10px; margin: 10px 0; }
+  .score { flex: 1; border: 1px solid #e2e8f0; border-radius: 6px; text-align: center; padding: 6px; }
+  .score b { display: block; font-size: 18pt; }
+  .good { color: #059669; } .mid { color: #d97706; } .bad { color: #e11d48; } .none { color: #94a3b8; }
+  table.data { width: 100%; border-collapse: collapse; margin: 6px 0; break-inside: auto; }
+  table.data th { background: #eef2ff; text-align: right; padding: 4px 6px; font-size: 9pt; }
+  table.data td { border-bottom: 1px solid #e2e8f0; padding: 4px 6px; vertical-align: top; font-size: 9pt; }
+  .ltr { direction: ltr; unicode-bidi: isolate; text-align: left; font-family: "DejaVu Sans Mono", monospace; font-size: 8.5pt; }
+  .tag { display: inline-block; border-radius: 9px; padding: 0 7px; font-size: 8pt; font-weight: bold; }
+  .Critical, .High { background: #ffe4e6; color: #9f1239; } .Medium { background: #fef3c7; color: #92400e; } .Low { background: #e0f2fe; color: #075985; }
+  .cols { display: flex; gap: 12px; } .cols > div { flex: 1; }
+  ul { margin: 4px 0; padding-right: 18px; } li { margin-bottom: 3px; }
+  .box { border-right: 4px solid; padding: 3px 8px; background: #f8fafc; margin-bottom: 4px; }
+  .strength { border-color: #10b981; } .weakness { border-color: #f43f5e; } .improve { border-color: #0ea5e9; }
+  .note { background: #f1f5f9; border-radius: 6px; padding: 6px 10px; font-size: 8.5pt; color: #475569; margin-top: 14px; }
+  section { break-inside: avoid-page; }
+</style>
+</head>
+<body>
+{% macro tone(value) -%}{% if value is none %}none{% elif value >= 75 %}good{% elif value >= 50 %}mid{% else %}bad{% endif %}{%- endmacro %}
+{% macro num(value) -%}{% if value is none %}—{% else %}{{ "%.0f"|format(value) }}{% endif %}{%- endmacro %}
+
+<div class="header">
+  <div class="muted">{{ university }}</div>
+  <h1>تقرير تقييم مشروع التخرج</h1>
+  <table class="meta">
+    <tr><td>المشروع:</td><td><b>{{ project.title }}</b></td></tr>
+    <tr><td>الطالب:</td><td>{{ student.name or "—" }} {% if student.number %}<span class="muted">({{ student.number }})</span>{% endif %}</td></tr>
+    <tr><td>المادة:</td><td>{{ course }}</td></tr>
+    <tr><td>تاريخ التقرير:</td><td>{{ generated_at }}</td></tr>
+    {% if audience == "student" %}<tr><td>نوع التقرير:</td><td>تقرير الطالب (ملاحظات وتحسينات)</td></tr>{% endif %}
+  </table>
+</div>
+
+<section>
+<h2>الملخص</h2>
+<div class="scores">
+  {% if audience == "staff" %}
+  <div class="score"><span class="muted">الدرجة المقترحة</span><b class="{{ tone(grade.suggested_total) }}">{{ num(grade.suggested_total) }}</b><span class="muted">تغطية {{ grade.coverage }}%</span></div>
+  {% endif %}
+  <div class="score"><span class="muted">الدرجة النهائية</span><b class="{{ tone(grade.final_total) }}">{{ num(grade.final_total) }}</b><span class="muted">{{ "معتمدة" if grade.final_total is not none else "لم تُعتمد بعد" }}</span></div>
+  {% for item in grade.breakdown if item.score is not none and (audience == "staff" or item.criterion != "authenticity") %}
+  <div class="score"><span class="muted">{{ item.label_ar }}</span><b class="{{ tone(item.score) }}">{{ num(item.score) }}</b></div>
+  {% endfor %}
+</div>
+{{ chart|safe }}
+{% if grade.faculty_notes %}<p><b>ملاحظات الدكتور:</b> {{ grade.faculty_notes }}</p>{% endif %}
+</section>
+
+{% if audience == "staff" %}
+<section>
+<h2>تفصيل الدرجة المقترحة</h2>
+<table class="data">
+  <tr><th>المعيار</th><th>الوزن</th><th>الدرجة</th><th>التبرير</th></tr>
+  {% for item in grade.breakdown %}
+  <tr><td>{{ item.label_ar }}</td><td>{{ item.weight }}%</td><td class="{{ tone(item.score) }}"><b>{{ num(item.score) }}</b></td><td class="ltr">{{ item.justification or "—" }}</td></tr>
+  {% endfor %}
+</table>
+</section>
+{% endif %}
+
+{% if advice %}
+<section>
+<h2>المستشار الذكي</h2>
+{% if advice.summary %}<p>{{ advice.summary.summary }}</p>{% endif %}
+<div class="cols">
+  <div><b>نقاط القوة</b>{% for i in advice.strengths %}<div class="box strength">{{ i.title }}<div class="muted">{{ i.evidence }}</div></div>{% else %}<div class="muted">—</div>{% endfor %}</div>
+  <div><b>نقاط الضعف</b>{% for i in advice.weaknesses %}<div class="box weakness">{{ i.title }}<div class="muted">{{ i.evidence }}</div></div>{% else %}<div class="muted">—</div>{% endfor %}</div>
+</div>
+<b>ما يمكن تطويره (حسب الأولوية)</b>
+<ol>{% for i in advice.improvements %}<li>{{ i.title }} <span class="muted">— {{ i.evidence }}</span></li>{% else %}<li class="muted">لا شيء</li>{% endfor %}</ol>
+</section>
+{% endif %}
+
+{% if code %}
+<section>
+<h2>تحليل الكود</h2>
+<p>{{ code.total_files }} ملفات، {{ code.total_lines }} سطراً، {{ code.total_classes }} كلاس، {{ code.total_functions }} دالة. متوسط التعقيد الدوراني <b class="ltr">{{ code.cyclomatic_complexity_avg }}</b>.
+{% if code.details.stack and code.details.stack.technologies %}التقنيات: <span class="ltr">{{ code.details.stack.technologies|map(attribute="name")|join(", ") }}</span>{% endif %}</p>
+{% if code.details.most_complex_functions %}
+<table class="data"><tr><th>أعقد الدوال</th><th>الملف</th><th>التعقيد</th></tr>
+{% for f in code.details.most_complex_functions[:5] %}<tr><td class="ltr">{{ f.function }}</td><td class="ltr">{{ f.file }}:{{ f.line }}</td><td>{{ f.cyclomatic_complexity }}</td></tr>{% endfor %}
+</table>{% endif %}
+</section>
+{% endif %}
+
+{% if security %}
+<section>
+<h2>الأمان</h2>
+{% if security.vulnerabilities %}
+<table class="data"><tr><th>الخطورة</th><th>النوع</th><th>الموقع</th><th>الوصف</th></tr>
+{% for v in security.vulnerabilities[:15] %}<tr><td><span class="tag {{ v.severity }}">{{ v.severity }}</span></td><td>{{ v.type }}</td><td class="ltr">{{ v.file }}:{{ v.line }}</td><td class="ltr">{{ v.description }}</td></tr>{% endfor %}
+</table>
+{% else %}<p class="good">لم تُكتشف ثغرات.</p>{% endif %}
+</section>
+{% endif %}
+
+{% if database %}
+<section>
+<h2>قاعدة البيانات</h2>
+<p>{{ database.total_tables }} جداول، التطبيع المقدّر <b class="ltr">{{ database.normalization_level or "—" }}</b>.</p>
+{% if database.details.issues %}<ul>{% for i in database.details.issues[:10] %}<li><span class="tag {{ i.severity }}">{{ i.severity }}</span> <span class="ltr">{{ i.message }}</span></li>{% endfor %}</ul>{% endif %}
+</section>
+{% endif %}
+
+{% if report %}
+<section>
+<h2>التقرير المكتوب</h2>
+<p>نسبة التشابه مع تقارير أخرى: <b>{{ report.plagiarism_percentage }}%</b>. جودة التوثيق: <b>{{ report.documentation_quality_score }}</b>/100.</p>
+{% if report.inconsistencies %}<ul>{% for i in report.inconsistencies %}<li class="ltr">{{ i.report_claim }} — {{ i.code_reality }}</li>{% endfor %}</ul>{% endif %}
+</section>
+{% endif %}
+
+{% if viva %}
+<section>
+<h2>المناقشة</h2>
+<p>درجة المناقشة: <b class="{{ tone(viva.score) }}">{{ num(viva.score) }}</b> ({{ viva.status }}).</p>
+</section>
+{% endif %}
+
+{% if performance %}
+<section>
+<h2>الأداء</h2>
+{% if performance.runs_successfully %}
+<p>زمن التشغيل <b class="ltr">{{ performance.details.startup_seconds }}s</b>، أعلى ذاكرة <b class="ltr">{{ performance.details.memory_peak_mb }} MB</b>.</p>
+{% if performance.details.load_test %}<table class="data"><tr><th>مستخدمون</th><th>p50</th><th>p95</th><th>أخطاء</th></tr>
+{% for l in performance.details.load_test %}<tr><td>{{ l.concurrent_users }}</td><td class="ltr">{{ l.p50_ms }} ms</td><td class="ltr">{{ l.p95_ms }} ms</td><td>{{ (l.error_rate * 100)|round|int }}%</td></tr>{% endfor %}</table>{% endif %}
+{% elif performance.status == "done" %}<p class="bad">المشروع لم يعمل: {{ performance.error }}</p>
+{% else %}<p class="muted">{{ performance.error or "اختبار الأداء لم يكتمل" }}</p>{% endif %}
+</section>
+{% endif %}
+
+{% if audience == "staff" and authenticity %}
+<section>
+<h2>أصالة المشروع (للدكتور فقط)</h2>
+<p>درجة الأصالة: <b class="{{ tone(authenticity.authenticity_score) }}">{{ num(authenticity.authenticity_score) }}</b> (البيانات المتاحة {{ authenticity.coverage }}%).</p>
+{% if authenticity.flags %}<ul>{% for f in authenticity.flags %}<li><span class="tag {{ f.severity }}">{{ f.severity }}</span> {{ f.evidence_ar or f.evidence }}</li>{% endfor %}</ul>{% else %}<p class="good">لا مؤشرات على النسخ.</p>{% endif %}
+</section>
+{% endif %}
+
+{% if applied_fixes %}
+<section>
+<h2>إصلاحات طُبّقت بالذكاء الاصطناعي بموافقة الطالب</h2>
+<ul>{% for f in applied_fixes %}<li><span class="ltr">{{ f.file }}:{{ f.line }}</span> — {{ f.title }}</li>{% endfor %}</ul>
+</section>
+{% endif %}
+
+{% if audience == "staff" %}
+<div class="note">أُعدّ هذا التقرير آلياً بنظام فاحص المشاريع الذكي. الدرجة المقترحة مساعدة للدكتور، والدرجة النهائية قراره.</div>
+{% else %}
+<div class="note">أُعدّ هذا التقرير آلياً بنظام فاحص المشاريع الذكي لمساعدتك على تحسين مشروعك. الدرجة النهائية يعتمدها الدكتور.</div>
+{% endif %}
+</body>
+</html>

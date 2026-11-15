@@ -90,7 +90,10 @@ export function CoursePage() {
   const [grades, error, reload] = useLoad(() => get<{ projects: Row[] }>("projects", `/api/v1/grades/course/${id}`), [id]);
   return (
     <>
-      <Card title="مشاريع المادة ودرجاتها" actions={<Button variant="secondary" onClick={() => void download("projects", `/api/v1/reports/course/${id}/excel`, "grades.xlsx")}>⬇ تصدير Excel</Button>}>
+      <Card title="مشاريع المادة ودرجاتها" actions={<div className="flex gap-2">
+        <Button variant="secondary" onClick={() => void download("projects", `/api/v1/reports/course/${id}/pdf.zip`, "reports.zip")}>⬇ تقارير PDF للجميع</Button>
+        <Button variant="secondary" onClick={() => void download("projects", `/api/v1/reports/course/${id}/excel`, "grades.xlsx")}>⬇ تصدير Excel</Button>
+      </div>}>
         <ErrorBox error={error} />
         {!grades ? <Loading /> : (
           <div className="overflow-x-auto">

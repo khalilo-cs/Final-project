@@ -69,3 +69,10 @@ def post_json(base_url: str, path: str, payload: dict, timeout: float = 120) -> 
         response = http.post(path, json=payload)
         response.raise_for_status()
         return response.json()
+
+
+def post_bytes(base_url: str, path: str, payload: dict, timeout: float = 120) -> bytes:
+    with client(base_url, timeout=timeout) as http:
+        response = http.post(path, json=payload)
+        response.raise_for_status()
+        return response.content

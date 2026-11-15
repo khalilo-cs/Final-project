@@ -48,7 +48,14 @@ export function ProjectPage() {
             {project.programming_languages.map((l) => <Badge key={l}>{l}</Badge>)}
           </div>
         </div>
-        {owner && <StartViva project={project} />}
+        <div className="flex flex-wrap items-center gap-2">
+          {(owner || staff) && project.status !== "analyzing" && (
+            <Button variant="secondary" onClick={() => void download("projects", `/api/v1/reports/student/${project.id}/pdf`, `report-${project.title}.pdf`)}>
+              📄 تقرير PDF
+            </Button>
+          )}
+          {owner && <StartViva project={project} />}
+        </div>
       </div>
       {project.analysis_error && <ErrorBox error={project.analysis_error} />}
       {busy ? <Card><p className="animate-pulse text-center text-slate-600">جارٍ تحليل المشروع… (الكود، الأمان، قاعدة البيانات، التقرير)</p></Card> : (

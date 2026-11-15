@@ -24,7 +24,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        service: [auth-service, project-service, code-analyzer, db-analyzer, report-analyzer, viva-engine, fraud-detector, sandbox-runner]
+        service: [auth-service, project-service, code-analyzer, db-analyzer, report-analyzer, viva-engine, fraud-detector, sandbox-runner, report-generator]
     defaults:
       run:
         working-directory: services/${{ matrix.service }}
@@ -34,6 +34,8 @@ jobs:
         with:
           python-version: "3.12"
           cache: pip
+      - if: matrix.service == 'report-generator'
+        run: sudo apt-get update && sudo apt-get install -y libpango-1.0-0 libpangoft2-1.0-0 fonts-noto-core
       - run: pip install -r requirements-dev.txt
       - run: pytest -q
 

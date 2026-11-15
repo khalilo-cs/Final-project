@@ -53,6 +53,7 @@ services:
       VIVA_ENGINE_URL: http://viva-engine:8006
       FRAUD_DETECTOR_URL: http://fraud-detector:8007
       SANDBOX_RUNNER_URL: http://sandbox-runner:8008
+      REPORT_GENERATOR_URL: http://report-generator:8009
     volumes:
       - project-files:/data
     ports:
@@ -127,6 +128,19 @@ services:
     read_only: true
     tmpfs:
       - /tmp:size=512m
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+
+  report-generator:
+    build: ./services/report-generator
+    environment:
+      JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET in .env}
+    ports:
+      - "127.0.0.1:8009:8009"
+    read_only: true
+    tmpfs:
+      - /tmp:size=128m
     cap_drop: [ALL]
     security_opt:
       - no-new-privileges:true

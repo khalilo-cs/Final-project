@@ -12,6 +12,7 @@ from app.routes import (
     fraud,
     grades,
     projects,
+    reports,
     sandbox,
     viva,
 )
@@ -34,6 +35,7 @@ app.include_router(advice.router)
 app.include_router(viva.router)
 app.include_router(fraud.router)
 app.include_router(sandbox.router)
+app.include_router(reports.router)
 
 
 @app.get("/health", tags=["meta"])
