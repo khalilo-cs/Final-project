@@ -24,6 +24,6 @@ export interface QA {
   answer: string; score: number; verdict: string; confidence: number; provider_scores: Record<string, number>; reasoning: string | null; response_seconds: number | null;
 }
 export interface VivaState {
-  session_id: string; project_id: string; status: string; level: number; question_number: number; max_questions: number;
+  session_id: string; project_id: string; status: string; language: string; level: number; question_number: number; max_questions: number;
   current_question: Question | null; overall_score: number | null; providers: string[]; transcript?: QA[];
 }

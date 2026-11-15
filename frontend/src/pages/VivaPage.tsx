@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import { get, post, put } from "../api";
 import { Badge, Button, Card, ErrorBox, Input, Loading, Score, VERDICT_AR, useLoad } from "../components/ui";
 import type { QA, VivaState } from "../types";
+import { canSpeak, speak, useDictation } from "../components/voice";
 
 const PROVIDER_AR: Record<string, string> = { template: "المحرك المدمج", claude: "Claude", ollama: "نموذج محلي", openai_compatible: "خادم نماذج" };
 const TYPE_AR: Record<string, string> = { understanding: "فهم عام", technical: "تقني", challenge: "تحدٍّ", verification: "تحقق" };
@@ -14,13 +15,21 @@ export function VivaPage() {
   const [answer, setAnswer] = useState("");
   const [busy, setBusy] = useState(false);
   const box = useRef<HTMLTextAreaElement>(null);
+  const [autoRead, setAutoRead] = useState(false);
+  const dictation = useDictation(state?.language ?? "ar", (text) =>
+    setAnswer((current) => (current ? `${current} ${text}` : text)),
+  );
 
   useEffect(() => {
     get<VivaState>("viva", `/api/v1/viva/${id}`).then(setState).catch(setError);
   }, [id]);
   useEffect(() => box.current?.focus(), [state?.question_number]);
+  useEffect(() => {
+    if (autoRead && state?.current_question) speak(state.current_question.text, state.language);
+  }, [autoRead, state?.question_number]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const send = async () => {
+    dictation.stop();
     setBusy(true);
     setError(undefined);
     try {
@@ -60,7 +69,12 @@ export function VivaPage() {
           <Badge tone="blue">{TYPE_AR[question.type] ?? question.type}</Badge>
           {question.related_file && <code className="text-xs">{question.related_file}{question.related_lines ? `:${question.related_lines}` : ""}</code>}
         </div>
-        <p className="text-lg leading-8">{question.text}</p>
+        <div className="flex items-start gap-3">
+          <p className="flex-1 text-lg leading-8">{question.text}</p>
+          {canSpeak() && (
+            <button title="اقرأ السؤال بصوت" onClick={() => speak(question.text, state.language)} className="rounded-full bg-slate-100 p-2 text-lg hover:bg-indigo-100">🔊</button>
+          )}
+        </div>
         {question.code && <pre className="mt-3 max-h-80 overflow-auto rounded-lg bg-slate-900 p-3 text-xs leading-5 text-slate-100">{question.code}</pre>}
       </Card>
       <Card>
@@ -68,8 +82,21 @@ export function VivaPage() {
           onKeyDown={(e) => { if (e.key === "Enter" && (e.ctrlKey || e.metaKey) && answer.trim()) void send(); }}
           placeholder="اكتب إجابتك بتفصيل: اذكر أسماء الدوال والملفات والجداول من مشروعك…"
           className="w-full rounded-lg border border-slate-300 p-3 text-sm leading-7 focus:border-indigo-500 focus:outline-none" />
-        <div className="mt-3 flex items-center justify-between">
-          <Button variant="secondary" onClick={() => void end()}>إنهاء المناقشة</Button>
+        {dictation.error && <p className="mt-2 text-sm text-rose-600">{dictation.error}</p>}
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <Button variant="secondary" onClick={() => void end()}>إنهاء المناقشة</Button>
+            {dictation.supported && (
+              <Button variant={dictation.listening ? "danger" : "secondary"} onClick={dictation.listening ? dictation.stop : dictation.start}>
+                {dictation.listening ? "⏹ إيقاف التسجيل" : "🎤 أجب بصوتك"}
+              </Button>
+            )}
+            {canSpeak() && (
+              <label className="flex items-center gap-1 text-xs text-slate-500">
+                <input type="checkbox" checked={autoRead} onChange={(e) => setAutoRead(e.target.checked)} /> قراءة الأسئلة تلقائياً
+              </label>
+            )}
+          </div>
           <div className="flex items-center gap-3">
             <span className="text-xs text-slate-400">Ctrl + Enter للإرسال</span>
             <Button disabled={!answer.trim() || busy} onClick={() => void send()}>{busy ? "جارٍ التقييم…" : "إرسال الإجابة"}</Button>
