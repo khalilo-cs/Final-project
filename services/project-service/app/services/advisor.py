@@ -14,6 +14,8 @@ _SMELL_AR = {
     "high_complexity": "دوال عالية التعقيد",
     "deep_nesting": "تداخل عميق للشروط",
     "god_class": "كلاسات ضخمة تقوم بكل شيء",
+    "duplicate_code": "كود مكرر (نسخ ولصق)",
+    "dead_code": "دوال أو كلاسات غير مستخدمة",
 }
 _FIX_AR = {
     "SQL Injection": "استخدم الاستعلامات المُعدّة (parameterized) بدل دمج المدخلات في نص SQL",
@@ -73,10 +75,22 @@ def build_advice(results: ProjectResults) -> dict:
             examples = [s["symbol"] for s in code.code_smells if s["type"] == kind][:3]
             weaknesses.append(_item("code", f"{_SMELL_AR.get(kind, kind)} ({count})",
                                     "مثل: " + "، ".join(examples)))  # fmt: skip
-        if smells:
+        if smells.get("duplicate_code"):
+            percent = code.details.get("code_duplication_percentage", 0)
+            improvements.append(_item("code", "انقل الكود المكرر إلى دالة مشتركة واحدة؛ أي إصلاح "
+                                      "لاحق يصبح في مكان واحد", f"{percent}% من الأسطر مكررة",
+                                      "medium"))  # fmt: skip
+        if smells.get("dead_code"):
+            names = [d["name"] for d in code.details.get("dead_code", [])[:4]]
+            improvements.append(_item("code", "راجع الدوال غير المستخدمة واحذفها إن لم تكن "
+                                      "تُستدعى من مكان لا يراه التحليل (قالب أو سكربت)",
+                                      "، ".join(names), "low"))  # fmt: skip
+        # Length/complexity advice only for those findings, not for copies or unused code.
+        classic = sum(n for k, n in smells.items() if k not in ("duplicate_code", "dead_code"))
+        if classic:
             improvements.append(_item("code", "قسّم الدوال الطويلة والمعقدة إلى دوال أصغر بأسماء "
-                                      "واضحة؛ يسهّل الفهم والاختبار", f"{sum(smells.values())} "
-                                      "ملاحظة جودة", "medium"))  # fmt: skip
+                                      "واضحة؛ يسهّل الفهم والاختبار", f"{classic} ملاحظة جودة",
+                                      "medium"))  # fmt: skip
         files = [f["path"].lower() for f in code.details.get("files", [])]
         if files and not any("test" in path for path in files):
             weaknesses.append(_item("code", "لا توجد اختبارات آلية",

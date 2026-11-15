@@ -9,6 +9,8 @@ from app.analyzers.java_analyzer import JavaAnalyzer
 from app.analyzers.python_analyzer import PythonAnalyzer
 from app.analyzers.technologies import MAX_MANIFEST_BYTES, TechnologyDetector
 from app.quality.code_smells import detect_smells
+from app.quality.dead_code import java_dead_code, python_dead_code
+from app.quality.duplication import find_duplicates
 from app.quality.score import quality_score, security_score
 from app.security.java_rules import scan_java
 from app.security.models import Severity, Vulnerability
@@ -52,6 +54,9 @@ def analyze_project(root: Path) -> dict:
     skipped: list[dict] = []
     technologies = TechnologyDetector()
 
+    python_sources: dict[str, str] = {}
+    all_sources: dict[str, str] = {}
+    dead: list[dict] = []
     for path, relative in _project_files(root):
         technologies.feed_path(relative)
         size = path.stat().st_size
@@ -70,20 +75,46 @@ def analyze_project(root: Path) -> dict:
             continue
         analysis = analyzer.analyze(relative, source)
         files.append(analysis)
+        all_sources[relative] = source
+        if analyzer.language == "python":
+            python_sources[relative] = source
+        elif analyzer.language == "java":
+            dead.extend(java_dead_code(relative, source))
         technologies.feed_imports(relative, analysis.imports)
         if rules := SECURITY_RULES.get(analyzer.language):
             vulnerabilities.extend(rules(relative, source))
 
+    dead.extend(python_dead_code(python_sources))
+    duplication = find_duplicates(all_sources)
     return {
-        "code": _code_summary(files, skipped),
+        "code": _code_summary(files, skipped, duplication, dead),
         "security": _security_summary(vulnerabilities),
         "stack": technologies.result(),
     }
 
 
-def _code_summary(files: list[FileAnalysis], skipped: list[dict]) -> dict:
+def _code_summary(
+    files: list[FileAnalysis], skipped: list[dict], duplication: dict, dead: list[dict]
+) -> dict:
     functions = [func for file in files for func in file.functions]
-    smells = [smell for file in files for smell in detect_smells(file)]
+    smells = [asdict(smell) for file in files for smell in detect_smells(file)]
+    for block in duplication["duplicate_blocks"]:
+        smells.append({
+            "type": "duplicate_code", "file": block["other_file"], "line": block["other_lines"][0],
+            "symbol": f"{block['file']}:{block['lines'][0]}-{block['lines'][1]}",
+            "message": f"Lines {block['other_lines'][0]}-{block['other_lines'][1]} repeat "
+            f"{block['file']}:{block['lines'][0]}-{block['lines'][1]}",
+        })  # fmt: skip
+    for item in dead:
+        smells.append(
+            {
+                "type": "dead_code",
+                "file": item["file"],
+                "line": item["line"],
+                "symbol": item["name"],
+                "message": f"'{item['name']}' is never used",
+            }
+        )
     code_lines = sum(file.code_lines for file in files)
     unparsable = [file for file in files if file.parse_error]
     count = len(functions) or 1
@@ -112,12 +143,22 @@ def _code_summary(files: list[FileAnalysis], skipped: list[dict]) -> dict:
             }
             for func in hotspots
         ],
-        "code_smells": [asdict(smell) for smell in smells],
-        "code_smell_counts": dict(Counter(smell.type for smell in smells)),
+        "code_smells": smells,
+        "code_smell_counts": dict(Counter(smell["type"] for smell in smells)),
+        "code_duplication_percentage": duplication["code_duplication_percentage"],
+        "duplicate_blocks": duplication["duplicate_blocks"],
+        "dead_code": dead,
+        "dead_code_lines": sum(item["lines"] for item in dead),
         "parse_errors": [{"file": f.path, "error": f.parse_error} for f in unparsable],
         "skipped_files": skipped,
         "overall_quality_score": quality_score(
-            avg_cyclomatic, len(smells), code_lines, len(files), len(unparsable)
+            # Dead code is reported but not penalized: a function may be used from a
+            # template, a script or dynamically, where static analysis cannot see it.
+            avg_cyclomatic,
+            sum(1 for smell in smells if smell["type"] != "dead_code"),
+            code_lines,
+            len(files),
+            len(unparsable),
         ),
         "files": [asdict(file) for file in files],
     }

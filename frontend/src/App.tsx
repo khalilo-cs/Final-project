@@ -3,6 +3,7 @@ import { AuthProvider, useAuth } from "./auth";
 import { Layout } from "./components/Layout";
 import { Loading } from "./components/ui";
 import { AiBrainPage } from "./pages/AiBrainPage";
+import { AnalyticsPage } from "./pages/AnalyticsPage";
 import { CoursePage, FacultyDashboard } from "./pages/FacultyDashboard";
 import { LoginPage } from "./pages/LoginPage";
 import { ProjectPage } from "./pages/ProjectPage";
@@ -23,6 +24,7 @@ function AppRoutes() {
         {staff && <Route path="viva/:id/review" element={<VivaReviewPage />} />}
         {staff && <Route path="courses/:id" element={<CoursePage />} />}
         {staff && <Route path="ai" element={<AiBrainPage />} />}
+        {staff && <Route path="analytics" element={<AnalyticsPage />} />}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
     </Routes>

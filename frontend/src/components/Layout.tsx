@@ -18,6 +18,7 @@ export function Layout() {
             {staff ? (
               <>
                 <NavLink to="/" end className={link}>لوحة التحكم</NavLink>
+                <NavLink to="/analytics" className={link}>الإحصائيات</NavLink>
                 <NavLink to="/ai" className={link}>عقل النظام</NavLink>
               </>
             ) : (

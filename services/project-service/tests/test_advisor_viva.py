@@ -240,3 +240,24 @@ def test_alerts_and_evidence_have_arabic_text(client, users, project, analyzer):
     assert alerts and all(a["message_ar"] for a in alerts)
     plagiarism = next(a for a in alerts if a["type"] == "plagiarism")
     assert plagiarism["message_ar"] == "42.0% من التقرير يطابق تقارير أخرى"
+
+
+def test_duplicate_and_dead_code_advice(client, users, course, analyzer):  # noqa: F811
+    import copy
+
+    body = copy.deepcopy(analyzer.body)
+    body["code"]["code_smells"] = [
+        {"type": "duplicate_code", "file": "b.py", "line": 3, "symbol": "a.py:3-20", "message": "."},
+        {"type": "dead_code", "file": "a.py", "line": 40, "symbol": "old_report", "message": "."},
+    ]  # fmt: skip
+    body["code"]["code_duplication_percentage"] = 22.5
+    body["code"]["dead_code"] = [{"file": "a.py", "line": 40, "name": "old_report", "lines": 6}]
+    analyzer.body = body
+    pid = submit(client, users["student"], course["id"]).json()["id"]
+    advice = client.get(f"/api/v1/projects/{pid}/advice", headers=users["student"].headers).json()
+    titles = [i["title"] for i in advice["improvements"]]
+    assert any("الكود المكرر" in t for t in titles)
+    assert any("غير المستخدمة" in t for t in titles)
+    assert not any("الدوال الطويلة" in t for t in titles)  # no length/complexity findings here
+    weaknesses = [w["title"] for w in advice["weaknesses"]]
+    assert "كود مكرر (نسخ ولصق) (1)" in weaknesses

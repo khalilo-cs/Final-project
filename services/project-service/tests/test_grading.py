@@ -173,3 +173,17 @@ def test_dashboard(client, users, project):
         ).status_code
         == 403
     )
+
+
+def test_department_analytics(client, users, project):
+    faculty = users["faculty"].headers
+    data = client.get("/api/v1/dashboard/department/analytics", headers=faculty).json()
+    assert data["projects"] == 1 and data["graded"] == 0
+    assert {"name": "أمان: SQL Injection", "count": 1} in data["common_issues"]
+    assert data["languages"] == [{"name": "Python", "count": 1}]
+    assert data["technologies"] == [{"name": "Flask", "count": 1}]
+    assert sum(b["count"] for b in data["grade_distribution"]) == 1
+    assert next(b for b in data["grade_distribution"] if b["count"])["range"] == "80-89"
+    assert data["terms"] == [{"term": "CS499", "projects": 1, "average": 81.5}]
+    assert client.get("/api/v1/dashboard/department/analytics",
+                      headers=users["student"].headers).status_code == 403  # fmt: skip
