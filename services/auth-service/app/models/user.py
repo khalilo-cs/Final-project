@@ -29,6 +29,8 @@ class User(Base):
     role: Mapped[Role] = mapped_column(Enum(Role, name="user_role"))
     department: Mapped[str | None] = mapped_column(String(100))
     student_id: Mapped[str | None] = mapped_column(String(50))
+    # "<issuer>|<sub>" for accounts that signed in with the university's SSO.
+    external_id: Mapped[str | None] = mapped_column(String(300), unique=True, index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=_now, onupdate=_now

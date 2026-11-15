@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.config import get_settings
 from app.database import SessionLocal, engine
 from app.migrate import migrate
-from app.routes import auth, internal, users
+from app.routes import auth, internal, oidc, users
 from app.services import auth_service
 
 
@@ -29,6 +29,7 @@ if get_settings().cors_origins:
     )
 
 app.include_router(auth.router)
+app.include_router(oidc.router)
 app.include_router(users.router)
 app.include_router(internal.router)
 

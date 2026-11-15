@@ -30,6 +30,13 @@ services:
   auth-service:
     build: ./services/auth-service
     environment:
+      PUBLIC_URL: ${PUBLIC_URL:-http://localhost:8080}
+      OIDC_ISSUER: ${OIDC_ISSUER:-}
+      OIDC_CLIENT_ID: ${OIDC_CLIENT_ID:-}
+      OIDC_CLIENT_SECRET: ${OIDC_CLIENT_SECRET:-}
+      OIDC_ALLOWED_DOMAINS: ${OIDC_ALLOWED_DOMAINS:-[]}
+      OIDC_ROLE_CLAIM: ${OIDC_ROLE_CLAIM:-}
+      OIDC_FACULTY_VALUES: ${OIDC_FACULTY_VALUES:-[]}
       DATABASE_URL: postgresql+psycopg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET in .env}
       ADMIN_USERNAME: ${ADMIN_USERNAME:-}

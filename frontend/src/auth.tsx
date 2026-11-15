@@ -5,6 +5,7 @@ interface AuthState {
   user: User | null;
   loading: boolean;
   login: (username: string, password: string) => Promise<void>;
+  loginWithHandoff: (handoff: string) => Promise<void>;
   register: (data: Record<string, string>) => Promise<void>;
   logout: () => Promise<void>;
 }
@@ -35,6 +36,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await loadMe();
   };
 
+  /** Single sign-on: the one-time code the university sign-in returned. */
+  const loginWithHandoff = async (handoff: string) => {
+    saveTokens(await post("auth", "/api/v1/auth/oidc/exchange", { handoff }));
+    await loadMe();
+  };
+
   const register = async (data: Record<string, string>) => {
     await post("auth", "/api/v1/auth/register", data);
     await login(data.username, data.password);
@@ -52,7 +59,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, loginWithHandoff, register, logout }}>
       {children}
     </AuthContext.Provider>
   );

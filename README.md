@@ -48,7 +48,7 @@ SQL Server، MS Access، Windows Forms، WPF، ASP.NET، Entity Framework، Qt،
 
 ### لم يُنفَّذ بعد
 
-Knowledge Graph (Neo4j)، التشابه الدلالي بنماذج مثل CodeBERT، إشعارات SMS، الدخول عبر LDAP/OAuth للجامعة. تشغيل
+Knowledge Graph (Neo4j)، التشابه الدلالي بنماذج مثل CodeBERT، إشعارات SMS، الدخول عبر LDAP مباشرة (SSO عبر OpenID Connect مدعوم). تشغيل
 sandbox-runner الحقيقي يحتاج Docker على الخادم، وقد اختُبر هنا ببديل محلي فقط.
 
 ## التشغيل
@@ -208,6 +208,17 @@ Java/Maven، موقع ثابت)، يبنيه في حاوية ثم يشغّله �
 كوداً صالحاً وأن الثغرة اختفت فعلاً وإلا يُرفض الإصلاح، تُحفظ النسخة الأصلية
 (`GET .../code?original=true`)، يُسجَّل كل إصلاح ويظهر للدكتور كتنبيه، ثم يُعاد التحليل.
 بعد اعتماد الدرجة تُقفل الإصلاحات.
+
+### الدخول بحساب الجامعة (SSO)
+
+زر «الدخول عبر حساب الجامعة» يظهر عند ضبط `OIDC_ISSUER` و `OIDC_CLIENT_ID` و
+`OIDC_CLIENT_SECRET` (Microsoft Entra ID / Microsoft 365، Google Workspace، Keycloak، أو أي
+مزود OpenID Connect). التدفق: Authorization Code + PKCE، مع التحقق من `state` (كوكي
+HttpOnly) و `nonce` وتوقيع الـ ID token من مفاتيح المزود (JWKS) والـ issuer والـ audience.
+أول دخول يُنشئ حساب طالب (أو دكتور إن احتوى `OIDC_ROLE_CLAIM` قيمة من
+`OIDC_FACULTY_VALUES`؛ صلاحية admin لا تُمنح أبداً عبر SSO)، أو يربط الحساب الموجود بنفس
+البريد إن كان البريد موثَّقاً أو ضمن `OIDC_ALLOWED_DOMAINS`. التوكنات تصل للمتصفح عبر رمز
+لمرة واحدة صالح 60 ثانية في الـ fragment، فلا تظهر في سجلات الخوادم.
 
 ### تحويل الصوت إلى نص (speech-service)
 
