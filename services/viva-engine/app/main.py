@@ -5,8 +5,9 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from app.config import get_settings
-from app.database import Base, SessionLocal, engine
+from app.database import SessionLocal, engine
 from app.engine import autolearn
+from app.migrate import migrate
 from app.routes import ai, viva
 
 log = logging.getLogger(__name__)
@@ -24,7 +25,7 @@ def _learning_loop(stop: threading.Event, interval: int) -> None:
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
-    Base.metadata.create_all(engine)
+    migrate(engine)
     with SessionLocal() as db:
         autolearn.seed_builtin(db)
     stop = threading.Event()

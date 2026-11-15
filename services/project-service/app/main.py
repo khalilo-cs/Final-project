@@ -2,7 +2,8 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
-from app.database import Base, engine
+from app.database import engine
+from app.migrate import migrate
 from app.models import grading as _grading_models  # noqa: F401  (register tables)
 from app.routes import (
     advice,
@@ -21,7 +22,7 @@ from app.routes import (
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     # Tables are created directly for now; Alembic migrations replace this later.
-    Base.metadata.create_all(engine)
+    migrate(engine)
     yield
 
 

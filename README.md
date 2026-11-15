@@ -49,7 +49,7 @@ SQL Server، MS Access، Windows Forms، WPF، ASP.NET، Entity Framework، Qt،
 
 Knowledge Graph (Neo4j)، التشابه الدلالي بنماذج مثل CodeBERT، خدمة
 الإشعارات (بريد/SMS)، الدخول عبر LDAP/OAuth للجامعة، تحويل الصوت إلى نص على الخادم
-(Whisper)، و Alembic migrations (الجداول تُنشأ حالياً بـ `create_all`). تشغيل
+(Whisper). تشغيل
 sandbox-runner الحقيقي يحتاج Docker على الخادم، وقد اختُبر هنا ببديل محلي فقط.
 
 ## التشغيل
@@ -267,6 +267,12 @@ make install   # بيئة افتراضية + الاعتماديات
 make test      # اختبارات كل الخدمات
 make lint      # ruff
 ```
+
+**تغيير قاعدة البيانات:** كل خدمة لها قاعدة بيانات تُحدَّث بـ Alembic تلقائياً عند
+التشغيل (`app/migrate.py`). بعد تعديل نموذج: `make migration SVC=project-service
+MSG="add column"` ثم راجع الملف الناتج في `app/migrations/versions/`. قاعدة بيانات
+أُنشئت قبل وجود الـ migrations تُعتمد كما هي (stamp) دون حذف بياناتها. اختبار
+`test_migrations.py` يفشل إن نسيت إنشاء migration لتغيير في النماذج.
 
 يتطلب Python 3.12 أو أحدث. الـ CI (GitHub Actions) يشغّل الفحص والاختبارات عند كل push.
 

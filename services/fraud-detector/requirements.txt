@@ -6,3 +6,4 @@ PyJWT~=2.15.1
 SQLAlchemy~=2.1.8
 psycopg[binary]~=3.3.9
 dulwich~=1.2.21
+alembic~=1.20.1

@@ -2,7 +2,7 @@ SERVICES := auth-service project-service code-analyzer db-analyzer report-analyz
 VENV ?= .venv
 PY := $(abspath $(VENV))/bin/python
 
-.PHONY: install lint format test up down web
+.PHONY: install lint format test up down web migration
 
 install:
 	python3 -m venv $(VENV)
@@ -27,3 +27,7 @@ down:
 
 web:
 	cd frontend && npm install && npx vite
+
+# New schema change: make migration SVC=project-service MSG="add x column"
+migration:
+	cd services/$(SVC) && $(PY) -m alembic revision --autogenerate -m "$(MSG)"

@@ -6,3 +6,4 @@ SQLAlchemy~=2.1.8
 psycopg[binary]~=3.3.9
 httpx~=0.28.1
 anthropic~=2.8.0
+alembic~=1.20.1
