@@ -1,5 +1,5 @@
 import uuid
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 
 import bcrypt
 from sqlalchemy import delete, or_, select
@@ -7,7 +7,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.config import get_settings
-from app.models.user import RevokedToken, Role, User
+from app.models.user import LoginThrottle, RevokedToken, Role, User
 from app.schemas.auth import RegisterRequest, TokenPair
 from app.services import jwt_service
 
@@ -17,6 +17,45 @@ _DUMMY_HASH = bcrypt.hashpw(b"dummy-password", bcrypt.gensalt())
 
 class AuthError(Exception):
     pass
+
+
+class LockedOut(Exception):
+    def __init__(self, retry_after: int) -> None:
+        super().__init__("locked")
+        self.retry_after = retry_after
+
+
+def _aware(moment: datetime | None) -> datetime | None:
+    # SQLite returns naive datetimes; treat them as UTC.
+    return moment.replace(tzinfo=UTC) if moment is not None and moment.tzinfo is None else moment
+
+
+def _check_lock(db: Session, identifier: str) -> None:
+    row = db.get(LoginThrottle, identifier)
+    locked_until = _aware(row.locked_until) if row else None
+    if locked_until and locked_until > datetime.now(UTC):
+        raise LockedOut(int((locked_until - datetime.now(UTC)).total_seconds()) + 1)
+
+
+def _record_failure(db: Session, identifier: str) -> None:
+    settings = get_settings()
+    now = datetime.now(UTC)
+    window = timedelta(minutes=settings.lockout_minutes)
+    row = db.get(LoginThrottle, identifier) or LoginThrottle(
+        identifier=identifier, failures=0, window_start=now
+    )
+    if now - _aware(row.window_start) > window:
+        row.failures, row.window_start = 0, now
+    row.failures += 1
+    if row.failures >= settings.max_login_failures:
+        row.locked_until, row.failures, row.window_start = now + window, 0, now
+    db.merge(row)
+    db.commit()
+
+
+def _clear_failures(db: Session, identifier: str) -> None:
+    db.execute(delete(LoginThrottle).where(LoginThrottle.identifier == identifier))
+    db.commit()
 
 
 class DuplicateUserError(Exception):
@@ -55,12 +94,16 @@ def create_user(db: Session, data: RegisterRequest, role: Role) -> User:
 
 def authenticate(db: Session, identifier: str, password: str) -> User:
     identifier = identifier.strip().lower()
+    _check_lock(db, identifier)
     user = db.scalar(select(User).where(or_(User.username == identifier, User.email == identifier)))
     if user is None:
         bcrypt.checkpw(b"dummy-password", _DUMMY_HASH)
+        _record_failure(db, identifier)
         raise AuthError
     if not verify_password(password, user.password_hash):
+        _record_failure(db, identifier)
         raise AuthError
+    _clear_failures(db, identifier)
     return user
 
 

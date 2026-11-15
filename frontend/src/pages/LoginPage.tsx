@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from "react";
+import { ApiError } from "../api";
 import { useAuth } from "../auth";
 import { Button, Card, ErrorBox, Input } from "../components/ui";
 
@@ -21,7 +22,13 @@ export function LoginPage() {
       if (mode === "login") await login(form.username ?? "", form.password ?? "");
       else await register(form);
     } catch (reason) {
-      setError(reason);
+      if (reason instanceof ApiError && reason.status === 429) {
+        setError("محاولات دخول فاشلة كثيرة. انتظر ربع ساعة ثم حاول مرة أخرى.");
+      } else if (reason instanceof ApiError && reason.status === 401) {
+        setError("اسم المستخدم أو كلمة المرور غير صحيحة.");
+      } else {
+        setError(reason);
+      }
     } finally {
       setBusy(false);
     }

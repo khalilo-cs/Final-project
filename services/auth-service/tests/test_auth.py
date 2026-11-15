@@ -168,3 +168,22 @@ def test_faculty_find_students_by_username(client):
     assert client.get("/api/v1/users/by-username/khalid", headers=student).status_code == 403
     # Staff accounts are not exposed through this lookup.
     assert client.get("/api/v1/users/by-username/admin", headers=doctor).status_code == 404
+
+
+def test_brute_force_lockout(client):
+    register(client)
+    for _ in range(4):
+        assert login(client, password="wrong-pass").status_code == 401
+    assert login(client).status_code == 200  # success resets the counter
+    for _ in range(5):
+        login(client, password="wrong-pass")
+    locked = login(client)  # even the right password is refused while locked
+    assert locked.status_code == 429 and int(locked.headers["retry-after"]) > 0
+    assert login(client, username="sara-not-registered").status_code == 401  # others unaffected
+
+
+def test_unknown_accounts_lock_the_same_way(client):
+    # Locking also happens for names that do not exist, so it cannot reveal accounts.
+    for _ in range(5):
+        login(client, username="ghost", password="x")
+    assert login(client, username="ghost", password="x").status_code == 429

@@ -24,6 +24,10 @@ class Settings(BaseSettings):
 
     cors_origins: list[str] = []
 
+    # Brute-force protection: lock an identifier after repeated failed logins.
+    max_login_failures: int = 5
+    lockout_minutes: int = 15
+
 
 @lru_cache
 def get_settings() -> Settings:

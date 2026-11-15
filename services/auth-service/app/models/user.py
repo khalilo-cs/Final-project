@@ -42,3 +42,14 @@ class RevokedToken(Base):
 
     jti: Mapped[str] = mapped_column(String(36), primary_key=True)
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
+class LoginThrottle(Base):
+    """Failed logins per identifier (also for unknown names, so locks reveal nothing)."""
+
+    __tablename__ = "login_throttle"
+
+    identifier: Mapped[str] = mapped_column(String(255), primary_key=True)
+    failures: Mapped[int] = mapped_column(default=0)
+    window_start: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
+    locked_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))

@@ -25,6 +25,12 @@ def register(data: RegisterRequest, db: DbSession):
 def login(data: LoginRequest, db: DbSession):
     try:
         user = auth_service.authenticate(db, data.username, data.password)
+    except auth_service.LockedOut as exc:
+        raise HTTPException(
+            status.HTTP_429_TOO_MANY_REQUESTS,
+            "Too many failed attempts; try again later",
+            headers={"Retry-After": str(exc.retry_after)},
+        ) from exc
     except auth_service.AuthError as exc:
         raise _INVALID from exc
     return auth_service.issue_tokens(user)
