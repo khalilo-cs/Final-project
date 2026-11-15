@@ -1,6 +1,7 @@
 import uuid
 
 from fastapi import APIRouter, BackgroundTasks, HTTPException, status
+from fastapi.responses import PlainTextResponse
 from sqlalchemy import select
 
 from app.models.project import (
@@ -75,6 +76,51 @@ def _result(db, principal, project_id, model):
 @router.get("/code/{project_id}/results", response_model=CodeResultOut)
 def code_results(project_id: uuid.UUID, db: DbSession, principal: CurrentPrincipal):
     return _result(db, principal, project_id, CodeAnalysisResult)
+
+
+@router.get("/code/{project_id}/graph")
+def code_graph(project_id: uuid.UUID, db: DbSession, principal: CurrentPrincipal):
+    """Knowledge graph: files, classes, functions, packages and tables with their links,
+    dependency analysis, design patterns and SOLID findings."""
+    result = _result(db, principal, project_id, CodeAnalysisResult)
+    graph = (result.details or {}).get("graph")
+    if not graph:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Re-run the code analysis for the graph")
+    return graph
+
+
+_LABELS = {"file": "File", "class": "Class", "function": "Function", "table": "Table"}
+
+
+def _cypher_value(value) -> str:
+    if isinstance(value, bool):
+        return "true" if value else "false"
+    if isinstance(value, int | float):
+        return str(value)
+    return "'" + str(value).replace("\\", "\\\\").replace("'", "\\'") + "'"
+
+
+@router.get("/code/{project_id}/graph.cypher", response_class=PlainTextResponse)
+def code_graph_cypher(project_id: uuid.UUID, db: DbSession, principal: CurrentPrincipal):
+    """The graph as Cypher statements, to load into Neo4j: `cypher-shell < graph.cypher`."""
+    graph = code_graph(project_id, db, principal)
+    project = str(project_id)
+    lines = [f"// AI Project Examiner knowledge graph, project {project}"]
+    for node in graph["nodes"]:
+        label = _LABELS.get(node["type"], "Node")
+        props = {k: v for k, v in node.items() if k != "type" and v is not None}
+        body = ", ".join(
+            f"{k}: {_cypher_value(v)}" for k, v in {**props, "project": project}.items()
+        )
+        lines.append(f"MERGE (:{label} {{{body}}});")
+    for edge in graph["edges"]:
+        relation = edge["type"].upper()
+        lines.append(
+            f"MATCH (a {{id: {_cypher_value(edge['source'])}, project: '{project}'}}), "
+            f"(b {{id: {_cypher_value(edge['target'])}, project: '{project}'}}) "
+            f"MERGE (a)-[:{relation}]->(b);"
+        )
+    return "\n".join(lines) + "\n"
 
 
 @router.get("/security/{project_id}/results", response_model=SecurityResultOut)

@@ -1,6 +1,7 @@
 from tree_sitter import Node
 
 from app.analyzers.base_analyzer import BaseAnalyzer, ClassInfo, FileAnalysis, FunctionInfo
+from app.analyzers.facts import ts_facts
 from app.analyzers.treesitter import first_error, java_parser, line_counts, text
 from app.quality.java_complexity import cognitive_complexity, cyclomatic_complexity
 
@@ -25,6 +26,17 @@ def _annotations(node: Node) -> list[str]:
         for child in modifiers.children
         if child.type in ("annotation", "marker_annotation")
     ]
+
+
+def _class_kind(node: Node) -> str:
+    if node.type in ("interface_declaration", "annotation_type_declaration"):
+        return "interface"
+    if node.type == "enum_declaration":
+        return "enum"
+    modifiers = next((c for c in node.children if c.type == "modifiers"), None)
+    return (
+        "abstract" if modifiers is not None and "abstract" in text(modifiers).split() else "class"
+    )
 
 
 def _bases(node: Node) -> list[str]:
@@ -101,6 +113,7 @@ class JavaAnalyzer(BaseAnalyzer):
                         bases=_bases(node),
                         methods=_member_methods(body),
                         decorators=_annotations(node),
+                        kind=_class_kind(node),
                     )
                 )
                 scope = (*scope, name)
@@ -121,6 +134,7 @@ class JavaAnalyzer(BaseAnalyzer):
                         decorators=_annotations(node),
                     )
                 )
+                ts_facts(result.functions[-1], body)
                 scope = (*scope, name)
             stack.extend((child, scope) for child in reversed(node.named_children))
 

@@ -5,6 +5,7 @@ import zipfile
 
 import pytest
 
+from app.routes.analysis import _cypher_value
 from tests.test_grading import REPORT, course, project  # noqa: F401  (fixtures)
 from tests.test_projects import SQL, submit
 
@@ -290,3 +291,57 @@ def test_duplicate_and_dead_code_advice(client, users, course, analyzer):  # noq
     assert not any("الدوال الطويلة" in t for t in titles)  # no length/complexity findings here
     weaknesses = [w["title"] for w in advice["weaknesses"]]
     assert "كود مكرر (نسخ ولصق) (1)" in weaknesses
+
+
+GRAPH = {
+    "stats": {"nodes": {"file": 2}, "edges": {}},
+    "nodes": [{"id": "file:a.py", "type": "file", "label": "a.py", "file": "a.py"}],
+    "edges": [],
+    "truncated": False,
+    "dependencies": {"file_cycles": [["a.py", "b.py"]], "coupling": [], "key_components": [
+        {"name": "Database.getInstance", "file": "db.py", "line": 3, "used_by": 5, "uses": 0}],
+        "tables": [], "external_packages": {}},
+    "design_patterns": [{"pattern": "Factory", "name_ar": "المصنع (Factory)",
+                         "classes": ["PaymentFactory"],
+                         "evidence_ar": "PaymentFactory مسؤول عن إنشاء الكائنات"}],
+    "solid": {"counts": {"LSP": 1}, "issues": [
+        {"principle": "LSP", "severity": "Medium", "where": "ReadOnly.save", "file": "r.py",
+         "line": 4, "evidence": "only throws", "evidence_ar": "الدالة ReadOnly.save ترمي استثناءً فقط"}]},
+}  # fmt: skip
+
+
+def test_knowledge_graph_endpoint_advice_and_viva(client, users, course, analyzer):  # noqa: F811
+    import copy
+
+    body = copy.deepcopy(analyzer.body)
+    body["code"]["graph"] = GRAPH
+    analyzer.body = body
+    pid = submit(client, users["student"], course["id"]).json()["id"]
+    student = users["student"].headers
+    graph = client.get(f"/api/v1/analysis/code/{pid}/graph", headers=student)
+    assert graph.status_code == 200 and graph.json()["design_patterns"][0]["pattern"] == "Factory"
+    cypher = client.get(f"/api/v1/analysis/code/{pid}/graph.cypher", headers=student).text
+    node = f"MERGE (:File {{id: 'file:a.py', label: 'a.py', file: 'a.py', project: '{pid}'}});"
+    assert node in cypher
+    assert _cypher_value("it's a \\ path") == "'it\\'s a \\\\ path'"
+    hidden = client.get(
+        f"/api/v1/analysis/code/{pid}/graph", headers=users["other_student"].headers
+    )
+    assert hidden.status_code == 404
+
+    advice = client.get(f"/api/v1/projects/{pid}/advice", headers=student).json()
+    assert any("أنماط تصميم: المصنع (Factory)" in s["title"] for s in advice["strengths"])
+    titles = [i["title"] for i in advice["improvements"]]
+    assert any("الاعتماد الدائري" in t for t in titles)
+    assert any(t.startswith("مبدأ LSP") for t in titles)
+
+    lesson = [r for r in analyzer.route_calls if r.url.path == "/internal/learn/project"][-1]
+    design = json.loads(lesson.content)["context"]["design"]
+    assert design["key_components"][0]["name"] == "Database.getInstance"
+
+
+def test_graph_missing_for_old_analyses(client, users, project):  # noqa: F811
+    response = client.get(
+        f"/api/v1/analysis/code/{project}/graph", headers=users["student"].headers
+    )
+    assert response.status_code == 404

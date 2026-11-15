@@ -53,9 +53,28 @@ def build_context(project: Project, results: ProjectResults) -> dict:
                 "end_line": f["end_line"],
                 "cyclomatic_complexity": f["cyclomatic_complexity"],
                 "code": snippets.get((f["file"], f["line"])),
+                # What it calls and which tables it touches: the answer should mention them.
+                "calls": [c.rsplit(".", 1)[-1] for c in f.get("calls", [])][:5],
+                "tables": f.get("sql_tables", [])[:5],
             }
             for f in chosen
         ]
+        graph = results.code.details.get("graph") or {}
+        if graph:
+            context["design"] = {
+                "patterns": [
+                    {"pattern": p["pattern"], "classes": p["classes"][:3]}
+                    for p in graph.get("design_patterns", [])[:3]
+                ],
+                "key_components": [
+                    {k: c[k] for k in ("name", "file", "used_by")}
+                    for c in graph.get("dependencies", {}).get("key_components", [])[:3]
+                ],
+                "solid": [
+                    {k: i[k] for k in ("principle", "where", "evidence", "evidence_ar")}
+                    for i in (graph.get("solid") or {}).get("issues", [])[:3]
+                ],
+            }
     if results.security:
         context["vulnerabilities"] = [
             {k: v[k] for k in ("type", "file", "line", "evidence") if k in v}

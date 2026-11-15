@@ -1,6 +1,7 @@
 from tree_sitter import Node
 
 from app.analyzers.base_analyzer import BaseAnalyzer, ClassInfo, FileAnalysis, FunctionInfo
+from app.analyzers.facts import ts_facts
 from app.analyzers.treesitter import csharp_parser, first_error, line_counts, text
 from app.quality.ts_complexity import CSHARP, cognitive_complexity, cyclomatic_complexity
 
@@ -19,6 +20,12 @@ METHOD_TYPES = {
     "local_function_statement",
     "operator_declaration",
 }
+
+
+_KINDS = {
+    "interface_declaration": "interface", "enum_declaration": "enum",
+    "struct_declaration": "struct", "record_struct_declaration": "struct",
+}  # fmt: skip
 
 
 def _attributes(node: Node) -> list[str]:
@@ -99,6 +106,9 @@ class CSharpAnalyzer(BaseAnalyzer):
                         bases=_bases(node),
                         methods=_methods(node.child_by_field_name("body")),
                         decorators=_attributes(node),
+                        kind=_KINDS.get(
+                            kind, "abstract" if "abstract" in _modifiers(node) else "class"
+                        ),
                     )
                 )
                 scope = (*scope, name)
@@ -120,6 +130,7 @@ class CSharpAnalyzer(BaseAnalyzer):
                         decorators=_attributes(node),
                     )
                 )
+                ts_facts(result.functions[-1], body)
                 scope = (*scope, name)
             stack.extend((child, scope) for child in reversed(node.named_children))
 

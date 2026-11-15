@@ -1,13 +1,15 @@
 from tree_sitter import Node
 
 from app.analyzers.base_analyzer import BaseAnalyzer, ClassInfo, FileAnalysis, FunctionInfo
+from app.analyzers.facts import ts_facts
 from app.analyzers.treesitter import first_error, js_parser, line_counts, text
 from app.quality.js_complexity import cognitive_complexity, cyclomatic_complexity
 
 _FUNCTION_VALUES = {"arrow_function", "function_expression", "function", "generator_function"}
 _PARAMETERS = {"identifier", "assignment_pattern", "rest_pattern", "object_pattern",
                "array_pattern", "required_parameter", "optional_parameter"}  # fmt: skip
-_CLASSES = {"class_declaration", "class", "abstract_class_declaration"}
+_CLASSES = {"class_declaration", "class", "abstract_class_declaration", "interface_declaration"}
+_CLASS_KINDS = {"abstract_class_declaration": "abstract", "interface_declaration": "interface"}
 
 
 def dialect_for(path: str) -> str:
@@ -92,8 +94,9 @@ class JavaScriptAnalyzer(BaseAnalyzer):
                         methods=[
                             text(m.child_by_field_name("name"))
                             for m in (body.named_children if body else [])
-                            if m.type == "method_definition"
+                            if m.type in ("method_definition", "method_signature")
                         ],
+                        kind=_CLASS_KINDS.get(kind, "class"),
                     )
                 )
                 scope = (*scope, class_name)
@@ -121,6 +124,7 @@ class JavaScriptAnalyzer(BaseAnalyzer):
                         is_async=_is_async(function),
                     )
                 )
+                ts_facts(result.functions[-1], body)
                 scope = (*scope, name)
                 if function is not node:  # const f = () => ...: descend into the function
                     stack.append((function, scope))

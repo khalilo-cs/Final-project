@@ -65,3 +65,25 @@ def test_bm25_and_similarity():
     assert index.search("how to prevent sql injection")[0][0] == "1"
     assert index.search("nothing matches here") == []
     assert jaccard("الدالة تحسب الغرامة", "الدالة تحسب الغرامه") == 1.0
+
+
+def test_questions_from_the_knowledge_graph():
+    context = {
+        **CONTEXT,
+        "design": {
+            "patterns": [{"pattern": "Factory", "classes": ["PaymentFactory"]}],
+            "key_components": [
+                {"name": "Database.getInstance", "file": "src/db/Database.java", "used_by": 6}
+            ],
+            "solid": [{"principle": "DIP", "where": "OrderService",
+                       "evidence": "OrderService creates its own dependencies",
+                       "evidence_ar": "الكلاس OrderService ينشئ تبعياته بنفسه"}],
+        },
+    }  # fmt: skip
+    questions = {q.key: q for q in engine.generate_questions(context, "ar", 40, [], [])}
+    assert "PaymentFactory" in questions["technical:design_pattern"].text
+    impact = questions["challenge:change_impact"]
+    assert "6 أجزاء" in impact.text and impact.related_file == "src/db/Database.java"
+    solid = questions["challenge:solid"]
+    assert solid.text.startswith("الكلاس OrderService ينشئ تبعياته بنفسه")
+    assert "حقن" in solid.expected_points

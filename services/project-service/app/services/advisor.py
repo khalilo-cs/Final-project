@@ -70,6 +70,21 @@ def build_advice(results: ProjectResults) -> dict:
             strengths.append(_item("code", "كود نظيف ومنظم",
                                    f"درجة الجودة {code.overall_quality_score}/100، متوسط التعقيد "
                                    f"{code.cyclomatic_complexity_avg}"))  # fmt: skip
+        graph = code.details.get("graph") or {}
+        if patterns := graph.get("design_patterns"):
+            names = list(dict.fromkeys(p["name_ar"] for p in patterns))[:4]
+            strengths.append(_item("code", "استخدام أنماط تصميم: " + "، ".join(names),
+                                   "؛ ".join(p["evidence_ar"] for p in patterns[:3])))  # fmt: skip
+        for cycle in graph.get("dependencies", {}).get("file_cycles", [])[:2]:
+            improvements.append(_item("code", "اكسر الاعتماد الدائري بين الملفات: انقل الجزء "
+                                      "المشترك إلى ملف ثالث يعتمد عليه الاثنان",
+                                      " ← ".join([*cycle, cycle[0]]), "medium"))  # fmt: skip
+        for issue in (graph.get("solid") or {}).get("issues", []):
+            if issue["severity"] == "Medium":
+                improvements.append(_item("code", f"مبدأ {issue['principle']}: "
+                                          f"{issue['evidence_ar']}",
+                                          f"{issue.get('file') or ''}:{issue.get('line') or ''}",
+                                          "low"))  # fmt: skip
         smells = Counter(s["type"] for s in code.code_smells)
         for kind, count in smells.most_common():
             examples = [s["symbol"] for s in code.code_smells if s["type"] == kind][:3]

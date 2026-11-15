@@ -3,6 +3,7 @@ from pathlib import PurePosixPath
 from tree_sitter import Node
 
 from app.analyzers.base_analyzer import BaseAnalyzer, ClassInfo, FileAnalysis, FunctionInfo
+from app.analyzers.facts import ts_facts
 from app.analyzers.treesitter import cpp_parser, first_error, line_counts, text
 from app.quality.ts_complexity import CPP, cognitive_complexity, cyclomatic_complexity
 
@@ -115,6 +116,7 @@ class CppAnalyzer(BaseAnalyzer):
                         end_line=node.end_point.row + 1,
                         bases=_bases(node),
                         methods=_methods(body),
+                        kind="struct" if kind == "struct_specifier" else "class",
                     )
                 )
                 scope = (*scope, name)
@@ -134,6 +136,7 @@ class CppAnalyzer(BaseAnalyzer):
                         max_nesting=nesting,
                     )
                 )
+                ts_facts(result.functions[-1], body)
                 scope = (*scope, name)
             stack.extend((child, scope) for child in reversed(node.named_children))
 

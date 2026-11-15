@@ -17,6 +17,13 @@ class FunctionInfo:
     is_async: bool = False
     is_generator: bool = False
     decorators: list[str] = field(default_factory=list)
+    # What the body does (for the knowledge graph, design patterns and SOLID checks).
+    calls: list[str] = field(default_factory=list)  # called names, last identifier
+    instantiates: list[str] = field(default_factory=list)  # `new X` / X(...)
+    sql_tables: list[str] = field(default_factory=list)  # tables named in SQL strings
+    type_checks: int = 0  # instanceof / isinstance / `is` patterns
+    empty: bool = False  # no statements
+    only_raises: bool = False  # body only throws (e.g. NotImplemented)
 
     @property
     def length(self) -> int:
@@ -31,6 +38,7 @@ class ClassInfo:
     bases: list[str]
     methods: list[str]
     decorators: list[str] = field(default_factory=list)
+    kind: str = "class"  # class / interface / abstract / enum / struct
 
     @property
     def length(self) -> int:
@@ -46,6 +54,8 @@ class FileAnalysis:
     comment_lines: int = 0
     blank_lines: int = 0
     imports: list[str] = field(default_factory=list)
+    # Python `from pkg import mod`: "pkg.mod", which may be a module (knowledge graph).
+    submodule_imports: list[str] = field(default_factory=list)
     classes: list[ClassInfo] = field(default_factory=list)
     functions: list[FunctionInfo] = field(default_factory=list)
     parse_error: str | None = None

@@ -161,6 +161,67 @@ class TemplateProvider(Provider):
                 )
             )
 
+        design = context.get("design") or {}
+        for pattern in design.get("patterns", [])[:1]:
+            owner = pattern["classes"][0]
+            add(
+                Question(
+                    key="technical:design_pattern",
+                    type="technical",
+                    level=3,
+                    text=_ar(
+                        language,
+                        f"في مشروعك نمط تصميم {pattern['pattern']} (في `{owner}`). ما المشكلة "
+                        "التي يحلها هنا تحديداً؟ وماذا كان سيحدث لو لم تستخدمه؟",
+                        f"Your project uses the {pattern['pattern']} pattern (in `{owner}`). "
+                        "What problem does it solve here, and what would happen without it?",
+                    ),
+                    expected_points=[owner, *pattern["classes"][1:3]],
+                )
+            )
+        for component in design.get("key_components", [])[:1]:
+            name = component["name"]
+            add(
+                Question(
+                    key="challenge:change_impact",
+                    type="challenge",
+                    level=3,
+                    text=_ar(
+                        language,
+                        f"الدالة `{name}` يعتمد عليها {component['used_by']} أجزاء من المشروع. "
+                        "لو احتجت تغيير مدخلاتها، ما الذي سيتأثر وكيف تتأكد أن شيئاً لم ينكسر؟",
+                        f"`{name}` is used by {component['used_by']} parts of the project. If "
+                        "you had to change its parameters, what would break and how would you "
+                        "make sure nothing did?",
+                    ),
+                    expected_points=[name.split(".")[-1], "test", "اختبار"],
+                    related_file=component["file"],
+                )
+            )
+        _SOLID_POINTS = {
+            "SRP": ["split", "class", "مسؤولية", "تقسيم"],
+            "OCP": ["polymorphism", "interface", "تعدد الأشكال", "واجهة"],
+            "LSP": ["inherit", "override", "وراثة", "الأصل"],
+            "ISP": ["interface", "split", "واجهة", "تقسيم"],
+            "DIP": ["inject", "constructor", "interface", "حقن", "واجهة"],
+        }
+        for issue in design.get("solid", [])[:1]:
+            add(
+                Question(
+                    key="challenge:solid",
+                    type="challenge",
+                    level=4,
+                    text=_ar(
+                        language,
+                        f"{issue['evidence_ar']}. كيف تعيد تصميم هذا الجزء ليتوافق مع مبدأ "
+                        f"{issue['principle']}؟",
+                        f"{issue['evidence']}. How would you redesign it to follow "
+                        f"{issue['principle']}?",
+                    ),
+                    expected_points=_SOLID_POINTS.get(issue["principle"], []),
+                )
+            )
+
         for vulnerability in context.get("vulnerabilities", [])[:3]:
             kind = vulnerability["type"]
             add(

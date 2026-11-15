@@ -11,6 +11,7 @@ from app.analyzers.java_analyzer import JavaAnalyzer
 from app.analyzers.javascript_analyzer import JavaScriptAnalyzer
 from app.analyzers.python_analyzer import PythonAnalyzer
 from app.analyzers.technologies import MAX_MANIFEST_BYTES, TechnologyDetector
+from app.graph.analysis import knowledge_graph
 from app.quality.code_smells import detect_smells
 from app.quality.dead_code import java_dead_code, python_dead_code
 from app.quality.duplication import find_duplicates
@@ -176,6 +177,7 @@ def _code_summary(
             len(files),
             len(unparsable),
         ),
+        "graph": knowledge_graph(files),
         "files": [asdict(file) for file in files],
     }
 

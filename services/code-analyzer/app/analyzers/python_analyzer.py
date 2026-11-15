@@ -3,6 +3,7 @@ import io
 import tokenize
 
 from app.analyzers.base_analyzer import BaseAnalyzer, ClassInfo, FileAnalysis, FunctionInfo
+from app.analyzers.facts import py_facts
 from app.quality.complexity import cognitive_complexity, cyclomatic_complexity
 
 _FUNCTION_NODES = (ast.FunctionDef, ast.AsyncFunctionDef)
@@ -34,6 +35,17 @@ def _parameter_count(func: ast.FunctionDef | ast.AsyncFunctionDef, is_method: bo
     return len(names) + bool(args.vararg) + bool(args.kwarg)
 
 
+def _class_kind(node: ast.ClassDef) -> str:
+    bases = {_name(b).split(".")[-1] for b in node.bases}
+    if bases & {"ABC", "Protocol"} or any(
+        isinstance(m, ast.keyword) and _name(m.value).endswith("ABCMeta") for m in node.keywords
+    ):
+        return "abstract"
+    if bases & {"Enum", "IntEnum", "StrEnum"}:
+        return "enum"
+    return "class"
+
+
 class _Collector(ast.NodeVisitor):
     def __init__(self, result: FileAnalysis) -> None:
         self.result = result
@@ -44,7 +56,13 @@ class _Collector(ast.NodeVisitor):
         self.result.imports.extend(alias.name for alias in node.names)
 
     def visit_ImportFrom(self, node: ast.ImportFrom) -> None:
-        self.result.imports.append("." * node.level + (node.module or ""))
+        module = "." * node.level + (node.module or "")
+        self.result.imports.append(module)
+        # `from tools import b` may import the module tools/b.py
+        separator = "" if module.endswith(".") else "."
+        self.result.submodule_imports.extend(
+            f"{module}{separator}{alias.name}" for alias in node.names if alias.name != "*"
+        )
 
     def visit_ClassDef(self, node: ast.ClassDef) -> None:
         self.result.classes.append(
@@ -55,27 +73,28 @@ class _Collector(ast.NodeVisitor):
                 bases=[_name(base) for base in node.bases],
                 methods=[n.name for n in node.body if isinstance(n, _FUNCTION_NODES)],
                 decorators=[_name(d) for d in node.decorator_list],
+                kind=_class_kind(node),
             )
         )
         self._descend(node, in_class=True)
 
     def _function(self, node: ast.FunctionDef | ast.AsyncFunctionDef) -> None:
         cognitive, nesting = cognitive_complexity(node)
-        self.result.functions.append(
-            FunctionInfo(
-                name=node.name,
-                qualified_name=".".join([*self.scope, node.name]),
-                line=node.lineno,
-                end_line=node.end_lineno or node.lineno,
-                parameters=_parameter_count(node, self.in_class),
-                cyclomatic_complexity=cyclomatic_complexity(node),
-                cognitive_complexity=cognitive,
-                max_nesting=nesting,
-                is_async=isinstance(node, ast.AsyncFunctionDef),
-                is_generator=_is_generator(node),
-                decorators=[_name(d) for d in node.decorator_list],
-            )
+        info = FunctionInfo(
+            name=node.name,
+            qualified_name=".".join([*self.scope, node.name]),
+            line=node.lineno,
+            end_line=node.end_lineno or node.lineno,
+            parameters=_parameter_count(node, self.in_class),
+            cyclomatic_complexity=cyclomatic_complexity(node),
+            cognitive_complexity=cognitive,
+            max_nesting=nesting,
+            is_async=isinstance(node, ast.AsyncFunctionDef),
+            is_generator=_is_generator(node),
+            decorators=[_name(d) for d in node.decorator_list],
         )
+        py_facts(info, node)
+        self.result.functions.append(info)
         self._descend(node, in_class=False)
 
     visit_FunctionDef = visit_AsyncFunctionDef = _function

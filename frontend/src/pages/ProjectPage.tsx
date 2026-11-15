@@ -5,6 +5,7 @@ import { useAuth } from "../auth";
 import { Badge, Button, Card, DiffView, ErrorBox, Input, Loading, Score, STATUS_AR, severityTone, useLoad } from "../components/ui";
 import type { Advice, Fix, Grade, Project, VivaState } from "../types";
 import { AuthenticityPanel } from "./AuthenticityPanel";
+import { CodeGraphPanel } from "./CodeGraphPanel";
 import { PerformancePanel } from "./PerformancePanel";
 
 type Results = Record<"code" | "security" | "database" | "report", { [key: string]: unknown } | null>;
@@ -62,6 +63,7 @@ export function ProjectPage() {
         <>
           <ResultsSummary project={project} />
           {staff && <GradePanel id={id} />}
+          <CodeGraphPanel id={id} />
           {staff && <AuthenticityPanel id={id} />}
           <PerformancePanel id={id} canRun={(owner || staff) && project.status !== "graded"} />
           <AdvisorPanel project={project} owner={owner} onChanged={reload} />
