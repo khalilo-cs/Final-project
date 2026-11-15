@@ -387,4 +387,5 @@ def test_deleting_project_removes_report_from_index(client, users, course, analy
     student = users["student"].headers
     client.delete(f"/api/v1/projects/{without}", headers=student)
     client.delete(f"/api/v1/projects/{with_report}", headers=student)
-    assert analyzer.forgotten == [with_report]
+    # Removed from both corpora (report plagiarism and code copying).
+    assert analyzer.forgotten == [without, without, with_report, with_report]

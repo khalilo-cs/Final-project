@@ -139,15 +139,18 @@ def test_viva_start_context_and_score_in_grade(client, users, project, analyzer)
     assert function["function"] == "main" and function["code"].startswith("def main():")
 
     faculty = users["faculty"].headers
-    assert client.get(f"/api/v1/grades/{project}", headers=faculty).json()["coverage"] == 55.0
+    assert client.get(f"/api/v1/grades/{project}", headers=faculty).json()["coverage"] == 65.0
 
     analyzer.routes["/internal/sessions/*"] = (200, {"status": "completed", "overall_score": 70.0})
     grade = client.get(f"/api/v1/grades/{project}", headers=faculty).json()
-    assert grade["coverage"] == 80.0 and grade["status"] == "viva_completed"
+    assert grade["coverage"] == 90.0 and grade["status"] == "viva_completed"
     viva = next(b for b in grade["breakdown"] if b["criterion"] == "viva")
     assert viva["score"] == 70.0 and "viva score" in viva["justification"]
-    # code 95x20 + security 75x10 + db 80x10 + report 61.5x15 + viva 70x25 -> 6122.5 / 80
-    assert grade["suggested_total"] == 76.5
+    # authenticity now includes the viva gap: code 95 - viva 70 = 25 -> 100 - 5 x 2.5 = 87.5
+    # (100x30 + 100x15 + 87.5x25 + 58x10) / 80 = 90.8
+    # code 95x20 + security 75x10 + db 80x10 + report 61.5x15 + viva 70x25 + auth 90.8x10
+    # -> 7030.5 / 90
+    assert grade["suggested_total"] == 78.1
     sessions = client.get(f"/api/v1/viva/project/{project}", headers=faculty).json()
     assert sessions[0]["score"] == 70.0
 
@@ -174,3 +177,59 @@ def test_learning_failure_never_breaks_analysis(client, users, course, analyzer)
     pid = submit(client, users["student"], course["id"]).json()["id"]
     status = client.get(f"/api/v1/projects/{pid}/status", headers=users["student"].headers).json()
     assert status["status"] == "analyzed"
+
+
+def test_authenticity_flags_a_copied_project(client, users, course, analyzer):  # noqa: F811
+    other = submit(client, users["student"], course["id"]).json()["id"]
+    analyzer.routes["/api/v1/fraud/analyze"] = (200, {
+        "similarity": {"max_similarity": 0.72, "fingerprint_count": 90, "ignored_boilerplate": 0,
+                       "corpus_size": 4,
+                       "sources": [{"document_id": other, "similarity": 0.72,
+                                    "reverse_similarity": 0.8, "matched_files": [
+                                        {"file": "src/a.py", "lines": [1, 40],
+                                         "other_file": "lib/b.py", "other_lines": [3, 44],
+                                         "fingerprints": 30}]}]},
+        "git": {"available": True, "score": 60, "total_commits": 1,
+                "flags": [{"type": "single_commit", "severity": "high",
+                           "evidence": "The whole project was committed at once"}]},
+        "style": {"style_consistency_score": 70.0, "outliers": [
+            {"file": "src/a.py", "lines": 40, "differs": {"naming": {}, "indent": {}}}]},
+    })  # fmt: skip
+    pid = submit(client, users["student"], course["id"], title="مشروع منسوخ").json()["id"]
+    faculty = users["faculty"].headers
+    result = client.get(f"/api/v1/fraud/{pid}/results", headers=faculty).json()
+    # similarity 0 x30 (72% >= 60%), git 60 x20, style 70 x15 -> 2250 / 65
+    assert result["authenticity_score"] == 34.6
+    assert result["similar_projects"][0]["title"] == "نظام إدارة مكتبة"
+    assert result["similar_projects"][0]["matched_files"][0]["other_file"] == "lib/b.py"
+    assert {f["type"] for f in result["flags"]} == {"code_similarity", "git_single_commit",
+                                                    "style_outlier"}  # fmt: skip
+    assert result["similar_projects"][0]["submitted"] == "earlier"
+    alerts = client.get("/api/v1/dashboard/faculty/alerts", headers=faculty).json()
+    assert any(a["type"] == "authenticity" and a["severity"] == "High" and a["project_id"] == pid
+               for a in alerts)  # fmt: skip
+    # Students never see suspicion of copying.
+    student = client.get(f"/api/v1/fraud/{pid}/results", headers=users["student"].headers)
+    assert student.status_code == 403
+    sent = [r for r in analyzer.route_calls if r.url.path == "/api/v1/fraud/analyze"][-1]
+    assert other in _field(sent, "exclude_ids")  # own earlier project is not a "copy"
+
+
+def test_the_original_author_is_not_treated_as_the_copier(client, users, course, analyzer):  # noqa: F811
+    original = submit(client, users["student"], course["id"]).json()["id"]
+    copy = submit(client, users["student"], course["id"], title="نسخة").json()["id"]
+    # Re-analysing the original now finds the later copy.
+    analyzer.routes["/api/v1/fraud/analyze"] = (200, {
+        "similarity": {"max_similarity": 0.98, "fingerprint_count": 90, "ignored_boilerplate": 0,
+                       "corpus_size": 2, "sources": [{"document_id": copy, "similarity": 0.98,
+                                                      "reverse_similarity": 0.98,
+                                                      "matched_files": []}]},
+        "git": None, "style": {"style_consistency_score": 100.0, "outliers": []},
+    })  # fmt: skip
+    faculty = users["faculty"].headers
+    client.post(f"/api/v1/analysis/code/{original}", headers=faculty)
+    result = client.get(f"/api/v1/fraud/{original}/results", headers=faculty).json()
+    similarity = next(c for c in result["components"] if c["factor"] == "code_similarity")
+    assert similarity["score"] == 51.0  # 100 - 0.98 x 50: shared, not copied
+    assert [f["type"] for f in result["flags"]] == ["code_shared"]
+    assert result["similar_projects"][0]["submitted"] == "later"

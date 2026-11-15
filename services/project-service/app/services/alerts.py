@@ -44,6 +44,17 @@ def project_alerts(project: Project, results: ProjectResults) -> list[dict]:
             "High",
             f"{results.security.critical_count} critical security vulnerabilities",
         )
+    if (authenticity := results.authenticity) and authenticity["authenticity_score"] is not None:
+        score = authenticity["authenticity_score"]
+        serious = [f for f in authenticity["flags"] if f["severity"] in ("High", "Medium")]
+        if score < 50 or any(f["severity"] == "High" for f in serious):
+            add(
+                "authenticity",
+                "High",
+                f"Authenticity {score}/100: " + "; ".join(f["evidence"] for f in serious[:2]),
+            )
+        elif serious:
+            add("authenticity", "Medium", "; ".join(f["evidence"] for f in serious[:2]))
     if results.ai_fixes:
         add(
             "ai_fixes_applied",

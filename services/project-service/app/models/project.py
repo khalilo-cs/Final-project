@@ -157,3 +157,19 @@ class VivaLink(Base):
     status: Mapped[str] = mapped_column(String(20), default="in_progress")
     score: Mapped[float | None] = mapped_column(Float)
     started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+
+
+class FraudResult(Base):
+    """Raw evidence from fraud-detector; the authenticity score is computed from it."""
+
+    __tablename__ = "fraud_detection_results"
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    project_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("projects.id", ondelete="CASCADE"), unique=True
+    )
+    code_similarity_max: Mapped[float] = mapped_column(Float)
+    similar_projects: Mapped[list] = mapped_column(JSON)
+    git_analysis: Mapped[dict | None] = mapped_column(JSON)
+    style: Mapped[dict] = mapped_column(JSON)
+    analyzed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)

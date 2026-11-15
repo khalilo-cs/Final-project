@@ -24,7 +24,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        service: [auth-service, project-service, code-analyzer, db-analyzer, report-analyzer, viva-engine]
+        service: [auth-service, project-service, code-analyzer, db-analyzer, report-analyzer, viva-engine, fraud-detector]
     defaults:
       run:
         working-directory: services/${{ matrix.service }}

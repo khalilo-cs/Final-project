@@ -78,6 +78,15 @@ REPORT_ANALYZER_RESPONSE = {
 }
 
 
+FRAUD_RESPONSE = {
+    "similarity": {"max_similarity": 0.0, "sources": [], "fingerprint_count": 40,
+                   "ignored_boilerplate": 0, "corpus_size": 0},
+    "git": None,
+    "style": {"files_compared": 3, "project_style": {}, "outliers": [],
+              "style_consistency_score": 100.0},
+}  # fmt: skip
+
+
 class Analyzer:
     """Fake code-analyzer + db-analyzer.
 
@@ -96,7 +105,8 @@ class Analyzer:
         self.users: dict[str, dict] = {}  # served by the fake auth-service lookup
         # path -> (status, json or callable); the learner accepts lessons by default.
         self.routes: dict[str, tuple] = {
-            "/internal/learn/project": (200, {"topics": [], "new_topics": []})
+            "/internal/learn/project": (200, {"topics": [], "new_topics": []}),
+            "/api/v1/fraud/analyze": (200, FRAUD_RESPONSE),
         }
         self.route_calls: list[httpx.Request] = []
         self.auth_up = True

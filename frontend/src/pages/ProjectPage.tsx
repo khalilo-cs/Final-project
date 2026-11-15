@@ -4,16 +4,19 @@ import { ApiError, download, get, post, put } from "../api";
 import { useAuth } from "../auth";
 import { Badge, Button, Card, DiffView, ErrorBox, Input, Loading, Score, STATUS_AR, severityTone, useLoad } from "../components/ui";
 import type { Advice, Fix, Grade, Project, VivaState } from "../types";
+import { AuthenticityPanel } from "./AuthenticityPanel";
 
 type Results = Record<"code" | "security" | "database" | "report", { [key: string]: unknown } | null>;
 
-async function loadResults(id: string): Promise<Results> {
+async function loadResults(project: Project): Promise<Results> {
+  const id = project.id;
   const one = (path: string) => get<{ [key: string]: unknown }>("projects", path).catch((e) => (e instanceof ApiError && e.status === 404 ? null : Promise.reject(e)));
+  // Only ask for results the project can have (no report uploaded -> no report results).
   const [code, security, database, report] = await Promise.all([
     one(`/api/v1/analysis/code/${id}/results`),
     one(`/api/v1/analysis/security/${id}/results`),
-    one(`/api/v1/analysis/database/${id}/results`),
-    one(`/api/v1/analysis/report/${id}/results`),
+    project.has_database ? one(`/api/v1/analysis/database/${id}/results`) : null,
+    project.has_report ? one(`/api/v1/analysis/report/${id}/results`) : null,
   ]);
   return { code, security, database, report };
 }
@@ -49,8 +52,9 @@ export function ProjectPage() {
       {project.analysis_error && <ErrorBox error={project.analysis_error} />}
       {busy ? <Card><p className="animate-pulse text-center text-slate-600">جارٍ تحليل المشروع… (الكود، الأمان، قاعدة البيانات، التقرير)</p></Card> : (
         <>
-          <ResultsSummary id={id} />
+          <ResultsSummary project={project} />
           {staff && <GradePanel id={id} />}
+          {staff && <AuthenticityPanel id={id} />}
           <AdvisorPanel project={project} owner={owner} onChanged={reload} />
           <VivaSessions id={id} staff={staff} />
         </>
@@ -59,8 +63,8 @@ export function ProjectPage() {
   );
 }
 
-function ResultsSummary({ id }: { id: string }) {
-  const [results] = useLoad(() => loadResults(id), [id]);
+function ResultsSummary({ project }: { project: Project }) {
+  const [results] = useLoad(() => loadResults(project), [project.id, project.status]);
   if (!results) return <Loading />;
   const n = (value: unknown) => (typeof value === "number" ? value : null);
   const vulnerabilities = (results.security?.vulnerabilities as { type: string; severity: string; file: string; line: number }[] | undefined) ?? [];

@@ -31,10 +31,12 @@ def project(client, users, course):
 
 def test_suggested_grade_and_justification(client, users, project):
     grade = client.get(f"/api/v1/grades/{project}", headers=users["faculty"].headers).json()
-    # code 95 x20, security 75 x10, database 80 x10, report 61.5 x15 -> 4372.5 / 55
-    assert grade["suggested_total"] == 79.5
-    assert grade["coverage"] == 55.0
-    assert grade["missing_criteria"] == ["viva", "authenticity", "performance"]
+    # authenticity: similarity 100 x30, style 100 x15, report (100-42) x10 -> 5080 / 55 = 92.4
+    # code 95 x20, security 75 x10, database 80 x10, report 61.5 x15, authenticity 92.4 x10
+    # -> 5296.5 / 65
+    assert grade["suggested_total"] == 81.5
+    assert grade["coverage"] == 65.0
+    assert grade["missing_criteria"] == ["viva", "performance"]
     rows = {row["criterion"]: row for row in grade["breakdown"]}
     assert rows["code_quality"]["points"] == 19.0
     assert rows["security"]["justification"].startswith("1 critical")
@@ -84,7 +86,7 @@ def test_faculty_sets_grade_and_it_is_logged(client, users, project):
     with database.SessionLocal() as db:
         logs = db.scalars(select(LearningLog).order_by(LearningLog.created_at)).all()
     assert [log.adjusted_value["total"] for log in logs] == [85, 88]
-    assert logs[0].original_value["suggested_total"] == 79.5
+    assert logs[0].original_value["suggested_total"] == 81.5
     assert logs[1].original_value["previous_final"] == 85
 
 
@@ -102,8 +104,9 @@ def test_course_weights(client, users, course, project):
     assert updated["code_quality"]["weight"] == 30 and not updated["code_quality"]["is_default"]
 
     grade = client.get(f"/api/v1/grades/{project}", headers=faculty).json()
-    # code 95 x30, security 75 x10, database 80 x10, report 61.5 x15 -> 5322.5 / 65
-    assert grade["suggested_total"] == 81.9
+    # code 95 x30, security 75 x10, database 80 x10, report 61.5 x15, authenticity 92.4 x10
+    # -> 6246.5 / 75
+    assert grade["suggested_total"] == 83.3
 
 
 def test_course_grades_and_excel(client, users, course, analyzer):
@@ -154,7 +157,7 @@ def test_dashboard(client, users, project):
     summary = client.get("/api/v1/dashboard/faculty/summary", headers=faculty).json()
     assert summary["total_projects"] == 1
     assert summary["by_status"] == {"analyzed": 1}
-    assert summary["average_suggested_total"] == 79.5
+    assert summary["average_suggested_total"] == 81.5
     assert summary["average_by_criterion"]["security"] == 75.0
     assert summary["average_by_criterion"]["viva"] is None
 

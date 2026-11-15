@@ -51,6 +51,7 @@ services:
       REPORT_ANALYZER_URL: http://report-analyzer:8005
       AUTH_SERVICE_URL: http://auth-service:8001
       VIVA_ENGINE_URL: http://viva-engine:8006
+      FRAUD_DETECTOR_URL: http://fraud-detector:8007
     volumes:
       - project-files:/data
     ports:
@@ -63,6 +64,8 @@ services:
       db-analyzer:
         condition: service_started
       report-analyzer:
+        condition: service_started
+      fraud-detector:
         condition: service_started
 
   code-analyzer:
@@ -105,6 +108,24 @@ services:
     read_only: true
     tmpfs:
       - /tmp:size=256m
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+
+  fraud-detector:
+    build: ./services/fraud-detector
+    environment:
+      # Code fingerprint index (tables: code_documents, code_fingerprints).
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET in .env}
+    ports:
+      - "127.0.0.1:8007:8007"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    read_only: true
+    tmpfs:
+      - /tmp:size=512m
     cap_drop: [ALL]
     security_opt:
       - no-new-privileges:true

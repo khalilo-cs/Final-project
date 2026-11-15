@@ -18,6 +18,7 @@ from app.database import SessionLocal
 from app.models.project import (
     CodeAnalysisResult,
     DbAnalysisResult,
+    FraudResult,
     Project,
     ProjectStatus,
     ReportAnalysisResult,
@@ -114,6 +115,34 @@ def _store_database(db: Session, project: Project) -> None:
     )
 
 
+def _store_fraud(db: Session, project: Project) -> None:
+    # A student's own earlier submissions are not "copies".
+    own = db.scalars(
+        select(Project.id).where(Project.student_id == project.student_id, Project.id != project.id)
+    ).all()
+    result = _post(
+        get_settings().fraud_detector_url,
+        "/api/v1/fraud/analyze",
+        Path(project.code_path),
+        "code.zip",
+        data={
+            "document_id": str(project.id),
+            "exclude_ids": json.dumps([str(i) for i in own]),
+            "index": "true",
+        },
+    )
+    db.execute(delete(FraudResult).where(FraudResult.project_id == project.id))
+    db.add(
+        FraudResult(
+            project_id=project.id,
+            code_similarity_max=result["similarity"]["max_similarity"],
+            similar_projects=result["similarity"]["sources"],
+            git_analysis=result["git"],
+            style=result["style"],
+        )
+    )
+
+
 def _facts(db: Session, project: Project) -> dict | None:
     """What the code and database really contain, for the report consistency check."""
     code = db.scalar(select(CodeAnalysisResult).where(CodeAnalysisResult.project_id == project.id))
@@ -155,18 +184,21 @@ def _store_report(db: Session, project: Project) -> None:
 
 
 def forget_report(project_id: uuid.UUID) -> None:
-    """Remove a deleted project's report from the plagiarism corpus (best effort)."""
-    try:
-        with internal_http.client(get_settings().report_analyzer_url, timeout=30) as http:
-            http.delete(f"/api/v1/documents/{project_id}").raise_for_status()
-    except httpx.HTTPError:
-        log.warning("could not remove report of project %s from the index", project_id)
+    """Remove a deleted project from the plagiarism and code-copy corpora (best effort)."""
+    settings = get_settings()
+    for url in (settings.report_analyzer_url, settings.fraud_detector_url):
+        try:
+            with internal_http.client(url, timeout=30) as http:
+                http.delete(f"/api/v1/documents/{project_id}").raise_for_status()
+        except httpx.HTTPError:
+            log.warning("could not remove project %s from the index at %s", project_id, url)
 
 
 # Order matters: the report check compares against the code and database results.
 _ANALYSES = [
     ("Code", lambda project: True, _store_code),
     ("Database", lambda project: project.db_schema_path is not None, _store_database),
+    ("Authenticity", lambda project: True, _store_fraud),
     ("Report", lambda project: project.report_path is not None, _store_report),
 ]
 

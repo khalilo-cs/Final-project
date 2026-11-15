@@ -12,6 +12,7 @@ from app.models.project import (
     AiFixLog,
     CodeAnalysisResult,
     DbAnalysisResult,
+    FraudResult,
     Project,
     ProjectStatus,
     ReportAnalysisResult,
@@ -51,6 +52,15 @@ class ProjectResults:
     viva_score: float | None = None
     viva_questions: int | None = None
     ai_fixes: int = 0
+    fraud: FraudResult | None = None
+    # Which similar projects were submitted after this one (they copied, not the reverse).
+    later_projects: set[str] = field(default_factory=set)
+
+    @property
+    def authenticity(self) -> dict | None:
+        from app.services.authenticity import compute
+
+        return compute(self)
 
 
 @dataclass
@@ -76,12 +86,27 @@ def load_results(db: Session, project_id: uuid.UUID) -> ProjectResults:
         return db.scalar(select(model).where(model.project_id == project_id))
 
     viva = latest_viva(db, project_id)
+    fraud = one(FraudResult)
+    later: set[str] = set()
+    if fraud is not None and fraud.similar_projects:
+        own = db.get(Project, project_id)
+        ids = []
+        for source in fraud.similar_projects:
+            try:
+                ids.append(uuid.UUID(source["document_id"]))
+            except (KeyError, ValueError):
+                continue
+        for other in db.scalars(select(Project).where(Project.id.in_(ids))):
+            if own is not None and other.submitted_at > own.submitted_at:
+                later.add(str(other.id))
     return ProjectResults(
         code=one(CodeAnalysisResult),
         security=one(SecurityAnalysisResult),
         database=one(DbAnalysisResult),
         report=one(ReportAnalysisResult),
         viva_score=viva.score if viva else None,
+        fraud=fraud,
+        later_projects=later,
         ai_fixes=db.scalar(
             select(func.count()).select_from(AiFixLog).where(AiFixLog.project_id == project_id)
         ),
@@ -123,7 +148,9 @@ def _scores(results: ProjectResults) -> dict[str, float | None]:
     if results.report:
         scores["report"] = results.report.overall_report_score
     scores["viva"] = results.viva_score
-    # authenticity and performance come from services not built yet.
+    authenticity = results.authenticity
+    scores["authenticity"] = authenticity["authenticity_score"] if authenticity else None
+    # performance comes from the sandbox service, not built yet.
     return scores
 
 
@@ -159,6 +186,9 @@ def _justify(criterion: str, results: ProjectResults) -> str | None:
             f"{len(report.inconsistencies)} report/code inconsistencies; "
             f"documentation {report.documentation_quality_score}/100"
         )
+    if criterion == "authenticity" and (authenticity := results.authenticity):
+        flags = "; ".join(f["evidence"] for f in authenticity["flags"][:2]) or "no warning signs"
+        return f"{authenticity['coverage']}% of the evidence available; {flags}"
     if criterion == "viva" and results.viva_score is not None:
         return f"viva score {results.viva_score}/100 (adaptive questions on the student's code)"
     return None

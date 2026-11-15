@@ -148,9 +148,7 @@ def delete_project(
         raise HTTPException(status.HTTP_409_CONFLICT, "Graded projects cannot be withdrawn")
     if not is_owner:
         access.require_project_staff(db, principal, project)
-    had_report = project.report_path is not None
     db.delete(project)
     db.commit()
     storage.delete_project_files(project_id)
-    if had_report:
-        background.add_task(forget_report, project_id)
+    background.add_task(forget_report, project_id)

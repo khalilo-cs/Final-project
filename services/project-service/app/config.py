@@ -19,6 +19,7 @@ class Settings(BaseSettings):
     db_analyzer_url: str = "http://localhost:8004"
     report_analyzer_url: str = "http://localhost:8005"
     viva_engine_url: str = "http://localhost:8006"
+    fraud_detector_url: str = "http://localhost:8007"
     analyzer_timeout_seconds: float = 300
 
     max_code_mb: int = 50

@@ -1,4 +1,4 @@
-SERVICES := auth-service project-service code-analyzer db-analyzer report-analyzer viva-engine
+SERVICES := auth-service project-service code-analyzer db-analyzer report-analyzer viva-engine fraud-detector
 VENV ?= .venv
 PY := $(abspath $(VENV))/bin/python
 
