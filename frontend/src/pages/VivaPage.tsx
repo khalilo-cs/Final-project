@@ -16,8 +16,10 @@ export function VivaPage() {
   const [busy, setBusy] = useState(false);
   const box = useRef<HTMLTextAreaElement>(null);
   const [autoRead, setAutoRead] = useState(false);
-  const dictation = useDictation(state?.language ?? "ar", (text) =>
-    setAnswer((current) => (current ? `${current} ${text}` : text)),
+  const dictation = useDictation(
+    state?.language ?? "ar",
+    (text) => setAnswer((current) => (current ? `${current} ${text}` : text)),
+    state?.current_question?.text,
   );
 
   useEffect(() => {
@@ -29,7 +31,7 @@ export function VivaPage() {
   }, [autoRead, state?.question_number]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const send = async () => {
-    dictation.stop();
+    dictation.cancel();
     setBusy(true);
     setError(undefined);
     try {
@@ -87,8 +89,10 @@ export function VivaPage() {
           <div className="flex items-center gap-2">
             <Button variant="secondary" onClick={() => void end()}>إنهاء المناقشة</Button>
             {dictation.supported && (
-              <Button variant={dictation.listening ? "danger" : "secondary"} onClick={dictation.listening ? dictation.stop : dictation.start}>
-                {dictation.listening ? "⏹ إيقاف التسجيل" : "🎤 أجب بصوتك"}
+              <Button variant={dictation.listening ? "danger" : "secondary"} disabled={dictation.transcribing}
+                onClick={dictation.listening ? dictation.stop : dictation.start}
+                title={dictation.engine === "server" ? "يُحوَّل صوتك إلى نص على خادم الجامعة" : "التعرّف على الصوت من المتصفح"}>
+                {dictation.transcribing ? "… جارٍ تحويل الصوت إلى نص" : dictation.listening ? "⏹ إيقاف التسجيل" : "🎤 أجب بصوتك"}
               </Button>
             )}
             {canSpeak() && (

@@ -11,6 +11,7 @@ services:
       - auth-service
       - project-service
       - viva-engine
+      - speech-service
 
   postgres:
     image: postgres:16-alpine
@@ -151,6 +152,27 @@ services:
     security_opt:
       - no-new-privileges:true
 
+  # Speech-to-text for spoken viva answers (Whisper). Audio stays on this server with
+  # the default local engine; the model (~500 MB for "small") downloads on first use.
+  speech-service:
+    build: ./services/speech-service
+    environment:
+      JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET in .env}
+      SPEECH_BACKEND: ${SPEECH_BACKEND:-local}
+      WHISPER_MODEL: ${WHISPER_MODEL:-small}
+      WHISPER_DEVICE: ${WHISPER_DEVICE:-cpu}
+      WHISPER_COMPUTE_TYPE: ${WHISPER_COMPUTE_TYPE:-int8}
+      REMOTE_URL: ${SPEECH_REMOTE_URL:-}
+      REMOTE_MODEL: ${SPEECH_REMOTE_MODEL:-whisper-1}
+      REMOTE_API_KEY: ${SPEECH_REMOTE_API_KEY:-}
+    volumes:
+      - whisper-models:/models
+    ports:
+      - "127.0.0.1:8010:8010"
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+
   # Runs student projects in throw-away containers to measure performance.
   # SECURITY: access to the Docker socket is root-equivalent on the host. Run this on a
   # dedicated machine or VM in production, never next to sensitive data.
@@ -226,6 +248,7 @@ networks:
 
 volumes:
   postgres-data:
+  whisper-models:
   project-files:
   ollama-models:
   minio-data:

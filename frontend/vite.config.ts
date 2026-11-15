@@ -8,6 +8,7 @@ const services: Record<string, number> = {
   auth: 8001,
   projects: 8002,
   viva: 8006,
+  speech: 8010,
 };
 
 export default defineConfig({

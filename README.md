@@ -20,6 +20,7 @@
 | `fraud-detector` | 8007 | كشف نسخ الكود بين المشاريع (يقاوم تغيير الأسماء)، تحليل تاريخ Git، ثبات أسلوب الكتابة |
 | `report-analyzer` | 8005 | تقرير PDF/DOCX ← كشف الانتحال مقابل كل التقارير السابقة، التناقض بين التقرير والكود، جودة التوثيق، درجة التقرير |
 | `sandbox-runner` | 8008 | يشغّل المشروع في حاوية Docker معزولة (بلا إنترنت، حدود ذاكرة ومعالج) ويقيس: هل يعمل، زمن الإقلاع، زمن الاستجابة، الأخطاء، الذاكرة |
+| `speech-service` | 8010 | تحويل إجابات المناقشة الصوتية إلى نص بـ Whisper على خادم الجامعة (أو أي خادم Whisper متوافق مع OpenAI) |
 | `report-generator` | 8009 | تقرير PDF عربي لكل طالب (نسخة للدكتور ونسخة للطالب) مع رسوم بيانية، وملف ZIP لتقارير المادة كاملة |
 
 ما يكشفه الفحص الأمني حالياً:
@@ -47,8 +48,7 @@ SQL Server، MS Access، Windows Forms، WPF، ASP.NET، Entity Framework، Qt،
 
 ### لم يُنفَّذ بعد
 
-Knowledge Graph (Neo4j)، التشابه الدلالي بنماذج مثل CodeBERT، إشعارات SMS، الدخول عبر LDAP/OAuth للجامعة، تحويل الصوت إلى نص على الخادم
-(Whisper). تشغيل
+Knowledge Graph (Neo4j)، التشابه الدلالي بنماذج مثل CodeBERT، إشعارات SMS، الدخول عبر LDAP/OAuth للجامعة. تشغيل
 sandbox-runner الحقيقي يحتاج Docker على الخادم، وقد اختُبر هنا ببديل محلي فقط.
 
 ## التشغيل
@@ -70,8 +70,10 @@ React + TypeScript + Tailwind، عربية من اليمين لليسار.
   يمكن تطويره)، الإصلاحات المقترحة كـ diff مع مربع اختيار لكل إصلاح وزر "موافق" (لا يتغير
   شيء قبل موافقته، وتظهر له رسالة توضح أن النسخة الأصلية محفوظة وأن الدكتور سيرى
   الإصلاحات)، **نتائج الأداء**، تنزيل تقريره PDF، و**المناقشة الذكية**: السؤال مع مقتطف
-  من كوده، المستوى الحالي، والتقدم، مع **الإجابة بالصوت** وقراءة السؤال بصوت مسموع
-  (Web Speech API في المتصفح؛ في Chrome يمر الصوت عبر خدمة Google، والكتابة تبقى متاحة).
+  من كوده، المستوى الحالي، والتقدم، مع **الإجابة بالصوت** وقراءة السؤال بصوت مسموع.
+  الصوت يُحوَّل إلى نص على خادم الجامعة بـ Whisper (`speech-service`) فلا يغادرها، ونص
+  السؤال يُرسل معه ليتعرّف على المصطلحات التقنية. إن لم تعمل الخدمة يُستخدم التعرّف في
+  المتصفح (في Chrome يمر عبر Google)، والكتابة تبقى متاحة دائماً.
 - **الدكتور:** لوحة تحكم بالتنبيهات والمتوسطات، صفحة المادة (إضافة طالب باسم المستخدم،
   جدول الدرجات، أوزان التقييم، تصدير Excel)، صفحة المشروع (الدرجة المقترحة مع التبرير
   واعتماد الدرجة، ولوحة الأصالة)، **مراجعة المناقشة** لتصحيح تقييم كل إجابة (وهذا ما
@@ -85,7 +87,7 @@ nginx في الإنتاج يوجّه `/svc/auth` و `/svc/projects` و `/svc/viv
 ويضيف ترويسات الأمان (CSP وغيرها). وauth-service يقفل الحساب 15 دقيقة بعد 5 محاولات
 دخول فاشلة (429 مع `Retry-After`).
 
-- توثيق الـ API التفاعلي: `/docs` على كل منفذ (8001 إلى 8009).
+- توثيق الـ API التفاعلي: `/docs` على كل منفذ (8001 إلى 8010).
 - أول حساب admin يُنشأ من `ADMIN_*` في `.env` عند أول تشغيل.
 
 مثال كامل (دكتور ينشئ مادة ويسجّل طالباً، والطالب يرفع مشروعه):
@@ -207,6 +209,14 @@ Java/Maven، موقع ثابت)، يبنيه في حاوية ثم يشغّله �
 (`GET .../code?original=true`)، يُسجَّل كل إصلاح ويظهر للدكتور كتنبيه، ثم يُعاد التحليل.
 بعد اعتماد الدرجة تُقفل الإصلاحات.
 
+### تحويل الصوت إلى نص (speech-service)
+
+`SPEECH_BACKEND=local` (الافتراضي): faster-whisper داخل الحاوية؛ النموذج (`WHISPER_MODEL`،
+`small` افتراضياً ≈ 500MB) يُنزَّل مرة واحدة إلى volume عند أول إجابة، ويعمل على CPU أو GPU
+(`WHISPER_DEVICE=cuda`). `remote`: أي خادم بواجهة `/v1/audio/transcriptions` (whisper.cpp،
+speaches، LocalAI، vLLM) عبر `SPEECH_REMOTE_URL`. `off`: يُعطَّل ويرجع الطالب لتعرّف
+المتصفح. الحدود: 10MB و 5 دقائق للإجابة، ويُقبل webm/ogg/wav/mp3/m4a فقط.
+
 ### الإشعارات
 
 جرس في أعلى كل صفحة مع عدد غير المقروء (يتحدث كل 30 ثانية). الطالب يُبلَّغ عند اكتمال
@@ -296,6 +306,7 @@ services/
   fraud-detector/    FastAPI — analyzers/ (tokens, similarity, git_history, style)
   sandbox-runner/    FastAPI + Docker SDK — detect, backend (containers), profiler
   report-generator/  FastAPI + Jinja2 + WeasyPrint — templates/ (Arabic RTL PDF)
+  speech-service/    FastAPI + faster-whisper — engines (local / remote Whisper)
   viva-engine/       FastAPI — providers/ (built-in, Claude, Ollama, OpenAI-compatible)
                      engine/ (dialogue, learning, advisor) knowledge/ (BM25, web)
 frontend/            React + TypeScript + Tailwind (RTL)، nginx في الإنتاج

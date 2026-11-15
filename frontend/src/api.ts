@@ -63,7 +63,7 @@ function detail(body: unknown, fallback: string): string {
 }
 
 export async function request<T>(
-  service: "auth" | "projects" | "viva",
+  service: "auth" | "projects" | "viva" | "speech",
   path: string,
   init: RequestInit = {},
   retry = true,
@@ -87,11 +87,11 @@ export async function request<T>(
   return (type.includes("json") ? response.json() : response.blob()) as Promise<T>;
 }
 
-export const get = <T,>(service: "auth" | "projects" | "viva", path: string) =>
+export const get = <T,>(service: "auth" | "projects" | "viva" | "speech", path: string) =>
   request<T>(service, path);
 
 export const post = <T,>(
-  service: "auth" | "projects" | "viva",
+  service: "auth" | "projects" | "viva" | "speech",
   path: string,
   body?: unknown,
 ) =>
@@ -100,7 +100,7 @@ export const post = <T,>(
     body: body instanceof FormData ? body : body === undefined ? undefined : JSON.stringify(body),
   });
 
-export const put = <T,>(service: "auth" | "projects" | "viva", path: string, body: unknown) =>
+export const put = <T,>(service: "auth" | "projects" | "viva" | "speech", path: string, body: unknown) =>
   request<T>(service, path, { method: "PUT", body: JSON.stringify(body) });
 
 export async function download(service: "projects" | "viva", path: string, filename: string) {
