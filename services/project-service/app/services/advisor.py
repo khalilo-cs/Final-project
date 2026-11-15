@@ -155,6 +155,27 @@ def build_advice(results: ProjectResults) -> dict:
                                         f"{inconsistency.get('report_claim', '')} — "
                                         f"{inconsistency.get('code_reality', '')}"))  # fmt: skip
 
-    order = {"high": 0, "medium": 1, "low": 2}
+    performance = results.performance
+    if performance and performance.status == "done":
+        if not performance.runs_successfully:
+            weaknesses.append(_item("performance", "المشروع لا يعمل عند تشغيله",
+                                    performance.error or ""))  # fmt: skip
+            # Nothing else matters much if the project does not run at all.
+            improvements.append(_item("performance", "تأكد أن المشروع يعمل من نسخة نظيفة: أضف "
+                                      "كل المكتبات إلى requirements.txt أو package.json",
+                                      performance.error or "", "critical"))  # fmt: skip
+        elif (performance.overall_performance_score or 0) >= 90:
+            strengths.append(
+                _item(
+                    "performance",
+                    "أداء جيد تحت الضغط",
+                    f"درجة الأداء {performance.overall_performance_score}/100",
+                )
+            )
+        for flag in performance.details.get("flags", []):
+            if flag["type"] != "does_not_run":
+                weaknesses.append(_item("performance", flag["type"], flag["evidence"]))
+
+    order = {"critical": -1, "high": 0, "medium": 1, "low": 2}
     improvements.sort(key=lambda i: order.get(i.get("priority"), 3))
     return {"strengths": strengths, "weaknesses": weaknesses, "improvements": improvements}

@@ -55,6 +55,9 @@ def project_alerts(project: Project, results: ProjectResults) -> list[dict]:
             )
         elif serious:
             add("authenticity", "Medium", "; ".join(f["evidence"] for f in serious[:2]))
+    performance = results.performance
+    if performance and performance.status == "done" and not performance.runs_successfully:
+        add("does_not_run", "High", f"The project does not run: {performance.error}")
     if results.ai_fixes:
         add(
             "ai_fixes_applied",

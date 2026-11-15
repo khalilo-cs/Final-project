@@ -52,6 +52,7 @@ services:
       AUTH_SERVICE_URL: http://auth-service:8001
       VIVA_ENGINE_URL: http://viva-engine:8006
       FRAUD_DETECTOR_URL: http://fraud-detector:8007
+      SANDBOX_RUNNER_URL: http://sandbox-runner:8008
     volumes:
       - project-files:/data
     ports:
@@ -130,6 +131,20 @@ services:
     security_opt:
       - no-new-privileges:true
 
+  # Runs student projects in throw-away containers to measure performance.
+  # SECURITY: access to the Docker socket is root-equivalent on the host. Run this on a
+  # dedicated machine or VM in production, never next to sensitive data.
+  sandbox-runner:
+    build: ./services/sandbox-runner
+    environment:
+      JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET in .env}
+      SANDBOX_NETWORK: aipe-sandbox
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks: [default, sandbox]
+    ports:
+      - "127.0.0.1:8008:8008"
+
   viva-engine:
     build: ./services/viva-engine
     environment:
@@ -181,6 +196,13 @@ services:
       - minio-data:/data
     ports:
       - "127.0.0.1:9001:9001"
+
+networks:
+  default: {}
+  # Student code runs here: internal = no route to the internet.
+  sandbox:
+    name: aipe-sandbox
+    internal: true
 
 volumes:
   postgres-data:

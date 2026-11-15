@@ -230,6 +230,9 @@ def run_analysis(project_id: uuid.UUID) -> None:
         project.analysis_error = "; ".join(errors) or None
         db.commit()
         teach_viva_engine(db, project)
+        from app.services.performance import start_run
+
+        start_run(db, project)  # minutes-long: runs in the background on sandbox-runner
 
 
 def teach_viva_engine(db: Session, project: Project) -> None:

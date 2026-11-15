@@ -5,6 +5,7 @@ import { useAuth } from "../auth";
 import { Badge, Button, Card, DiffView, ErrorBox, Input, Loading, Score, STATUS_AR, severityTone, useLoad } from "../components/ui";
 import type { Advice, Fix, Grade, Project, VivaState } from "../types";
 import { AuthenticityPanel } from "./AuthenticityPanel";
+import { PerformancePanel } from "./PerformancePanel";
 
 type Results = Record<"code" | "security" | "database" | "report", { [key: string]: unknown } | null>;
 
@@ -55,6 +56,7 @@ export function ProjectPage() {
           <ResultsSummary project={project} />
           {staff && <GradePanel id={id} />}
           {staff && <AuthenticityPanel id={id} />}
+          <PerformancePanel id={id} canRun={(owner || staff) && project.status !== "graded"} />
           <AdvisorPanel project={project} owner={owner} onChanged={reload} />
           <VivaSessions id={id} staff={staff} />
         </>
@@ -104,8 +106,8 @@ function AdviceList({ title, items, tone }: { title: string; items: Advice["stre
           {items.map((item, i) => (
             <li key={i} className={`border-r-4 ${border} bg-slate-50 py-1.5 pr-3 text-sm`}>
               <div className="flex items-center gap-2 font-semibold">
-                {item.priority && <Badge tone={item.priority === "high" ? "red" : item.priority === "medium" ? "amber" : "gray"}>
-                  {{ high: "أولوية عالية", medium: "متوسطة", low: "منخفضة" }[item.priority]}</Badge>}
+                {item.priority && <Badge tone={item.priority === "critical" || item.priority === "high" ? "red" : item.priority === "medium" ? "amber" : "gray"}>
+                  {{ critical: "حرجة", high: "أولوية عالية", medium: "متوسطة", low: "منخفضة" }[item.priority]}</Badge>}
                 {item.title}
               </div>
               <div className="mt-0.5 text-xs text-slate-500">{item.evidence}</div>

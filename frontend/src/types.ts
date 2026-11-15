@@ -5,7 +5,7 @@ export interface Project {
   programming_languages: string[]; frameworks: string[]; has_report: boolean; has_database: boolean;
   status: string; analysis_error: string | null; submitted_at: string;
 }
-export interface AdviceItem { category: string; title: string; evidence: string; priority?: "high" | "medium" | "low" }
+export interface AdviceItem { category: string; title: string; evidence: string; priority?: "critical" | "high" | "medium" | "low" }
 export interface Fix { id: string; file: string; line: number; type: string; title: string; explanation: string; kind: "patch" | "suggestion"; diff: string | null; example: string | null }
 export interface Advice {
   strengths: AdviceItem[]; weaknesses: AdviceItem[]; improvements: AdviceItem[];

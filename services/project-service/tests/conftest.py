@@ -107,6 +107,8 @@ class Analyzer:
         self.routes: dict[str, tuple] = {
             "/internal/learn/project": (200, {"topics": [], "new_topics": []}),
             "/api/v1/fraud/analyze": (200, FRAUD_RESPONSE),
+            "/internal/runs": (202, {"run_id": "run1", "status": "queued"}),
+            "/internal/runs/*": (200, {"run_id": "run1", "status": "running"}),
         }
         self.route_calls: list[httpx.Request] = []
         self.auth_up = True
@@ -117,9 +119,10 @@ class Analyzer:
             self.route_calls.append(request)
             status, body = self.routes[path]
             return httpx.Response(status, json=body(request) if callable(body) else body)
-        if path.startswith("/internal/sessions/") and "/internal/sessions/*" in self.routes:
-            status, body = self.routes["/internal/sessions/*"]
-            return httpx.Response(status, json=body)
+        for pattern, (status, body) in self.routes.items():
+            if pattern.endswith("/*") and path.startswith(pattern[:-1]):
+                self.route_calls.append(request)
+                return httpx.Response(status, json=body)
         if request.url.path == "/api/v1/internal/users/lookup":
             if not self.auth_up:
                 return httpx.Response(503)

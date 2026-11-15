@@ -173,3 +173,21 @@ class FraudResult(Base):
     git_analysis: Mapped[dict | None] = mapped_column(JSON)
     style: Mapped[dict] = mapped_column(JSON)
     analyzed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+
+
+class PerformanceResult(Base):
+    """A sandbox run of the project (runs in the background on sandbox-runner)."""
+
+    __tablename__ = "performance_results"
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    project_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("projects.id", ondelete="CASCADE"), unique=True
+    )
+    run_id: Mapped[str | None] = mapped_column(String(40))
+    status: Mapped[str] = mapped_column(String(20))  # running, done, unavailable, lost
+    runs_successfully: Mapped[bool | None] = mapped_column()
+    overall_performance_score: Mapped[float | None] = mapped_column(Float)
+    error: Mapped[str | None] = mapped_column(Text)
+    details: Mapped[dict] = mapped_column(JSON, default=dict)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now, onupdate=now)

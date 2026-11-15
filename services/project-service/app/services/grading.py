@@ -13,6 +13,7 @@ from app.models.project import (
     CodeAnalysisResult,
     DbAnalysisResult,
     FraudResult,
+    PerformanceResult,
     Project,
     ProjectStatus,
     ReportAnalysisResult,
@@ -55,6 +56,7 @@ class ProjectResults:
     fraud: FraudResult | None = None
     # Which similar projects were submitted after this one (they copied, not the reverse).
     later_projects: set[str] = field(default_factory=set)
+    performance: PerformanceResult | None = None
 
     @property
     def authenticity(self) -> dict | None:
@@ -107,10 +109,17 @@ def load_results(db: Session, project_id: uuid.UUID) -> ProjectResults:
         viva_score=viva.score if viva else None,
         fraud=fraud,
         later_projects=later,
+        performance=_performance(db, project_id),
         ai_fixes=db.scalar(
             select(func.count()).select_from(AiFixLog).where(AiFixLog.project_id == project_id)
         ),
     )
+
+
+def _performance(db: Session, project_id: uuid.UUID) -> PerformanceResult | None:
+    from app.services.performance import refresh
+
+    return refresh(db, project_id)
 
 
 def latest_viva(db: Session, project_id: uuid.UUID) -> VivaLink | None:
@@ -150,7 +159,8 @@ def _scores(results: ProjectResults) -> dict[str, float | None]:
     scores["viva"] = results.viva_score
     authenticity = results.authenticity
     scores["authenticity"] = authenticity["authenticity_score"] if authenticity else None
-    # performance comes from the sandbox service, not built yet.
+    if results.performance and results.performance.status == "done":
+        scores["performance"] = results.performance.overall_performance_score
     return scores
 
 
@@ -189,6 +199,19 @@ def _justify(criterion: str, results: ProjectResults) -> str | None:
     if criterion == "authenticity" and (authenticity := results.authenticity):
         flags = "; ".join(f["evidence"] for f in authenticity["flags"][:2]) or "no warning signs"
         return f"{authenticity['coverage']}% of the evidence available; {flags}"
+    if criterion == "performance" and results.performance:
+        perf = results.performance
+        if perf.status != "done":
+            return perf.error or "performance test running"
+        if not perf.runs_successfully:
+            return f"the project does not run: {perf.error}"
+        levels = perf.details.get("load_test") or []
+        worst = levels[-1] if levels else {}
+        return (
+            f"starts in {perf.details.get('startup_seconds')}s; p95 {worst.get('p95_ms')} ms "
+            f"with {worst.get('concurrent_users')} users; peak memory "
+            f"{perf.details.get('memory_peak_mb')} MB"
+        )
     if criterion == "viva" and results.viva_score is not None:
         return f"viva score {results.viva_score}/100 (adaptive questions on the student's code)"
     return None
