@@ -47,6 +47,11 @@ _IMPORTS = {
     "javax.persistence": "JPA", "jakarta.persistence": "JPA", "android": "Android",
     "com.mysql": "MySQL", "org.postgresql": "PostgreSQL", "com.mongodb": "MongoDB",
     "io.jsonwebtoken": "JWT",
+    # JavaScript / TypeScript (import "x" or require("x"))
+    "react": "React", "vue": "Vue.js", "@angular/core": "Angular", "next": "Next.js",
+    "express": "Express", "@nestjs/core": "NestJS", "mongoose": "MongoDB", "mongodb": "MongoDB",
+    "mysql2": "MySQL", "mysql": "MySQL", "pg": "PostgreSQL", "sequelize": "Sequelize",
+    "firebase": "Firebase", "socket.io": "Socket.IO", "jsonwebtoken": "JWT",
 }  # fmt: skip
 
 # Substrings in build files / sources.
@@ -104,7 +109,7 @@ class TechnologyDetector:
     def feed_imports(self, relative: str, imports: list[str]) -> None:
         for name in imports:
             for prefix, technology in _IMPORTS.items():
-                if name == prefix or name.startswith(prefix + "."):
+                if name == prefix or name.startswith((prefix + ".", prefix + "/")):
                     self._found(technology, relative)
 
     # -- output --------------------------------------------------------------------------

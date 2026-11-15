@@ -6,6 +6,7 @@ from pathlib import Path
 
 from app.analyzers.base_analyzer import BaseAnalyzer, FileAnalysis
 from app.analyzers.java_analyzer import JavaAnalyzer
+from app.analyzers.javascript_analyzer import JavaScriptAnalyzer
 from app.analyzers.python_analyzer import PythonAnalyzer
 from app.analyzers.technologies import MAX_MANIFEST_BYTES, TechnologyDetector
 from app.quality.code_smells import detect_smells
@@ -13,12 +14,18 @@ from app.quality.dead_code import java_dead_code, python_dead_code
 from app.quality.duplication import find_duplicates
 from app.quality.score import quality_score, security_score
 from app.security.java_rules import scan_java
+from app.security.js_rules import scan_javascript
 from app.security.models import Severity, Vulnerability
 from app.security.python_rules import scan_python
 from app.security.secrets_scanner import scan_secrets
 
-ANALYZERS: list[BaseAnalyzer] = [PythonAnalyzer(), JavaAnalyzer()]
-SECURITY_RULES = {"python": scan_python, "java": scan_java}
+ANALYZERS: list[BaseAnalyzer] = [PythonAnalyzer(), JavaAnalyzer(), JavaScriptAnalyzer()]
+SECURITY_RULES = {
+    "python": scan_python,
+    "java": scan_java,
+    "javascript": scan_javascript,
+    "typescript": scan_javascript,
+}
 _BY_EXTENSION = {ext: analyzer for analyzer in ANALYZERS for ext in analyzer.extensions}
 
 SKIPPED_DIRS = {

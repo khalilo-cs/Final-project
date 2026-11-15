@@ -17,6 +17,23 @@ def java_parser() -> Parser:
     return Parser(Language(tree_sitter_java.language()))
 
 
+@cache
+def js_parser(dialect: str = "javascript") -> Parser:
+    """javascript (incl. JSX), typescript or tsx."""
+    if dialect == "javascript":
+        import tree_sitter_javascript
+
+        return Parser(Language(tree_sitter_javascript.language()))
+    import tree_sitter_typescript
+
+    language = (
+        tree_sitter_typescript.language_tsx()
+        if dialect == "tsx"
+        else tree_sitter_typescript.language_typescript()
+    )
+    return Parser(Language(language))
+
+
 def text(node: Node | None) -> str:
     if node is None or node.text is None:
         return ""
