@@ -87,6 +87,8 @@ services:
   code-analyzer:
     build: ./services/code-analyzer
     environment:
+      EMBEDDING_URL: ${EMBEDDING_URL:-}
+      EMBEDDING_MODEL: ${EMBEDDING_MODEL:-nomic-embed-text}
       JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET in .env}
     ports:
       - "127.0.0.1:8003:8003"

@@ -90,10 +90,15 @@ def load_results(db: Session, project_id: uuid.UUID) -> ProjectResults:
     viva = latest_viva(db, project_id)
     fraud = one(FraudResult)
     later: set[str] = set()
-    if fraud is not None and fraud.similar_projects:
+    sources = (
+        (fraud.similar_projects or []) + ((fraud.semantic or {}).get("sources") or [])
+        if fraud
+        else []
+    )
+    if sources:
         own = db.get(Project, project_id)
         ids = []
-        for source in fraud.similar_projects:
+        for source in sources:
             try:
                 ids.append(uuid.UUID(source["document_id"]))
             except (KeyError, ValueError):

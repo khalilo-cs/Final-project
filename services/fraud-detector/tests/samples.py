@@ -144,3 +144,102 @@ public class Cart {
 }
 """,
 }
+
+
+# A function copied, then rewritten to hide it: new names, while instead of for,
+# changed literals and comments. Token fingerprints mostly miss this.
+FEES_ORIGINAL = {
+    "src/Library.java": """
+class Library {
+  public double lateFees(List<Loan> loans, LocalDate today) {
+    double total = 0;
+    for (Loan loan : loans) {
+      if (loan.getReturned() == null && loan.getDue().isBefore(today)) {
+        long days = ChronoUnit.DAYS.between(loan.getDue(), today);
+        double fee = days * 0.5;
+        if (fee > 20) { fee = 20; }
+        total += fee;
+        notifier.send(loan.getStudent(), "Late: " + days);
+      }
+    }
+    log.info("fees computed");
+    return total;
+  }
+}
+"""
+}
+FEES_REWRITTEN = {
+    "app/Penalties.java": """
+class Penalties {
+  // calculates the penalty for each overdue item
+  public double computePenalty(List<Loan> items, LocalDate now) {
+    double sum = 0;
+    int i = 0;
+    while (i < items.size()) {
+      Loan it = items.get(i);
+      if (it.getReturned() == null && it.getDue().isBefore(now)) {
+        long d = ChronoUnit.DAYS.between(it.getDue(), now);
+        double p = d * 0.5;
+        if (p > 20) p = 20;
+        sum += p;
+        notifier.send(it.getStudent(), "Overdue " + d);
+      }
+      i++;
+    }
+    log.info("done");
+    return sum;
+  }
+}
+"""
+}
+FEES_CSHARP = {
+    "Fees.cs": """
+class Fees {
+  public double LateFees(List<Loan> loans, DateTime today) {
+    double total = 0;
+    foreach (var loan in loans) {
+      if (loan.getReturned() == null && loan.getDue().isBefore(today)) {
+        long days = ChronoUnit.DAYS.between(loan.getDue(), today);
+        double fee = days * 0.5;
+        if (fee > 20) { fee = 20; }
+        total += fee;
+        notifier.send(loan.getStudent(), "Late: " + days);
+      }
+    }
+    log.info("fees computed");
+    return total;
+  }
+}
+"""
+}
+DIFFERENT_JAVA = {
+    "src/Shop.java": """
+class Shop {
+  public double cartTotal(List<Item> items, Coupon coupon) {
+    double total = 0;
+    for (Item item : items) {
+      if (item.isAvailable() && item.getStock() > 0) {
+        double price = item.getPrice() * item.getQty();
+        if (item.isOnSale()) { price = price * 0.9; }
+        total += price;
+      }
+    }
+    if (coupon != null && coupon.isValid()) { total -= coupon.getAmount(); }
+    return Math.max(0, total);
+  }
+
+  public User login(String username, String password) throws AuthException {
+    User user = repo.findByUsername(username);
+    if (user == null) { throw new AuthException("no user"); }
+    if (!encoder.matches(password, user.getHash())) {
+      attempts.increment(username);
+      if (attempts.get(username) > 5) { lock(username); }
+      throw new AuthException("bad password");
+    }
+    attempts.reset(username);
+    audit.log("login", username);
+    return user;
+  }
+}
+"""
+}

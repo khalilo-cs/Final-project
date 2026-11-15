@@ -5,6 +5,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Form, HTTPException, UploadFile, status
 
+from app.analyzers import semantic
 from app.analyzers.git_history import analyze_git
 from app.analyzers.similarity import compare_and_index, remove_document
 from app.analyzers.style import analyze_style
@@ -47,8 +48,17 @@ def analyze(
             extract_zip(archive, root, settings.max_extracted_mb * _MB, settings.max_files)
         except ArchiveError as exc:
             raise HTTPException(status.HTTP_400_BAD_REQUEST, str(exc)) from exc
+        similarity = compare_and_index(db, document_id, root, exclude, index)
+        token_lines: dict[str, dict[str, list]] = {}
+        for source in similarity["sources"]:
+            for match in source["matched_files"]:
+                files = token_lines.setdefault(source["document_id"], {})
+                files.setdefault(match["file"], []).append(tuple(match["lines"]))
         return {
-            "similarity": compare_and_index(db, document_id, root, exclude, index),
+            "similarity": similarity,
+            "semantic": semantic.compare_and_index(
+                db, document_id, root, exclude, token_lines, index
+            ),
             "git": analyze_git(root),
             "style": analyze_style(root),
         }

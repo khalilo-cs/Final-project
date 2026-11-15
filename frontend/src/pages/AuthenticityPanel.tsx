@@ -7,7 +7,22 @@ interface Match { file: string; lines: [number, number]; other_file: string; oth
 interface Similar { document_id: string; submitted: "earlier" | "later"; title: string; student_name: string | null; course: string | null; similarity: number; reverse_similarity: number | null; matched_files: Match[] }
 interface Git { available: boolean; error?: string; total_commits?: number; span_days?: number; active_days?: number; authors?: { author: string; commits: number }[]; flags?: Flag[] }
 interface Style { files_compared: number; outliers: { file: string; lines: number; differs: Record<string, { file: string; project: string }> }[] }
-interface Authenticity { authenticity_score: number | null; coverage: number; components: Component[]; flags: Flag[]; similar_projects: Similar[]; git: Git | null; style: Style }
+interface FunctionMatch { file: string; name: string; lines: [number, number]; other_file: string; other_name: string; other_lines: [number, number]; similarity: number; methods: string[]; token_coverage: number; rewritten: boolean }
+interface Rewritten { document_id: string; submitted: "earlier" | "later"; title: string; student_name: string | null; course: string | null; similarity: number; matched_functions: number; rewritten_functions: number; functions: FunctionMatch[] }
+interface Authenticity { authenticity_score: number | null; coverage: number; components: Component[]; flags: Flag[]; similar_projects: Similar[]; rewritten_code?: Rewritten[]; semantic_methods?: string[] | null; git: Git | null; style: Style }
+
+/** Arabic number agreement: 1 and 2 have their own forms, 3-10 plural, 11+ singular. */
+function countAr(n: number, one: string, two: string, few: string, many: string) {
+  if (n === 1) return one;
+  if (n === 2) return two;
+  return n % 100 >= 3 && n % 100 <= 10 ? `${n} ${few}` : `${n} ${many}`;
+}
+
+function rewording(coverage: number) {
+  if (coverage >= 0.9) return <Badge tone="red">منسوخة كما هي</Badge>;
+  if (coverage >= 0.5) return <Badge tone="amber">أعيدت صياغتها جزئياً</Badge>;
+  return <Badge tone="amber">أعيدت صياغتها</Badge>;
+}
 
 const FEATURE_AR: Record<string, string> = { naming: "التسمية", indent: "المسافات البادئة", comments: "التعليقات", quotes: "علامات الاقتباس", braces: "الأقواس" };
 
@@ -63,6 +78,46 @@ export function AuthenticityPanel({ id }: { id: string }) {
             ))}
           </div>
           <p className="mt-2 text-xs text-slate-500">المقارنة تتجاهل أسماء المتغيرات والتعليقات وتنسيق الكود، فتغيير الأسماء لا يخفي النسخ. القالب المشترك بين أغلب المشاريع لا يُحسب.</p>
+        </div>
+      )}
+      {(data.rewritten_code?.length ?? 0) > 0 && (
+        <div className="mt-5">
+          <h3 className="mb-2 font-bold">دوال متطابقة في البنية</h3>
+          <div className="space-y-3">
+            {data.rewritten_code!.map((s) => (
+              <div key={s.document_id} className="rounded-lg border border-amber-200 bg-amber-50/40 p-3">
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge tone={s.similarity >= 0.5 ? "red" : "amber"}>
+                    <span className="ltr inline-block">{Math.round(s.similarity * 100)}%</span> من أسطر الدوال
+                  </Badge>
+                  <span className="font-semibold">{s.title}</span>
+                  <Badge tone={s.submitted === "earlier" ? "red" : "amber"}>{s.submitted === "earlier" ? "سُلِّم قبله" : "سُلِّم بعده"}</Badge>
+                  {s.student_name && <span className="text-sm text-slate-600">— {s.student_name}</span>}
+                  <span className="text-xs text-slate-500">
+                    {countAr(s.matched_functions, "دالة واحدة", "دالتان", "دوال", "دالة")}
+                    {s.rewritten_functions > 0 && `، ${s.rewritten_functions === s.matched_functions ? "كلها" : countAr(s.rewritten_functions, "واحدة منها", "اثنتان منها", "منها", "منها")} أعيدت صياغتها`}
+                  </span>
+                </div>
+                <table className="mt-2 w-full text-xs">
+                  <tbody>
+                    {s.functions.map((f, i) => (
+                      <tr key={i} className="border-t border-amber-100">
+                        <td className="ltr py-1 text-left"><code>{f.name}</code> <span className="text-slate-400">{f.file}:{f.lines[0]}-{f.lines[1]}</span></td>
+                        <td className="px-2 text-slate-400">≈</td>
+                        <td className="ltr text-left"><code>{f.other_name}</code> <span className="text-slate-400">{f.other_file}:{f.other_lines[0]}-{f.other_lines[1]}</span></td>
+                        <td className="px-2 text-left"><span className="ltr inline-block">{Math.round(f.similarity * 100)}%</span></td>
+                        <td>{rewording(f.token_coverage)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ))}
+          </div>
+          <p className="mt-2 text-xs text-slate-500">
+            تُقارن بنية كل دالة (الحلقات والشروط والاستدعاءات بترتيبها) بعد حذف الأسماء، فتغيير الأسماء أو نوع الحلقة أو الترجمة إلى لغة مشابهة
+            لا يخفي النسخ{data.semantic_methods?.includes("embedding") ? "، مع رأي ثانٍ من نموذج لفهم الكود" : ""}. الأنماط الشائعة بين أغلب المشاريع لا تُحسب. التشابه قرينة تحتاج حكم الدكتور.
+          </p>
         </div>
       )}
       <div className="mt-5 grid gap-4 md:grid-cols-2">

@@ -29,9 +29,17 @@ def test_database_created_before_migrations_is_adopted(tmp_path):
 
 
 def test_older_database_is_upgraded_from_the_baseline(tmp_path):
+    # A database from the first release: schema 0001, created before Alembic was used.
+    from alembic import command
+
+    from app.migrate import alembic_config
+
     engine = create_engine(f"sqlite:///{tmp_path / 'v1.db'}")
-    baseline = [t for name, t in Base.metadata.tables.items() if name != "notifications"]
-    Base.metadata.create_all(engine, tables=baseline)
+    config = alembic_config()
+    with engine.begin() as connection:
+        config.attributes["connection"] = connection
+        command.upgrade(config, "0001")
+        connection.execute(text("DROP TABLE alembic_version"))
     migrate(engine)
     with engine.connect() as connection:
         assert "notifications" in inspect(connection).get_table_names()

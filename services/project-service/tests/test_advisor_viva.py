@@ -235,6 +235,35 @@ def test_the_original_author_is_not_treated_as_the_copier(client, users, course,
     assert result["similar_projects"][0]["submitted"] == "later"
 
 
+def test_rewritten_code_counts_against_authenticity(client, users, course, analyzer):  # noqa: F811
+    other = submit(client, users["student"], course["id"]).json()["id"]
+    analyzer.routes["/api/v1/fraud/analyze"] = (200, {
+        "similarity": {"max_similarity": 0.1, "fingerprint_count": 90, "ignored_boilerplate": 0,
+                       "corpus_size": 4, "sources": []},
+        "semantic": {"max_similarity": 0.6, "methods": ["structural"], "functions_compared": 9,
+                     "ignored_common_patterns": 0, "embedding_error": None,
+                     "sources": [{"document_id": other, "similarity": 0.6,
+                                  "matched_functions": 3, "rewritten_functions": 3,
+                                  "functions": [{"file": "app/Penalties.java",
+                                                 "name": "computePenalty", "lines": [3, 20],
+                                                 "other_file": "src/Library.java",
+                                                 "other_name": "lateFees", "other_lines": [3, 16],
+                                                 "similarity": 0.9, "methods": ["structural"],
+                                                 "token_coverage": 0.1, "rewritten": True}]}]},
+        "git": None, "style": {"style_consistency_score": 100.0, "outliers": []},
+    })  # fmt: skip
+    pid = submit(client, users["student"], course["id"], title="مشروع معاد صياغته").json()["id"]
+    result = client.get(f"/api/v1/fraud/{pid}/results", headers=users["faculty"].headers).json()
+    similarity = next(c for c in result["components"] if c["factor"] == "code_similarity")
+    assert similarity["score"] == 20.0  # 0.8 x 60% = 48% of 60% -> 100 x (1 - 0.8)
+    rewritten = next(f for f in result["flags"] if f["type"] == "code_rewritten")
+    assert rewritten["severity"] == "Medium"
+    assert rewritten["evidence_ar"] == "3 دوال بنفس بنية مشروع سُلِّم قبله رغم تغيير الأسماء والصياغة"
+    match = result["rewritten_code"][0]
+    assert match["title"] == "نظام إدارة مكتبة" and match["submitted"] == "earlier"
+    assert match["functions"][0]["other_name"] == "lateFees"
+
+
 def test_alerts_and_evidence_have_arabic_text(client, users, project, analyzer):  # noqa: F811
     alerts = client.get("/api/v1/dashboard/faculty/alerts", headers=users["faculty"].headers).json()
     assert alerts and all(a["message_ar"] for a in alerts)

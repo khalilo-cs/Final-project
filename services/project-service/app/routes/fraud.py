@@ -21,33 +21,36 @@ def fraud_results(project_id: uuid.UUID, db: DbSession, principal: CurrentPrinci
         raise HTTPException(status.HTTP_404_NOT_FOUND, "No authenticity analysis yet")
     results = grading.load_results(db, project_id)
 
-    similar = []
+    semantic_sources = (fraud.semantic or {}).get("sources") or []
     ids = []
-    for source in fraud.similar_projects:
+    for source in [*fraud.similar_projects, *semantic_sources]:
         try:
             ids.append(uuid.UUID(source["document_id"]))
         except ValueError:
             continue
     others = {p.id: p for p in db.scalars(select(Project).where(Project.id.in_(ids)))}
     names = internal_http.lookup_users({p.student_id for p in others.values()})
-    for source in fraud.similar_projects:
-        other = others.get(uuid.UUID(source["document_id"])) if source["document_id"] else None
+
+    def describe(source: dict) -> dict:
+        try:
+            other = others.get(uuid.UUID(source["document_id"]))
+        except ValueError:
+            other = None
         course = db.get(Course, other.course_id) if other else None
         student = names.get(str(other.student_id), {}) if other else {}
-        similar.append(
-            {
-                **source,
-                "submitted": (
-                    "later" if source["document_id"] in results.later_projects else "earlier"
-                ),
-                "title": other.title if other else "(مشروع محذوف أو سابق)",
-                "student_name": student.get("full_name"),
-                "course": f"{course.code} - {course.name}" if course else None,
-            }
-        )
+        return {
+            **source,
+            "submitted": "later" if source["document_id"] in results.later_projects else "earlier",
+            "title": other.title if other else "(مشروع محذوف أو سابق)",
+            "student_name": student.get("full_name"),
+            "course": f"{course.code} - {course.name}" if course else None,
+        }
+
     return {
         **(results.authenticity or {}),
-        "similar_projects": similar,
+        "similar_projects": [describe(s) for s in fraud.similar_projects],
+        "rewritten_code": [describe(s) for s in semantic_sources],
+        "semantic_methods": (fraud.semantic or {}).get("methods"),
         "git": fraud.git_analysis,
         "style": fraud.style,
         "analyzed_at": fraud.analyzed_at.isoformat(),

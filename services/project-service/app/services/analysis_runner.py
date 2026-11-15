@@ -139,6 +139,7 @@ def _store_fraud(db: Session, project: Project) -> None:
             similar_projects=result["similarity"]["sources"],
             git_analysis=result["git"],
             style=result["style"],
+            semantic=result.get("semantic"),
         )
     )
 

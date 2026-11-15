@@ -172,6 +172,8 @@ class FraudResult(Base):
     similar_projects: Mapped[list] = mapped_column(JSON)
     git_analysis: Mapped[dict | None] = mapped_column(JSON)
     style: Mapped[dict] = mapped_column(JSON)
+    # Functions copied and rewritten (structure / code-model similarity).
+    semantic: Mapped[dict | None] = mapped_column(JSON)
     analyzed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
 
 

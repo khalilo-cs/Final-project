@@ -1,6 +1,6 @@
 from datetime import UTC, datetime
 
-from sqlalchemy import BigInteger, DateTime, ForeignKey, Integer, String
+from sqlalchemy import BigInteger, DateTime, ForeignKey, Integer, LargeBinary, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.database import Base
@@ -26,3 +26,20 @@ class CodeFingerprint(Base):
     hash: Mapped[int] = mapped_column(BigInteger, primary_key=True, index=True)
     file: Mapped[str] = mapped_column(String(500))  # first place it occurs
     line: Mapped[int] = mapped_column(Integer)
+
+
+class CodeUnit(Base):
+    """One function of an indexed project, as a vector (structural or model embedding)."""
+
+    __tablename__ = "code_units"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    document_id: Mapped[str] = mapped_column(
+        ForeignKey("code_documents.id", ondelete="CASCADE"), index=True
+    )
+    kind: Mapped[str] = mapped_column(String(20), index=True)  # structural / embedding
+    file: Mapped[str] = mapped_column(String(500))
+    name: Mapped[str] = mapped_column(String(100))
+    start_line: Mapped[int] = mapped_column(Integer)
+    end_line: Mapped[int] = mapped_column(Integer)
+    vector: Mapped[bytes] = mapped_column(LargeBinary)

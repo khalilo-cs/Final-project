@@ -7,7 +7,7 @@ from sqlalchemy import delete, func, insert, select
 from sqlalchemy.orm import Session
 
 from app.analyzers.tokens import IGNORED_PATH_PARTS, SOURCE_EXTENSIONS, fingerprints, tokenize
-from app.models import CodeDocument, CodeFingerprint
+from app.models import CodeDocument, CodeFingerprint, CodeUnit
 
 MIN_FILE_TOKENS = 40
 MAX_FILE_BYTES = 500_000
@@ -133,6 +133,7 @@ def _index(db: Session, document_id: str, mine: dict[int, tuple[str, int]]) -> N
 
 def remove_document(db: Session, document_id: str, commit: bool = True) -> None:
     db.execute(delete(CodeFingerprint).where(CodeFingerprint.document_id == document_id))
+    db.execute(delete(CodeUnit).where(CodeUnit.document_id == document_id))
     db.execute(delete(CodeDocument).where(CodeDocument.id == document_id))
     if commit:
         db.commit()
