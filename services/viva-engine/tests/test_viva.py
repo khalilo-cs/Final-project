@@ -262,3 +262,53 @@ def test_follow_ups_do_not_chain(client, started, people):
         state = answer(client, sid, "لا أعرف", student).json()
     pairs = list(zip(types, types[1:], strict=False))
     assert ("verification", "verification") not in pairs
+
+
+def test_power_cut_does_not_cost_the_student_time(client, started, people, db):
+    import uuid
+    from datetime import timedelta
+
+    from app.models import VivaSession
+
+    student = token(people["student"], "student")
+    sid = started["session_id"]
+    beat = client.post(f"/api/v1/viva/{sid}/heartbeat", headers=student).json()
+    assert beat["paused_seconds"] == 0 and 1790 <= beat["seconds_left"] <= 1800
+
+    # Electricity goes: nothing is heard from the browser for five minutes.
+    session = db.get(VivaSession, uuid.UUID(sid))
+    session.last_seen -= timedelta(minutes=5)
+    session.started_at -= timedelta(minutes=5)
+    db.commit()
+    beat = client.post(f"/api/v1/viva/{sid}/heartbeat", headers=student).json()
+    assert 299 <= beat["paused_seconds"] <= 301 and beat["interruptions"] == 1
+    assert 1785 <= beat["seconds_left"] <= 1800  # the five minutes were given back
+
+    staff = client.get(f"/api/v1/viva/{sid}", headers=token(people["faculty"], "faculty")).json()
+    assert staff["pauses"][0]["credited"] == beat["paused_seconds"]
+    assert "pauses" not in client.get(f"/api/v1/viva/{sid}", headers=student).json()
+
+    # The credit is limited: a "power cut" of two hours gives back 20 minutes in total.
+    db.expire_all()
+    session = db.get(VivaSession, uuid.UUID(sid))
+    session.last_seen -= timedelta(hours=2)
+    db.commit()
+    beat = client.post(f"/api/v1/viva/{sid}/heartbeat", headers=student).json()
+    assert beat["paused_seconds"] == 20 * 60 and beat["interruptions"] == 2
+    forbidden = client.post(f"/api/v1/viva/{sid}/heartbeat",
+                            headers=token(people["faculty"], "faculty"))  # fmt: skip
+    assert forbidden.status_code == 403
+
+
+def test_an_answer_sent_twice_is_counted_once(client, started, people):
+    student = token(people["student"], "student")
+    sid = started["session_id"]
+    url = f"/api/v1/viva/{sid}/answer"
+    first = client.post(url, json={"answer": GOOD, "question_number": 1}, headers=student).json()
+    assert first["question_number"] == 2
+    # The reply was lost on the way, so the browser sends the same answer again.
+    repeat = client.post(url, json={"answer": GOOD, "question_number": 1}, headers=student).json()
+    assert repeat["question_number"] == 2
+    assert repeat["current_question"]["text"] == first["current_question"]["text"]
+    faculty = token(people["faculty"], "faculty")
+    assert len(client.get(f"/api/v1/viva/{sid}", headers=faculty).json()["transcript"]) == 1

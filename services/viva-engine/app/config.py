@@ -27,6 +27,10 @@ class Settings(BaseSettings):
     # -- viva rules --------------------------------------------------------------------
     max_questions: int = 8
     session_minutes: int = 30
+    # A gap longer than this between two signs of life is an interruption (power cut,
+    # lost connection): the clock stops for it, up to max_pause_minutes in total.
+    heartbeat_gap_seconds: int = 45
+    max_pause_minutes: int = 20
 
     # -- learning ----------------------------------------------------------------------
     min_reviews_for_calibration: int = 3

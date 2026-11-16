@@ -113,9 +113,10 @@ def _pick(db: Session, session: VivaSession, previous: VivaQA | None) -> Questio
         and previous.question_type != "verification"
     ):
         follow_up = [
-            q for q in candidates
+            q
+            for q in candidates
             if q.type == "verification" and q.related_file == previous.related_file
-        ]  # fmt: skip
+        ]
         if follow_up:
             return follow_up[0]
 
@@ -139,13 +140,52 @@ def _pick(db: Session, session: VivaSession, previous: VivaQA | None) -> Questio
     return min(candidates, key=rank)
 
 
+def _aware(moment: datetime) -> datetime:
+    return moment.replace(tzinfo=UTC) if moment.tzinfo is None else moment
+
+
+def seconds_left(session: VivaSession) -> int:
+    allowed = get_settings().session_minutes * 60 + (session.paused_seconds or 0)
+    used = (datetime.now(UTC) - _aware(session.started_at)).total_seconds()
+    return max(0, int(allowed - used))
+
+
+def touch(db: Session, session: VivaSession) -> None:
+    """A sign of life from the student's browser. A long silence before it was an
+    interruption: that time is given back, within the limit, and recorded."""
+    if session.status != "in_progress":
+        return
+    settings = get_settings()
+    now = datetime.now(UTC)
+    if session.last_seen is not None:
+        gap = (now - _aware(session.last_seen)).total_seconds()
+        if gap > settings.heartbeat_gap_seconds:
+            budget = settings.max_pause_minutes * 60 - (session.paused_seconds or 0)
+            counted = int(max(0, min(gap, budget)))
+            session.paused_seconds = (session.paused_seconds or 0) + counted
+            session.pauses = [
+                *(session.pauses or []),
+                {
+                    "from": _aware(session.last_seen).isoformat(),
+                    "to": now.isoformat(),
+                    "seconds": int(gap),
+                    "credited": counted,
+                },
+            ]
+            if session.current and counted:  # the answer time does not include the outage
+                asked = datetime.fromisoformat(session.current["asked_at"])
+                session.current = {
+                    **session.current,
+                    "asked_at": (asked + timedelta(seconds=counted)).isoformat(),
+                }
+    session.last_seen = now
+    db.commit()
+
+
 def _advance(db: Session, session: VivaSession, previous: VivaQA | None = None) -> None:
     settings = get_settings()
     answered = len(_answered(db, session))
-    started = session.started_at
-    if started.tzinfo is None:
-        started = started.replace(tzinfo=UTC)
-    timed_out = datetime.now(UTC) - started > timedelta(minutes=settings.session_minutes)
+    timed_out = seconds_left(session) <= 0
     question = (
         None if answered >= settings.max_questions or timed_out else _pick(db, session, previous)
     )
@@ -175,10 +215,12 @@ def answer(db: Session, session: VivaSession, text: str) -> VivaQA:
     asked_at = datetime.fromisoformat(current["asked_at"])
 
     # Key points learned from earlier strong answers count like the original ones.
-    learned = [p for p in autolearn.learned_points(db, question.key)
-               if p not in question.expected_points]  # fmt: skip
-    graded = Question(**{**_as_dict(question),
-                         "expected_points": question.expected_points + learned})  # fmt: skip
+    learned = [
+        p for p in autolearn.learned_points(db, question.key) if p not in question.expected_points
+    ]
+    graded = Question(
+        **{**_as_dict(question), "expected_points": question.expected_points + learned}
+    )
     template = _TEMPLATE.evaluate(graded, text, session.language, [])
     scores = {"template": template.score}
     reasons = {"template": template.reasoning}

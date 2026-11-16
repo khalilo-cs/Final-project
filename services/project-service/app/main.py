@@ -7,6 +7,7 @@ from app.migrate import migrate
 from app.models import fingerprint as _fingerprint_models  # noqa: F401
 from app.models import grading as _grading_models  # noqa: F401  (register tables)
 from app.models import notification as _notification_models  # noqa: F401
+from app.models import upload as _upload_models  # noqa: F401
 from app.routes import (
     advice,
     analysis,
@@ -19,6 +20,7 @@ from app.routes import (
     projects,
     reports,
     sandbox,
+    uploads,
     viva,
 )
 
@@ -42,6 +44,7 @@ app.include_router(sandbox.router)
 app.include_router(reports.router)
 app.include_router(notifications.router)
 app.include_router(fingerprint.router)
+app.include_router(uploads.router)
 
 
 @app.get("/health", tags=["meta"])

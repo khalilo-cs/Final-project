@@ -26,4 +26,5 @@ export interface QA {
 export interface VivaState {
   session_id: string; project_id: string; status: string; language: string; level: number; question_number: number; max_questions: number;
   current_question: Question | null; overall_score: number | null; providers: string[]; transcript?: QA[];
+  seconds_left?: number; paused_seconds?: number; interruptions?: number; pauses?: { from: string; to: string; seconds: number; credited: number }[];
 }

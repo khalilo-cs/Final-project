@@ -1,5 +1,6 @@
 import { Link, NavLink, Outlet } from "react-router-dom";
 import { useAuth } from "../auth";
+import { ConnectionBanner } from "./Connection";
 import { NotificationBell } from "./Notifications";
 import { Button } from "./ui";
 
@@ -10,6 +11,7 @@ export function Layout() {
     `rounded-lg px-3 py-1.5 text-sm font-semibold ${isActive ? "bg-indigo-100 text-indigo-700" : "text-slate-600 hover:bg-slate-100"}`;
   return (
     <div className="min-h-screen">
+      <ConnectionBanner />
       <header className="border-b border-slate-200 bg-white">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
           <Link to="/" className="flex items-center gap-2 text-lg font-black text-indigo-700">

@@ -28,6 +28,11 @@ class VivaSession(Base):
     overall_score: Mapped[float | None] = mapped_column(Float)
     started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
     ended_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    # Power cuts and dropped connections: time the student was unreachable does not count
+    # against the session (up to a limit), and every interruption is shown to the professor.
+    last_seen: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    paused_seconds: Mapped[int] = mapped_column(Integer, default=0)
+    pauses: Mapped[list] = mapped_column(JSON, default=list)
 
 
 class VivaQA(Base):

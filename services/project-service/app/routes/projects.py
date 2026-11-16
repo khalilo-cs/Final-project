@@ -10,7 +10,7 @@ from app.config import get_settings
 from app.models.project import Project, ProjectStatus
 from app.routes.deps import CurrentPrincipal, DbSession, forbidden
 from app.schemas.schemas import ProjectOut, ProjectStatusOut
-from app.services import access, notify, storage
+from app.services import access, notify, storage, uploads
 from app.services.analysis_runner import forget_report, run_analysis
 
 router = APIRouter(prefix="/api/v1/projects", tags=["projects"])
@@ -45,7 +45,7 @@ def submit_project(
     background: BackgroundTasks,
     title: Annotated[str, Form(min_length=1, max_length=500)],
     course_id: Annotated[uuid.UUID, Form()],
-    code: Annotated[UploadFile, File(description="Source code as a ZIP archive")],
+    code: Annotated[UploadFile | None, File(description="Source code as a ZIP archive")] = None,
     report: Annotated[UploadFile | None, File(description="Report (PDF or DOCX)")] = None,
     database: Annotated[
         UploadFile | None, File(description="Database schema / dump (.sql)")
@@ -55,6 +55,10 @@ def submit_project(
     programming_languages: Annotated[str | None, Form()] = None,
     frameworks: Annotated[str | None, Form()] = None,
     git_url: Annotated[str | None, Form(max_length=500, pattern=r"^https://\S+$")] = None,
+    # Files sent beforehand through /api/v1/uploads (weak connections), instead of above.
+    code_upload_id: Annotated[uuid.UUID | None, Form()] = None,
+    report_upload_id: Annotated[uuid.UUID | None, Form()] = None,
+    database_upload_id: Annotated[uuid.UUID | None, Form()] = None,
 ):
     """A student submits a project for a course they are enrolled in.
 
@@ -72,9 +76,18 @@ def submit_project(
     folder = storage.project_dir(project_id)
     try:
         code_path = folder / "code.zip"
-        storage.save_upload(code, code_path, settings.max_code_mb, storage.ZIP_MAGIC)
+        if code_upload_id is not None:
+            uploads.claim(db, principal.id, code_upload_id, "code", code_path)
+        elif code is not None and code.filename:
+            storage.save_upload(code, code_path, settings.max_code_mb, storage.ZIP_MAGIC)
+        else:
+            raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, "The code ZIP is required")
         report_path = None
-        if report is not None and report.filename:
+        if report_upload_id is not None:
+            name = uploads.get_own(db, principal.id, report_upload_id).filename
+            report_path = folder / f"report{storage.report_extension(name)}"
+            uploads.claim(db, principal.id, report_upload_id, "report", report_path)
+        elif report is not None and report.filename:
             extension = storage.report_extension(report.filename)
             report_path = folder / f"report{extension}"
             storage.save_upload(
@@ -84,7 +97,10 @@ def submit_project(
                 (storage.REPORT_EXTENSIONS[extension],),
             )
         db_schema_path = None
-        if database is not None and database.filename:
+        if database_upload_id is not None:
+            db_schema_path = folder / "schema.sql"
+            uploads.claim(db, principal.id, database_upload_id, "database", db_schema_path)
+        elif database is not None and database.filename:
             storage.require_extension(database.filename, {".sql"}, "Database file")
             db_schema_path = folder / "schema.sql"
             storage.save_upload(database, db_schema_path, settings.max_sql_mb, None)
@@ -118,6 +134,7 @@ def submit_project(
         storage.delete_project_files(project_id)
         raise
 
+    uploads.discard([code_upload_id, report_upload_id, database_upload_id])
     notify.send_emails(sent)
     background.add_task(run_analysis, project_id)
     return to_out(project)

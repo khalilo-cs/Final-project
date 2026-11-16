@@ -1,3 +1,4 @@
+import { isNetworkError, resumableUpload, waitForConnection, type UploadKind } from "../resilience";
 import { useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { get, post } from "../api";
@@ -35,21 +36,38 @@ export function StudentHome() {
 function SubmitForm({ courses, onDone }: { courses: Course[]; onDone: () => void }) {
   const [error, setError] = useState<unknown>();
   const [busy, setBusy] = useState(false);
+  const [progress, setProgress] = useState<{ label: string; sent: number; total: number; waiting: boolean }>();
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const data = new FormData(event.currentTarget);
-    for (const name of ["report", "database"]) {
-      if (!(data.get(name) as File)?.size) data.delete(name);
-    }
+    const form = event.currentTarget;
+    const data = new FormData(form);
     setBusy(true);
     setError(undefined);
     try {
-      await post("projects", "/api/v1/projects", data);
-      event.currentTarget?.reset();
+      // Files go first, in small pieces that survive a dropped connection or a power cut.
+      const files: [UploadKind, string, string][] = [["code", "code_upload_id", "الكود"], ["report", "report_upload_id", "التقرير"], ["database", "database_upload_id", "قاعدة البيانات"]];
+      for (const [kind, field, label] of files) {
+        const file = data.get(kind) as File | null;
+        data.delete(kind);
+        if (file?.size) data.set(field, await resumableUpload(file, kind, (p) => setProgress({ label, ...p })));
+      }
+      setProgress(undefined);
+      for (;;) {
+        try {
+          await post("projects", "/api/v1/projects", data);
+          break;
+        } catch (reason) {
+          if (!isNetworkError(reason)) throw reason;
+          setProgress({ label: "التسليم", sent: 1, total: 1, waiting: true });
+          await waitForConnection(3000);
+        }
+      }
+      form.reset();
       onDone();
     } catch (reason) {
       setError(reason);
     } finally {
+      setProgress(undefined);
       setBusy(false);
     }
   };
@@ -73,7 +91,19 @@ function SubmitForm({ courses, onDone }: { courses: Course[]; onDone: () => void
         </label>
         <div className="md:col-span-2 space-y-2">
           <ErrorBox error={error} />
+          {progress && (
+            <div role="status" className="space-y-1">
+              <div className="flex justify-between text-xs text-slate-600">
+                <span>{progress.waiting ? `انقطع الاتصال أثناء رفع ${progress.label}؛ سيُستكمل تلقائياً من حيث توقف…` : `جارٍ رفع ${progress.label}`}</span>
+                <span className="ltr">{Math.round((100 * progress.sent) / progress.total)}%</span>
+              </div>
+              <div className="h-2 overflow-hidden rounded-full bg-slate-200">
+                <div className={`h-full rounded-full ${progress.waiting ? "bg-amber-500" : "bg-indigo-600"}`} style={{ width: `${(100 * progress.sent) / progress.total}%` }} />
+              </div>
+            </div>
+          )}
           <Button type="submit" disabled={busy}>{busy ? "جارٍ الرفع…" : "تسليم وتحليل"}</Button>
+          <p className="text-xs text-slate-500">الرفع يتحمل ضعف الإنترنت وانقطاع الكهرباء: إن توقف، اختر الملف نفسه مرة أخرى وسيُكمل من حيث وصل.</p>
         </div>
       </form>
     </Card>
