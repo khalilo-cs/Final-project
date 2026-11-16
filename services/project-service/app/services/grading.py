@@ -57,6 +57,8 @@ class ProjectResults:
     # Which similar projects were submitted after this one (they copied, not the reverse).
     later_projects: set[str] = field(default_factory=set)
     performance: PerformanceResult | None = None
+    # Comprehension fingerprint: defects seeded into the student's own code (0-100).
+    comprehension_score: float | None = None
 
     @property
     def authenticity(self) -> dict | None:
@@ -115,10 +117,17 @@ def load_results(db: Session, project_id: uuid.UUID) -> ProjectResults:
         fraud=fraud,
         later_projects=later,
         performance=_performance(db, project_id),
+        comprehension_score=_comprehension(db, project_id),
         ai_fixes=db.scalar(
             select(func.count()).select_from(AiFixLog).where(AiFixLog.project_id == project_id)
         ),
     )
+
+
+def _comprehension(db: Session, project_id: uuid.UUID) -> float | None:
+    from app.services import fingerprint
+
+    return fingerprint.session_score(fingerprint.load(db, project_id))
 
 
 def _performance(db: Session, project_id: uuid.UUID) -> PerformanceResult | None:

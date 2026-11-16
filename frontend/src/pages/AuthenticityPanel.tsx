@@ -36,10 +36,10 @@ export function AuthenticityPanel({ id }: { id: string }) {
     <Card title="🕵️ أصالة المشروع">
       <div className="flex flex-wrap items-center gap-8">
         <Score value={data.authenticity_score} label="درجة الأصالة" />
-        <div className="grid flex-1 grid-cols-2 gap-2 text-sm md:grid-cols-5">
+        <div className="grid flex-1 grid-cols-2 gap-2 text-sm md:grid-cols-6">
           {data.components.map((c) => (
             <div key={c.factor} className="rounded-lg bg-slate-50 p-2 text-center">
-              <div className="text-xs text-slate-500">{c.label_ar} ({c.weight}%)</div>
+              <div className="text-xs text-slate-500">{c.label_ar} ({Math.round((100 * c.weight) / data.components.reduce((t, x) => t + (x.score === null ? 0 : x.weight), 0) || 0)}%)</div>
               <div className="font-bold">{c.score ?? <span className="text-slate-400">لا بيانات</span>}</div>
             </div>
           ))}

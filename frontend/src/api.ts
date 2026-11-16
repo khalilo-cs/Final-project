@@ -112,3 +112,6 @@ export async function download(service: "projects" | "viva", path: string, filen
   link.click();
   URL.revokeObjectURL(url);
 }
+
+export const del = (service: "auth" | "projects" | "viva", path: string) =>
+  request<void>(service, path, { method: "DELETE" });

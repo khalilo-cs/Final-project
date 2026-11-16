@@ -4,6 +4,7 @@ from fastapi import FastAPI
 
 from app.database import engine
 from app.migrate import migrate
+from app.models import fingerprint as _fingerprint_models  # noqa: F401
 from app.models import grading as _grading_models  # noqa: F401  (register tables)
 from app.models import notification as _notification_models  # noqa: F401
 from app.routes import (
@@ -11,6 +12,7 @@ from app.routes import (
     analysis,
     courses,
     dashboard,
+    fingerprint,
     fraud,
     grades,
     notifications,
@@ -39,6 +41,7 @@ app.include_router(fraud.router)
 app.include_router(sandbox.router)
 app.include_router(reports.router)
 app.include_router(notifications.router)
+app.include_router(fingerprint.router)
 
 
 @app.get("/health", tags=["meta"])

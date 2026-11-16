@@ -6,13 +6,18 @@ viva yet) is left out instead of counted as zero, and `coverage` says how much w
 
 from app.services.arabic import count_phrase
 
-WEIGHTS = {"code_similarity": 30, "git_history": 20, "style": 15, "viva_gap": 25, "report": 10}
+WEIGHTS = {
+    "code_similarity": 30, "git_history": 20, "style": 15, "viva_gap": 25, "report": 10,
+    # Beyond the plan's five factors: counted only when the student took the challenge.
+    "comprehension": 20,
+}  # fmt: skip
 LABELS_AR = {
     "code_similarity": "تشابه الكود مع مشاريع أخرى",
     "git_history": "تاريخ Git",
     "style": "ثبات أسلوب الكتابة",
     "viva_gap": "تطابق المناقشة مع جودة الكود",
     "report": "أصالة التقرير",
+    "comprehension": "بصمة الفهم (خطأ مزروع في كوده)",
 }
 SIMILARITY_ZERO = 0.6
 # A structural/semantic match is strong but less certain than identical tokens.
@@ -134,6 +139,18 @@ def compute(results) -> dict | None:
 
     if results.report is not None:
         parts["report"] = round(100 - results.report.plagiarism_percentage, 1)
+
+    comprehension = getattr(results, "comprehension_score", None)
+    if comprehension is not None:
+        parts["comprehension"] = comprehension
+        if comprehension < 40:
+            flags.append({
+                "type": "comprehension", "severity": "High",
+                "evidence": f"The student did not find defects seeded into their own code "
+                f"({comprehension:g}/100)",
+                "evidence_ar": f"لم يكتشف الطالب الأخطاء التي زُرعت في كوده نفسه "
+                f"({comprehension:g}/100)",
+            })  # fmt: skip
 
     used = {k: v for k, v in parts.items() if v is not None}
     weight = sum(WEIGHTS[k] for k in used)

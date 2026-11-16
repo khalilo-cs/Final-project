@@ -24,10 +24,10 @@ def find_user(name):
 CLEAN = "def add(a, b):\n    return a + b\n"
 
 
-def token(token_type="access", secret=None, lifetime=300):
+def token(token_type="access", secret=None, lifetime=300, role="faculty"):
     payload = {
         "sub": "user-1",
-        "role": "faculty",
+        "role": role,
         "type": token_type,
         "exp": time.time() + lifetime,
     }

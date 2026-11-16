@@ -65,6 +65,17 @@ def _is_scanned(path: Path) -> bool:
     return path.suffix.lower() in SECRET_SCAN_EXTENSIONS or path.name.startswith(".env")
 
 
+def analyze_files(root: Path) -> list[FileAnalysis]:
+    """Structure only (no security scan, no graph): enough to pick functions."""
+    files = []
+    for path, relative in _project_files(root):
+        analyzer = _BY_EXTENSION.get(path.suffix.lower())
+        if analyzer is not None and path.stat().st_size <= MAX_FILE_BYTES:
+            source = path.read_text(encoding="utf-8", errors="replace")
+            files.append(analyzer.analyze(relative, source))
+    return files
+
+
 def analyze_project(root: Path) -> dict:
     files: list[FileAnalysis] = []
     vulnerabilities: list[Vulnerability] = []

@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<title>مقترح مشروع تخرج — فاحص المشاريع الذكي</title>
+<style>
+  @page { size: A4; margin: 2cm 1.8cm; @bottom-center { content: counter(page); font-size: 9pt; color: #666; } }
+  @page :first { @bottom-center { content: ""; } }
+  body { font-family: "Noto Naskh Arabic", "Noto Sans Arabic", "DejaVu Sans", sans-serif; font-size: 11pt; line-height: 1.85; color: #1a1a1a; }
+  h1 { font-size: 16pt; color: #2b3a8f; border-bottom: 2px solid #2b3a8f; padding-bottom: 4px; margin-top: 26px; break-after: avoid; }
+  h2 { font-size: 12.5pt; color: #2b3a8f; margin-top: 16px; break-after: avoid; }
+  p { margin: 6px 0; text-align: justify; }
+  ul, ol { margin: 4px 0; padding-right: 22px; }
+  li { margin: 2px 0; }
+  table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 10pt; break-inside: avoid; }
+  th { background: #2b3a8f; color: #fff; padding: 6px 8px; text-align: right; }
+  td { border: 1px solid #c9cde0; padding: 5px 8px; vertical-align: top; }
+  tr:nth-child(even) td { background: #f5f6fb; }
+  .cover { text-align: center; padding-top: 3cm; break-after: page; }
+  .cover .uni { font-size: 14pt; line-height: 2; }
+  .cover .title { font-size: 26pt; font-weight: bold; color: #2b3a8f; margin-top: 2.2cm; }
+  .cover .en { font-size: 15pt; color: #555; direction: ltr; margin-top: 6px; }
+  .cover .sub { font-size: 12.5pt; margin-top: 14px; color: #333; }
+  .cover .meta { margin: 3cm auto 0; width: 75%; font-size: 12pt; }
+  .cover .meta td { border: none; background: none !important; padding: 7px; }
+  .cover .meta td:first-child { width: 38%; color: #555; }
+  .fill { border-bottom: 1px dotted #666; display: inline-block; min-width: 6cm; }
+  .box { border: 1px solid #c9cde0; border-right: 5px solid #2b3a8f; background: #f5f6fb; padding: 8px 12px; margin: 10px 0; break-inside: avoid; }
+  .done { color: #0a7a3d; font-weight: bold; } .todo { color: #b45309; font-weight: bold; }
+  code, .ltr { direction: ltr; unicode-bidi: embed; font-family: "DejaVu Sans Mono", monospace; font-size: 9.5pt; }
+  .sign td { border: none; background: none !important; padding-top: 28px; width: 50%; }
+  .small { font-size: 9.5pt; color: #555; }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <div class="uni">الجمهورية اليمنية<br>جامعة صنعاء<br>كلية الحاسوب وتكنولوجيا المعلومات</div>
+  <div class="title">فاحص المشاريع الذكي</div>
+  <div class="en">AI Project Examiner</div>
+  <div class="sub">نظام لتحليل مشاريع التخرج البرمجية ومناقشتها والتحقق من أصالتها بالذكاء الاصطناعي</div>
+  <div class="sub"><b>مقترح مشروع تخرج</b></div>
+  <table class="meta">
+    <tr><td>إعداد</td><td><b>محمد عبدالرحيم خليل</b></td></tr>
+    <tr><td>الرقم الجامعي</td><td><span class="fill">&nbsp;</span></td></tr>
+    <tr><td>القسم</td><td><span class="fill">&nbsp;</span></td></tr>
+    <tr><td>المشرف</td><td><span class="fill">&nbsp;</span></td></tr>
+    <tr><td>العام الجامعي</td><td><span class="fill">&nbsp;</span></td></tr>
+  </table>
+</div>
+
+<h1>1. ملخص المشروع</h1>
+<p>تستقبل الكلية كل عام عشرات مشاريع التخرج البرمجية، وتقييمها يعتمد على وقت الدكتور وخبرته: قراءة الكود، ومراجعة التقرير، والتأكد أن الطالب هو من كتب مشروعه ويفهمه. يقترح هذا المشروع نظاماً يساعد لجنة المناقشة: يحلل الكود والأمان وقاعدة البيانات والتقرير آلياً، ويجري مع الطالب مناقشة تُولَّد أسئلتها من كوده هو، ويجمع أدلة أصالة المشروع، ثم يقترح درجة مبررة يعتمدها الدكتور أو يعدّلها.</p>
+<div class="box"><b>النظام مساعد للدكتور وليس بديلاً عنه:</b> كل درجة يقترحها النظام تظهر مع سببها، والقرار النهائي للدكتور دائماً، وأي شبهة غش تُعرض عليه وحده ولا يراها الطالب.</div>
+
+<h1>2. المشكلة</h1>
+<ul>
+  <li><b>الوقت:</b> فحص مشروع واحد بدقة (كود، قاعدة بيانات، تقرير، مناقشة) يأخذ ساعات، وعدد المشاريع يزيد كل عام.</li>
+  <li><b>تفاوت التقييم:</b> المعايير تختلف من ممتحن لآخر، ولا يحصل الطالب على ملاحظات مفصلة.</li>
+  <li><b>أصالة العمل:</b> مشاريع تُشترى أو تُنسخ من دفعات سابقة أو تُولَّد بالذكاء الاصطناعي، وأدوات كشف التشابه لا تكشف مشروعاً كُتب للطالب خصيصاً.</li>
+  <li><b>اللغة:</b> أدوات كشف الانتحال العالمية ضعيفة مع النص العربي وتقاريرنا عربية.</li>
+</ul>
+
+<h1>3. أهداف المشروع</h1>
+<ol>
+  <li>تحليل الكود آلياً بست لغات (Python، Java، JavaScript/TypeScript، C#، C/C++): الجودة، التعقيد، الثغرات الأمنية، والتصميم.</li>
+  <li>تحليل قاعدة البيانات (المفاتيح، التطبيع، أنواع البيانات) والتقرير (الانتحال بالعربية والإنجليزية، ومطابقته للكود).</li>
+  <li>مناقشة ذكية تكيفية، كتابةً أو بالصوت، أسئلتها من مشروع الطالب نفسه.</li>
+  <li>التحقق من أصالة المشروع بأدلة متعددة مترابطة، بعدالة لا تظلم صاحب العمل الأصلي.</li>
+  <li>لوحة للدكتور: الدرجة المقترحة مع التبرير، التنبيهات، الإحصائيات، وتقارير PDF و Excel.</li>
+  <li>نظام يتحسن من تصحيحات الدكاترة أنفسهم.</li>
+</ol>
+
+<h1>4. مكونات النظام</h1>
+<table>
+  <tr><th style="width:27%">المكوّن</th><th>ما يقدمه</th></tr>
+  <tr><td>تحليل الكود</td><td>بنية الكود، التعقيد، الكود المكرر والميت، وخريطة للمشروع (Knowledge Graph) تُظهر التبعيات وأنماط التصميم ومبادئ SOLID.</td></tr>
+  <tr><td>تحليل الأمان</td><td>حقن SQL والأوامر، XSS، كلمات مرور داخل الكود، تشفير ضعيف، مع اقتراح إصلاح يُطبَّق بموافقة الطالب فقط.</td></tr>
+  <tr><td>قاعدة البيانات</td><td>المفاتيح الأساسية والأجنبية، التطبيع، أنواع البيانات، ومخطط ER.</td></tr>
+  <tr><td>التقرير</td><td>نسبة الانتحال مقابل تقارير الدفعات السابقة، وتناقض التقرير مع الكود (تقنية مذكورة غير مستخدمة، عدد جداول مخالف).</td></tr>
+  <tr><td>المناقشة الذكية</td><td>أسئلة من دوال الطالب وثغرات كوده وتصميمه، بمستويات تتكيف مع إجاباته، ومراجعة الدكتور لكل تقييم.</td></tr>
+  <tr><td>أصالة المشروع</td><td>نسخ الكود (حتى بعد تغيير الأسماء أو إعادة الصياغة)، تاريخ Git، ثبات الأسلوب، الفجوة بين جودة الكود وأداء المناقشة، وبصمة الفهم.</td></tr>
+  <tr><td>الأداء</td><td>تشغيل المشروع في حاوية معزولة وقياس زمن الاستجابة والأخطاء.</td></tr>
+  <tr><td>لوحة الدكتور</td><td>الدرجات المقترحة، التنبيهات، الإشعارات، إحصائيات القسم، تقارير PDF وكشوف Excel.</td></tr>
+</table>
+
+<h1>5. الجديد في المشروع</h1>
+<p>أدوات كشف التشابه (MOSS، JPlag) وفحص الجودة (SonarQube) وكشف الانتحال (Turnitin) موجودة، وكلٌّ منها يجيب عن سؤال واحد. الجديد هنا هو السؤال نفسه: <b>هل يفهم الطالب ما سلّمه؟</b> والإجابة بربط الأدلة ببعضها:</p>
+<ul>
+  <li><b>بصمة الفهم:</b> يأخذ النظام دوالّ من كود الطالب نفسه، ويغيّر في كل دالة شيئاً واحداً صغيراً (مثل <span class="ltr">and</span> إلى <span class="ltr">or</span>)، ويعرضها عليه لأربع دقائق ليجد السطر الذي تغيّر ويعيده كما كان. من كتب الكود يعرف منطقه فيلاحظ؛ ومن اشتراه يقرؤه أول مرة. التصحيح آلي وقاطع لأن النظام يحتفظ بالأصل. (أُعدّت لها مسودة طلب براءة اختراع.)</li>
+  <li><b>مقارنة جودة الكود بأداء المناقشة:</b> كود ممتاز مع مناقشة ضعيفة جداً قرينة على أن الطالب ليس كاتبه.</li>
+  <li><b>مطابقة التقرير للكود:</b> ما يدّعيه التقرير يُقارن بما في الكود فعلاً.</li>
+  <li><b>عدالة كشف النسخ:</b> ترتيب التسليم يحدد من نسخ ممّن، والقوالب المشتركة لا تُحسب.</li>
+  <li><b>عربي من الأساس:</b> توحيد النص العربي قبل المقارنة (التشكيل، الهمزات، أشكال الحروف)، وواجهة وتقارير عربية.</li>
+</ul>
+<p class="small">تقنية «الاختبار الطفري» معروفة منذ 1978 لقياس جودة الاختبارات، وتوجد أبحاث عن طرح أسئلة على الطالب عن برنامجه؛ الجديد المقترح هو استخدام التغيير المزروع في كود الطالب نفسه اختباراً مؤقتاً لفهمه يُصحَّح آلياً ويدخل في درجة الأصالة. يُتحقق من الجِدّة ببحث رسمي ضمن فصل الدراسات السابقة.</p>
+
+<h1>6. المنهجية والأدوات</h1>
+<table>
+  <tr><th style="width:27%">الجانب</th><th>الاختيار</th></tr>
+  <tr><td>المعمارية</td><td>خدمات مصغرة (Microservices)، عشر خدمات، كل واحدة بقاعدة بياناتها، خلف بوابة nginx.</td></tr>
+  <tr><td>الخلفية</td><td><span class="ltr">Python · FastAPI · SQLAlchemy · PostgreSQL · Alembic</span></td></tr>
+  <tr><td>تحليل الكود</td><td><span class="ltr">Tree-sitter · Python ast · sqlglot · NetworkX</span></td></tr>
+  <tr><td>الواجهة</td><td><span class="ltr">React · TypeScript · Tailwind CSS</span>، عربية من اليمين لليسار.</td></tr>
+  <tr><td>الذكاء الاصطناعي</td><td>محرك مدمج يعمل دون أي نموذج، مع إمكانية ربط نموذج محلي (Ollama) أو خارجي؛ Whisper لتحويل الصوت إلى نص على خادم الجامعة.</td></tr>
+  <tr><td>الأمان والخصوصية</td><td>JWT، أدوار (طالب / دكتور / مسؤول)، دخول بحساب الجامعة (OpenID Connect)، وحاويات معزولة لتشغيل مشاريع الطلاب.</td></tr>
+  <tr><td>الجودة</td><td>اختبارات آلية لكل خدمة (283 اختباراً حالياً) تُشغَّل مع كل تعديل.</td></tr>
+</table>
+
+<h1>7. ما سأقوم بإعداده وتسليمه</h1>
+<ol>
+  <li><b>النظام كاملاً</b> بشيفرته المصدرية، يعمل بأمر واحد (<span class="ltr">docker compose up</span>).</li>
+  <li><b>وثيقة المشروع:</b> المقدمة، الدراسات السابقة، التحليل والتصميم (مخططات Use Case و ER والمعمارية)، التنفيذ، الاختبار، النتائج.</li>
+  <li><b>تجربة تقييم:</b> تشغيل النظام على مشاريع حقيقية من دفعات سابقة ومقارنة نتائجه بتقييم الدكاترة.</li>
+  <li><b>دليل المستخدم</b> للطالب والدكتور، ودليل التشغيل لمسؤول النظام.</li>
+  <li><b>عرض تقديمي</b> وتجربة حية أمام اللجنة.</li>
+</ol>
+
+<h1>8. خطة العمل</h1>
+<table>
+  <tr><th style="width:8%">#</th><th style="width:44%">المرحلة</th><th style="width:16%">المدة</th><th>الحالة</th></tr>
+  <tr><td>1</td><td>تحليل المتطلبات وتصميم المعمارية</td><td>3 أسابيع</td><td class="done">منجز</td></tr>
+  <tr><td>2</td><td>تحليل الكود والأمان وقاعدة البيانات والتقرير</td><td>8 أسابيع</td><td class="done">منجز (نموذج أولي)</td></tr>
+  <tr><td>3</td><td>المناقشة الذكية وكشف الغش وبصمة الفهم</td><td>6 أسابيع</td><td class="done">منجز (نموذج أولي)</td></tr>
+  <tr><td>4</td><td>الواجهات ولوحة الدكتور والتقارير</td><td>4 أسابيع</td><td class="done">منجز (نموذج أولي)</td></tr>
+  <tr><td>5</td><td>النشر على خادم بـ Docker واختبار التكامل</td><td>2 أسابيع</td><td class="todo">قادم</td></tr>
+  <tr><td>6</td><td>التجربة على مشاريع حقيقية ومعايرة الدرجات</td><td>4 أسابيع</td><td class="todo">قادم</td></tr>
+  <tr><td>7</td><td>كتابة الوثيقة والدراسات السابقة والعرض</td><td>4 أسابيع</td><td class="todo">قادم</td></tr>
+</table>
+<p class="small">النموذج الأولي مبني ويجتاز اختباراته الآلية، لكنه لم يُجرَّب بعد على خادم حقيقي ولا على مشاريع طلاب حقيقية؛ وهذا ما تغطيه المراحل 5 و6.</p>
+
+<h1>9. خطة التقييم</h1>
+<ul>
+  <li><b>دقة التحليل:</b> على عينة مشاريع يراجعها دكتور يدوياً: كم ثغرة ومشكلة اكتشفها النظام، وكم تنبيهاً كان خاطئاً.</li>
+  <li><b>اتفاق الدرجات:</b> مقارنة الدرجة المقترحة بدرجة اللجنة الفعلية (متوسط الفرق ومعامل الارتباط).</li>
+  <li><b>كشف النسخ:</b> مشاريع منسوخة ومعاد صياغتها عمداً، وقياس نسبة الكشف والاتهام الخاطئ.</li>
+  <li><b>بصمة الفهم:</b> مقارنة نتائج طلاب على مشاريعهم بنتائج متطوعين على مشاريع لم يكتبوها، بنفس الوقت.</li>
+  <li><b>رضا المستخدمين:</b> استبيان قصير للدكاترة والطلاب المشاركين.</li>
+</ul>
+
+<h1>10. ما أحتاجه من الكلية</h1>
+<ul>
+  <li>مشرف أكاديمي، ودكتور أو اثنان يشاركان في تجربة التقييم.</li>
+  <li>عينة من مشاريع تخرج سابقة (كود وتقارير) بعد حذف أسماء أصحابها، للتجربة والمعايرة.</li>
+  <li>خادم أو جهاز يعمل عليه Docker (8GB ذاكرة على الأقل) للتشغيل التجريبي.</li>
+  <li>إن توفر: ربط الدخول بحسابات الجامعة.</li>
+</ul>
+
+<h1>11. الأخلاقيات والخصوصية</h1>
+<ul>
+  <li>الطالب لا يرى شبهة الغش ولا الدرجة المقترحة؛ يرى درجته بعد اعتماد الدكتور لها.</li>
+  <li>نتائج النظام قرائن تساعد الدكتور، ولا يُتخذ قرار ضد طالب آلياً.</li>
+  <li>كود الطلاب وتقاريرهم تبقى على خادم الجامعة؛ ومشاريع الطلاب لا تُرسل ضمن أسئلة غيرهم.</li>
+  <li>مشاريع الدفعات السابقة تُستخدم في التجربة بعد حذف الهوية وبموافقة الكلية.</li>
+</ul>
+
+<h1>12. الحدود والمخاطر</h1>
+<table>
+  <tr><th style="width:42%">الخطر</th><th>المعالجة</th></tr>
+  <tr><td>اتهام طالب بريء</td><td>عتبات كشف معايَرة، استبعاد القوالب المشتركة، ترتيب التسليم، والقرار للدكتور.</td></tr>
+  <tr><td>الدرجات المقترحة تحتاج معايرة</td><td>تجربة المرحلة 6، والتعلم من تعديلات الدكاترة.</td></tr>
+  <tr><td>لغات غير مدعومة (PHP، Dart/Flutter، Kotlin)</td><td>تُكشف تقنياتها ونسخها الآن؛ إضافة تحليلها الكامل ضمن التطوير اللاحق.</td></tr>
+  <tr><td>ضعف الإنترنت أو انعدامه</td><td>النظام يعمل كاملاً على الشبكة المحلية دون أي خدمة خارجية.</td></tr>
+  <tr><td>تشغيل كود الطلاب خطر أمنياً</td><td>حاويات معزولة بلا إنترنت وبحدود للذاكرة والمعالج، على جهاز منفصل.</td></tr>
+</table>
+
+<h1>13. النتائج المتوقعة</h1>
+<ul>
+  <li>تقليل وقت فحص المشروع، وتقرير مفصل لكل طالب عن نقاط قوته وضعفه.</li>
+  <li>معايير تقييم موحدة ومبررة بين الممتحنين.</li>
+  <li>كشف المشاريع المنسوخة أو المشتراة بأدلة يستطيع الدكتور التحقق منها.</li>
+  <li>نظام عربي قابل للاستخدام في كليات الحاسوب الأخرى في اليمن.</li>
+</ul>
+
+<h1>14. مراجع أولية</h1>
+<ol class="small">
+  <li class="ltr" style="direction:ltr;text-align:left">Schleimer, S., Wilkerson, D., Aiken, A. (2003). Winnowing: Local Algorithms for Document Fingerprinting. ACM SIGMOD.</li>
+  <li class="ltr" style="direction:ltr;text-align:left">Prechelt, L., Malpohl, G., Philippsen, M. (2002). Finding Plagiarisms among a Set of Programs with JPlag. J. Universal Computer Science.</li>
+  <li class="ltr" style="direction:ltr;text-align:left">McCabe, T. (1976). A Complexity Measure. IEEE Transactions on Software Engineering.</li>
+  <li class="ltr" style="direction:ltr;text-align:left">DeMillo, R., Lipton, R., Sayward, F. (1978). Hints on Test Data Selection: Help for the Practicing Programmer. IEEE Computer.</li>
+  <li class="ltr" style="direction:ltr;text-align:left">Lehtinen, T., Santos, A., Sorva, J. (2021). Let's Ask Students About Their Programs, Automatically. IEEE/ACM ICPC.</li>
+  <li class="ltr" style="direction:ltr;text-align:left">Radford, A. et al. (2022). Robust Speech Recognition via Large-Scale Weak Supervision (Whisper).</li>
+</ol>
+
+<table class="sign">
+  <tr><td>توقيع الطالب: <span class="fill">&nbsp;</span></td><td>توقيع المشرف: <span class="fill">&nbsp;</span></td></tr>
+  <tr><td>التاريخ: <span class="fill">&nbsp;</span></td><td>اعتماد القسم: <span class="fill">&nbsp;</span></td></tr>
+</table>
+
+</body>
+</html>
