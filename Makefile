@@ -18,6 +18,7 @@ format:
 
 test:
 	@set -e; for s in $(SERVICES); do echo "== $$s"; (cd services/$$s && $(PY) -m pytest -q); done
+	@echo "== tools/evaluation"; $(PY) -m pytest -q tools/evaluation/tests
 
 up:
 	docker compose up --build

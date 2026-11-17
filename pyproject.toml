@@ -10,6 +10,7 @@ ignore = [
 
 [tool.ruff.lint.per-file-ignores]
 "**/knowledge/builtin_pack.py" = ["E501"]  # Arabic prose
+"tools/evaluation/evaluate.py" = ["E501"]  # HTML report template
 "**/tests/*" = ["S", "E402", "E501", "F811"]  # F811: pytest fixtures imported by name
 
 [tool.ruff.lint.isort]

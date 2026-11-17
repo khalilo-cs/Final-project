@@ -360,6 +360,19 @@ speaches، LocalAI، vLLM) عبر `SPEECH_REMOTE_URL`. `off`: يُعطَّل و�
 `LOCK TABLES`، و `ALTER TABLE ... ADD PRIMARY KEY` بعد الإنشاء)، ويتجاهل بيانات
 `INSERT` دون تحليلها. مخطط ER يُولَّد بصيغة Mermaid ويُعرض مباشرة في GitHub والواجهة.
 
+## تقييم النظام (فصل النتائج)
+
+`tools/evaluation/evaluate.py` يقارن الدرجات المقترحة بدرجات لجنة وضعتها دون رؤية
+النظام: متوسط الفرق المطلق، ارتباط بيرسون وسبيرمان، كابا الموزونة على التقديرات، الانحياز،
+حدود Bland-Altman، مع فترات ثقة 95% (bootstrap)، ورسم وتقرير عربي HTML. ويحسب AUC لتجربة
+«بصمة الفهم» (أصحاب الكود مقابل متطوعين على كود غيرهم). الدليل الكامل:
+[`docs/EVALUATION_PROTOCOL_AR.md`](docs/EVALUATION_PROTOCOL_AR.md).
+
+```bash
+python -m tools.evaluation.evaluate --url http://localhost:8080 --course <id> \
+    --user dr.ali --faculty-grades committee.csv --out results.html
+```
+
 ## التطوير
 
 ```bash
