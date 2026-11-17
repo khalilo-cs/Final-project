@@ -34,7 +34,7 @@ class Settings(BaseSettings):
     smtp_user: str = ""
     smtp_password: str = ""
     smtp_starttls: bool = True
-    smtp_from: str = "AI Project Examiner <no-reply@localhost>"
+    smtp_from: str = "Mihakk <no-reply@localhost>"
     public_url: str = "http://localhost:8080"
 
 

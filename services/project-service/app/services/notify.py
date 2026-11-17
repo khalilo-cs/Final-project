@@ -81,7 +81,7 @@ def _deliver(messages: list[tuple]) -> None:
                 message["From"] = settings.smtp_from
                 message["To"] = address
                 url = f"{settings.public_url.rstrip('/')}{link}" if link else settings.public_url
-                message.set_content(f"{body}\n\n{url}\n\n— AI Project Examiner")
+                message.set_content(f"{body}\n\n{url}\n\n— مِحَكّ (Mihakk)")
                 smtp.send_message(message)
     except (OSError, smtplib.SMTPException):
         log.warning("could not send notification e-mails", exc_info=True)

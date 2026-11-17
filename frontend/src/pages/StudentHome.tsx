@@ -3,7 +3,7 @@ import { useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { get, post } from "../api";
 import { Badge, Button, Card, ErrorBox, Input, Loading, STATUS_AR, useLoad } from "../components/ui";
-import type { Course, Project } from "../types";
+import { KINDS_AR, type Course, type Project } from "../types";
 
 export function StudentHome() {
   const [projects, error, reload] = useLoad(() => get<Project[]>("projects", "/api/v1/projects"));
@@ -79,7 +79,7 @@ function SubmitForm({ courses, onDone }: { courses: Course[]; onDone: () => void
       <form onSubmit={submit} className="grid gap-3 md:grid-cols-2">
         <Input name="title" placeholder="عنوان المشروع" required />
         <select name="course_id" required className="rounded-lg border border-slate-300 px-3 py-2 text-sm">
-          {courses.map((c) => <option key={c.id} value={c.id}>{c.code} — {c.name}</option>)}
+          {courses.map((c) => <option key={c.id} value={c.id}>{c.code} — {c.name} ({KINDS_AR[c.kind] ?? c.kind})</option>)}
         </select>
         <label className="text-sm">الكود (ZIP) *<Input name="code" type="file" accept=".zip" required /></label>
         <label className="text-sm">التقرير (PDF/DOCX)<Input name="report" type="file" accept=".pdf,.docx" /></label>

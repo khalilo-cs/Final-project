@@ -16,7 +16,7 @@ async def lifespan(_: FastAPI):
     yield
 
 
-app = FastAPI(title="AI Project Examiner — Report Analyzer", version="0.1.0", lifespan=lifespan)
+app = FastAPI(title="Mihakk — Report Analyzer", version="0.1.0", lifespan=lifespan)
 app.include_router(analysis.router)
 
 

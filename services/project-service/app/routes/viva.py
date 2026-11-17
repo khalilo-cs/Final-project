@@ -41,7 +41,11 @@ def start_viva(
         "student_id": str(project.student_id),
         "staff_ids": [str(course.faculty_id)],
         "language": (data or StartRequest()).language,
-        "context": build_context(project, results),
+        "context": {
+            **build_context(project, results),
+            # The viva adapts its length and difficulty to the students' level.
+            "profile": {"level": course.level, "kind": course.kind},
+        },
     }
     try:
         state = internal_http.post_json(

@@ -6,6 +6,7 @@ An unanswered challenge scores 0 when its time runs out.
 
 import re
 import uuid
+from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 
 from sqlalchemy import select
@@ -20,6 +21,25 @@ FIXED_POINTS = 40.0
 CHALLENGES = 3
 
 
+@dataclass(frozen=True)
+class Profile:
+    challenges: int
+    seconds: int
+    min_lines: int  # beginners write short functions
+
+
+# First-year code is short and its authors read slower: fewer, longer challenges.
+PROFILES = {
+    "year1": Profile(2, 360, 4),
+    "year2": Profile(3, 300, 5),
+}
+DEFAULT_PROFILE = Profile(CHALLENGES, SECONDS_PER_CHALLENGE, 6)
+
+
+def profile(level: str | None) -> Profile:
+    return PROFILES.get(level or "", DEFAULT_PROFILE)
+
+
 def _aware(moment: datetime) -> datetime:
     return moment.replace(tzinfo=UTC) if moment.tzinfo is None else moment
 
@@ -30,12 +50,12 @@ def normalize(line: str) -> str:
 
 def expire_overdue(db: Session, challenges: list[ComprehensionChallenge]) -> None:
     now, changed = datetime.now(UTC), False
-    limit = timedelta(seconds=SECONDS_PER_CHALLENGE + GRACE_SECONDS)
     for challenge in challenges:
+        limit = timedelta(seconds=challenge.seconds_allowed + GRACE_SECONDS)
         if challenge.status == "active" and now - _aware(challenge.shown_at) > limit:
             challenge.status, challenge.score = "expired", 0.0
             challenge.located = challenge.fixed = False
-            challenge.seconds = SECONDS_PER_CHALLENGE
+            challenge.seconds = challenge.seconds_allowed
             changed = True
     if changed:
         db.commit()

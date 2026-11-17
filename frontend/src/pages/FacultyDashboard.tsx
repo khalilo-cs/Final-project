@@ -2,7 +2,7 @@ import { useState, type FormEvent } from "react";
 import { Link, useParams } from "react-router-dom";
 import { download, get, post, put } from "../api";
 import { Badge, Button, Card, ErrorBox, Input, Loading, Score, STATUS_AR, severityTone, useLoad } from "../components/ui";
-import type { Alert, Course, User } from "../types";
+import { KINDS_AR, LEVELS_AR, type Alert, type Course, type User } from "../types";
 
 interface Summary { total_projects: number; by_status: Record<string, number>; average_suggested_total: number | null; average_by_criterion: Record<string, number | null>; alerts: number }
 
@@ -46,6 +46,7 @@ export function FacultyDashboard() {
             {courses.map((c) => (
               <Link key={c.id} to={`/courses/${c.id}`} className="flex justify-between py-2 hover:bg-slate-50">
                 <span className="font-semibold">{c.code} — {c.name}</span>
+                <span className="mx-2 inline-flex gap-1 align-middle"><Badge>{KINDS_AR[c.kind] ?? c.kind}</Badge><Badge tone="blue">{LEVELS_AR[c.level] ?? c.level}</Badge></span>
                 <span className="text-sm text-slate-500">{c.semester ?? ""} {c.year ?? ""}</span>
               </Link>
             ))}
@@ -72,12 +73,19 @@ function CreateCourse({ onDone }: { onDone: () => void }) {
     }
   };
   return (
-    <form onSubmit={submit} className="mt-4 grid gap-2 border-t pt-4 md:grid-cols-5">
+    <form onSubmit={submit} className="mt-4 grid gap-2 border-t pt-4 md:grid-cols-6">
       <Input name="code" placeholder="رمز المادة" required />
       <Input name="name" placeholder="اسم المادة" required className="md:col-span-2" />
       <Input name="semester" placeholder="الفصل" />
+      <select name="level" defaultValue="year4" aria-label="مستوى الطلاب" className="rounded-lg border border-slate-300 px-3 py-2 text-sm">
+        {Object.entries(LEVELS_AR).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+      </select>
+      <select name="kind" defaultValue="graduation" aria-label="نوع العمل" className="rounded-lg border border-slate-300 px-3 py-2 text-sm">
+        {Object.entries(KINDS_AR).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+      </select>
+      <p className="text-xs text-slate-500 md:col-span-5">المستوى ونوع العمل يحددان أوزان التقييم الافتراضية (الواجب لا يُحاسَب على تقرير)، وطول المناقشة وصعوبتها، ووقت اختبار بصمة الفهم. يمكن تعديل الأوزان لاحقاً من صفحة المادة.</p>
       <Button type="submit">إضافة مادة</Button>
-      <div className="md:col-span-5"><ErrorBox error={error} /></div>
+      <div className="md:col-span-6"><ErrorBox error={error} /></div>
     </form>
   );
 }

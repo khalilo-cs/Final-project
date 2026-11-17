@@ -18,7 +18,7 @@ async def lifespan(_: FastAPI):
     yield
 
 
-app = FastAPI(title="AI Project Examiner — Auth Service", version="0.1.0", lifespan=lifespan)
+app = FastAPI(title="Mihakk — Auth Service", version="0.1.0", lifespan=lifespan)
 
 if get_settings().cors_origins:
     app.add_middleware(

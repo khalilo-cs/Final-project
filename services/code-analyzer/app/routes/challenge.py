@@ -19,6 +19,7 @@ def mutations(
     claims: CurrentClaims,
     count: Annotated[int, Form(ge=1, le=5)] = 3,
     seed: Annotated[int | None, Form()] = None,
+    min_lines: Annotated[int, Form(ge=3, le=20)] = 6,
 ):
     """Seed one small defect into each of the project's most complex functions.
 
@@ -31,5 +32,5 @@ def mutations(
         root, _archive = _unpack(file, workdir)
         # A seed makes a session reproducible (tests); production uses the system RNG.
         rng = random.Random(seed) if seed is not None else random.SystemRandom()  # noqa: S311
-        challenges = make_challenges(root, analyze_files(root), count, rng)
+        challenges = make_challenges(root, analyze_files(root), count, rng, min_lines)
         return {"challenges": [asdict(c) for c in challenges]}

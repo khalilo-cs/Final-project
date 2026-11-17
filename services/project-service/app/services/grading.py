@@ -7,6 +7,7 @@ from datetime import UTC, datetime
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
+from app.models.course import Course
 from app.models.grading import FinalGrade, GradingCriterion
 from app.models.project import (
     AiFixLog,
@@ -32,6 +33,24 @@ DEFAULT_WEIGHTS = {
     "authenticity": 10.0,
     "performance": 10.0,
 }
+# What each kind of work is graded on (weights sum to 100). A weekly assignment has no
+# report or database to grade; a criterion with weight 0 is left out entirely.
+WEIGHT_PRESETS = {
+    "assignment": {
+        "code_quality": 45.0, "security": 10.0, "database": 0.0, "report": 0.0,
+        "viva": 30.0, "authenticity": 15.0, "performance": 0.0,
+    },
+    "course_project": {
+        "code_quality": 25.0, "security": 10.0, "database": 15.0, "report": 10.0,
+        "viva": 25.0, "authenticity": 10.0, "performance": 5.0,
+    },
+    "graduation": DEFAULT_WEIGHTS,
+}  # fmt: skip
+LEVELS_AR = {
+    "year1": "السنة الأولى", "year2": "السنة الثانية", "year3": "السنة الثالثة",
+    "year4": "السنة الرابعة", "postgrad": "الدراسات العليا",
+}  # fmt: skip
+KINDS_AR = {"assignment": "واجب برمجي", "course_project": "مشروع مادة", "graduation": "مشروع تخرج"}
 CRITERIA = list(DEFAULT_WEIGHTS)
 LABELS_AR = {
     "code_quality": "جودة الكود",
@@ -77,8 +96,13 @@ class Suggestion:
     breakdown: list[dict] = field(default_factory=list)
 
 
+def default_weights(kind: str | None) -> dict[str, float]:
+    return dict(WEIGHT_PRESETS.get(kind or "graduation", DEFAULT_WEIGHTS))
+
+
 def course_weights(db: Session, course_id: uuid.UUID) -> dict[str, float]:
-    weights = dict(DEFAULT_WEIGHTS)
+    course = db.get(Course, course_id)
+    weights = default_weights(course.kind if course is not None else None)
     for row in db.scalars(select(GradingCriterion).where(GradingCriterion.course_id == course_id)):
         if row.criterion in weights:
             weights[row.criterion] = row.weight

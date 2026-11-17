@@ -1,5 +1,6 @@
 import uuid
 from datetime import datetime
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -11,6 +12,8 @@ class CourseCreate(BaseModel):
     code: str = Field(min_length=1, max_length=50)
     semester: str | None = Field(default=None, max_length=50)
     year: int | None = Field(default=None, ge=2000, le=2100)
+    level: Literal["year1", "year2", "year3", "year4", "postgrad"] = "year4"
+    kind: Literal["assignment", "course_project", "graduation"] = "graduation"
     # Admins may create a course on behalf of a faculty member.
     faculty_id: uuid.UUID | None = None
 
@@ -24,6 +27,8 @@ class CourseOut(BaseModel):
     faculty_id: uuid.UUID
     semester: str | None
     year: int | None
+    level: str
+    kind: str
     created_at: datetime
 
 

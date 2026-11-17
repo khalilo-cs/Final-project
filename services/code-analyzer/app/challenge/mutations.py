@@ -110,19 +110,23 @@ class Challenge:
     mutation: Mutation
 
 
-def _eligible(file: FileAnalysis) -> list[FunctionInfo]:
-    return [f for f in file.functions if MIN_LINES <= f.length <= MAX_LINES]
+def _eligible(file: FileAnalysis, min_lines: int) -> list[FunctionInfo]:
+    return [f for f in file.functions if min_lines <= f.length <= MAX_LINES]
 
 
 def make_challenges(
-    root: Path, files: list[FileAnalysis], count: int, rng: random.Random
+    root: Path,
+    files: list[FileAnalysis],
+    count: int,
+    rng: random.Random,
+    min_lines: int = MIN_LINES,
 ) -> list[Challenge]:
     """Up to `count` challenges, each in a different function, hardest functions first."""
     pool = []
     for file in files:
         if file.parse_error or "test" in file.path.lower():
             continue
-        for function in _eligible(file):
+        for function in _eligible(file, min_lines):
             pool.append((file, function))
     # The most complex functions are the ones only the author can explain; shuffle within
     # equal complexity so two students with similar code do not get the same challenge.

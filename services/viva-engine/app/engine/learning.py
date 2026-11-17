@@ -199,7 +199,10 @@ def training_dataset(db: Session):
     for qa, review in reviewed_examples(db, limit=100000):
         yield {
             "messages": [
-                {"role": "system", "content": "Grade a graduation project viva answer (0-100)."},
+                {
+                    "role": "system",
+                    "content": "Grade a student software project viva answer (0-100).",
+                },
                 {
                     "role": "user",
                     "content": f"Question: {qa.question}\nExpected: {qa.expected_points}\n"

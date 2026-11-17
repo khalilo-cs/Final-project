@@ -7,7 +7,7 @@ from app.routes import reports
 logging.getLogger("weasyprint").setLevel(logging.ERROR)
 logging.getLogger("fontTools").setLevel(logging.ERROR)
 
-app = FastAPI(title="AI Project Examiner — Report Generator", version="0.1.0")
+app = FastAPI(title="Mihakk — Report Generator", version="0.1.0")
 app.include_router(reports.router)
 
 

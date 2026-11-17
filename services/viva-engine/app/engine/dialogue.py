@@ -2,7 +2,7 @@
 
 import logging
 import uuid
-from dataclasses import asdict
+from dataclasses import asdict, dataclass
 from datetime import UTC, datetime, timedelta
 
 from sqlalchemy import func, select
@@ -47,6 +47,37 @@ def _as_question(data: dict) -> Question:
 # -- session lifecycle -----------------------------------------------------------------
 
 
+@dataclass(frozen=True)
+class LevelProfile:
+    questions: int
+    max_level: int  # hardest question level (1-4)
+    start_level: int
+
+
+# A first-year student gets a shorter viva without the hardest verification questions;
+# postgraduates start one step up. Unknown levels get the full viva.
+LEVEL_PROFILES = {
+    "year1": LevelProfile(5, 3, 1),
+    "year2": LevelProfile(6, 3, 1),
+    "year3": LevelProfile(7, 4, 1),
+    "year4": LevelProfile(8, 4, 1),
+    "postgrad": LevelProfile(8, 4, 2),
+}
+
+
+def level_profile(session_or_context) -> LevelProfile:
+    context = getattr(session_or_context, "context", session_or_context) or {}
+    found = LEVEL_PROFILES.get((context.get("profile") or {}).get("level", ""))
+    full = LevelProfile(get_settings().max_questions, 4, 1)
+    if found is None:
+        return full
+    return LevelProfile(min(found.questions, full.questions), found.max_level, found.start_level)
+
+
+def max_questions(session: VivaSession) -> int:
+    return level_profile(session).questions
+
+
 def start_session(
     db: Session,
     project_id: uuid.UUID,
@@ -62,6 +93,7 @@ def start_session(
         item.text for item, _ in store.search(db, topics, k=5, exclude_types=store.PRIVATE_SOURCES)
     ]
 
+    profile = level_profile(context)
     pool = _TEMPLATE.generate_questions(context, language, settings.max_questions * 2, [], [])
     # Questions the system learned (built-in pack, teacher models) for this project's topics.
     pool += autolearn.bank_questions(db, list(autolearn.topics_from_context(context)), language)
@@ -75,6 +107,8 @@ def start_session(
         except ProviderError as exc:
             log.warning("%s could not write questions: %s", provider.name, exc)
 
+    # Questions above the students' level are not asked at all (from any source).
+    pool = [q for q in pool if q.level <= profile.max_level] or pool
     session = VivaSession(
         project_id=project_id,
         student_id=student_id,
@@ -83,6 +117,7 @@ def start_session(
         context=context,
         pool=[_as_dict(q) for q in pool],
         providers=used,
+        level=profile.start_level,
     )
     db.add(session)
     db.flush()
@@ -183,11 +218,10 @@ def touch(db: Session, session: VivaSession) -> None:
 
 
 def _advance(db: Session, session: VivaSession, previous: VivaQA | None = None) -> None:
-    settings = get_settings()
     answered = len(_answered(db, session))
     timed_out = seconds_left(session) <= 0
     question = (
-        None if answered >= settings.max_questions or timed_out else _pick(db, session, previous)
+        None if answered >= max_questions(session) or timed_out else _pick(db, session, previous)
     )
     if question is None:
         _finish(db, session)
@@ -273,7 +307,7 @@ def answer(db: Session, session: VivaSession, text: str) -> VivaQA:
 
     # Adapt: strong answers raise the level, weak ones lower it.
     if score >= 75:
-        session.level = min(4, session.level + 1)
+        session.level = min(level_profile(session).max_level, session.level + 1)
     elif score < 40:
         session.level = max(1, session.level - 1)
     _advance(db, session, qa)

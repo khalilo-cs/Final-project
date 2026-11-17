@@ -299,7 +299,7 @@ TEACHER_SCHEMA = {
     "required": ["explanation_ar", "explanation_en", "key_points", "questions"],
     "additionalProperties": False,
 }
-TEACHER_SYSTEM = """You teach an automatic examiner of computer science graduation projects \
+TEACHER_SYSTEM = """You teach an automatic examiner of computer science student projects \
 about one topic. Write a short accurate explanation in Arabic and in English (3-5 \
 sentences each), the key points a student who understands the topic would mention, and \
 6 viva questions (3 Arabic, 3 English) that apply to ANY project using this topic, at \

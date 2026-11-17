@@ -105,7 +105,7 @@ def code_graph_cypher(project_id: uuid.UUID, db: DbSession, principal: CurrentPr
     """The graph as Cypher statements, to load into Neo4j: `cypher-shell < graph.cypher`."""
     graph = code_graph(project_id, db, principal)
     project = str(project_id)
-    lines = [f"// AI Project Examiner knowledge graph, project {project}"]
+    lines = [f"// Mihakk knowledge graph, project {project}"]
     for node in graph["nodes"]:
         label = _LABELS.get(node["type"], "Node")
         props = {k: v for k, v in node.items() if k != "type" and v is not None}

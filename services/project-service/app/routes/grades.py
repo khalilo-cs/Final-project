@@ -53,7 +53,7 @@ def get_criteria(course_id: uuid.UUID, db: DbSession, principal: CurrentPrincipa
             criterion=c,
             label_ar=grading.LABELS_AR[c],
             weight=weights[c],
-            is_default=weights[c] == grading.DEFAULT_WEIGHTS[c],
+            is_default=weights[c] == grading.default_weights(course.kind)[c],
         )
         for c in grading.CRITERIA
     ]

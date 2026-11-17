@@ -12,7 +12,7 @@ SUMMARY_SCHEMA = {
     "required": ["summary"],
     "additionalProperties": False,
 }
-SYSTEM = """You are a supportive but honest supervisor of a graduation project. You get \
+SYSTEM = """You are a supportive but honest supervisor of a student's software project. You get \
 findings produced by automatic analysis (strengths, weaknesses, suggested improvements) \
 with their evidence. Write a short summary for the student: what is good, what matters \
 most to fix first and why, in plain language. Use only the given findings; do not invent \

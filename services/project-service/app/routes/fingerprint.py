@@ -8,6 +8,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy import delete
 
 from app.config import get_settings
+from app.models.course import Course
 from app.models.fingerprint import ComprehensionChallenge
 from app.models.project import Project, ProjectStatus
 from app.routes.deps import CurrentPrincipal, DbSession, Principal
@@ -33,13 +34,13 @@ def _challenge_out(challenge: ComprehensionChallenge, staff: bool) -> dict:
         "file": challenge.file,
         "function": challenge.function,
         "language": challenge.language,
-        "seconds_allowed": fingerprint.SECONDS_PER_CHALLENGE,
+        "seconds_allowed": challenge.seconds_allowed,
     }
     if challenge.status == "active" or done or staff:
         out |= {"code": challenge.code, "start_line": challenge.start_line}
     if challenge.status == "active":
         elapsed = (datetime.now(UTC) - fingerprint._aware(challenge.shown_at)).total_seconds()
-        out["seconds_left"] = max(0, int(fingerprint.SECONDS_PER_CHALLENGE - elapsed))
+        out["seconds_left"] = max(0, int(challenge.seconds_allowed - elapsed))
     if done:
         out |= {
             "located": challenge.located,
@@ -80,6 +81,8 @@ def start(project_id: uuid.UUID, db: DbSession, principal: CurrentPrincipal):
         raise HTTPException(status.HTTP_409_CONFLICT, f"Project is {project.status.value}")
     if fingerprint.load(db, project.id):
         raise HTTPException(status.HTTP_409_CONFLICT, "Already started; one attempt per project")
+    course = db.get(Course, project.course_id)
+    settings = fingerprint.profile(course.level if course else None)
     try:
         with (
             internal_http.client(get_settings().code_analyzer_url, timeout=120) as http,
@@ -88,7 +91,7 @@ def start(project_id: uuid.UUID, db: DbSession, principal: CurrentPrincipal):
             response = http.post(
                 "/api/v1/challenge/mutations",
                 files={"file": ("code.zip", archive)},
-                data={"count": fingerprint.CHALLENGES},
+                data={"count": settings.challenges, "min_lines": settings.min_lines},
             )
             response.raise_for_status()
             generated = response.json()["challenges"]
@@ -107,6 +110,7 @@ def start(project_id: uuid.UUID, db: DbSession, principal: CurrentPrincipal):
                 project_id=project.id, position=position, file=item["file"],
                 function=item["function"], language=item["language"],
                 start_line=item["start_line"], code=item["code"], answer=item["mutation"],
+                seconds_allowed=settings.seconds,
             )
         )  # fmt: skip
     db.commit()

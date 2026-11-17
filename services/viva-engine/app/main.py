@@ -36,7 +36,7 @@ async def lifespan(_: FastAPI):
     stop.set()
 
 
-app = FastAPI(title="AI Project Examiner — Viva Engine", version="0.2.0", lifespan=lifespan)
+app = FastAPI(title="Mihakk — Viva Engine", version="0.2.0", lifespan=lifespan)
 app.include_router(viva.router)
 app.include_router(ai.router)
 app.include_router(ai.internal)

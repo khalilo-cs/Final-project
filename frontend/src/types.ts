@@ -1,5 +1,7 @@
 export type { User } from "./api";
-export interface Course { id: string; name: string; code: string; faculty_id: string; semester: string | null; year: number | null }
+export interface Course { id: string; name: string; code: string; faculty_id: string; semester: string | null; year: number | null; level: string; kind: string }
+export const LEVELS_AR: Record<string, string> = { year1: "السنة الأولى", year2: "السنة الثانية", year3: "السنة الثالثة", year4: "السنة الرابعة", postgrad: "الدراسات العليا" };
+export const KINDS_AR: Record<string, string> = { assignment: "واجب برمجي", course_project: "مشروع مادة", graduation: "مشروع تخرج" };
 export interface Project {
   id: string; title: string; description: string | null; student_id: string; course_id: string;
   programming_languages: string[]; frameworks: string[]; has_report: boolean; has_database: boolean;

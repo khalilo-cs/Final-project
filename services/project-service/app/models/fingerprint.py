@@ -26,6 +26,7 @@ class ComprehensionChallenge(Base):
     language: Mapped[str] = mapped_column(String(30))
     start_line: Mapped[int] = mapped_column(Integer)
     code: Mapped[str] = mapped_column(Text)  # the function with the defect
+    seconds_allowed: Mapped[int] = mapped_column(Integer, default=240, server_default="240")
     answer: Mapped[dict] = mapped_column(JSON)
     status: Mapped[str] = mapped_column(String(20), default="pending")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)

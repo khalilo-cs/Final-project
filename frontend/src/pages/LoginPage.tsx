@@ -72,8 +72,8 @@ export function LoginPage() {
     <div className="flex min-h-screen items-center justify-center p-4">
       <div className="w-full max-w-md space-y-4">
         <div className="text-center">
-          <div className="text-3xl font-black text-indigo-700">فاحص المشاريع الذكي</div>
-          <p className="mt-2 text-sm text-slate-500">تحليل مشاريع التخرج ومناقشتها بالذكاء الاصطناعي — جامعة صنعاء</p>
+          <div className="text-3xl font-black text-indigo-700">مِحَكّ</div>
+          <p className="mt-2 text-sm text-slate-500">تقييم المشاريع البرمجية لكل مستويات الحاسوب والتحقق من فهم الطالب لها — جامعة صنعاء</p>
         </div>
         <Card>
           {sso?.enabled && (

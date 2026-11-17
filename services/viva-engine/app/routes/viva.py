@@ -54,7 +54,7 @@ def _state(db, session: VivaSession, principal: Principal | None = None) -> dict
         "language": session.language,
         "level": session.level,
         "question_number": len(answered) + (1 if current else 0),
-        "max_questions": dialogue.get_settings().max_questions,
+        "max_questions": dialogue.max_questions(session),
         "current_question": question,
         "overall_score": session.overall_score,
         "providers": session.providers,

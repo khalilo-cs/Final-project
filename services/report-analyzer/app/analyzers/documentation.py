@@ -5,7 +5,7 @@ import re
 from app.parsers.extract import ExtractedDocument
 from app.text.normalize import normalize
 
-# Chapters expected in a graduation project report (Arabic or English headings).
+# Chapters expected in a project report (Arabic or English headings).
 SECTIONS = {
     "introduction": [r"مقدمه", r"\bintroduction\b"],
     "problem_statement": [r"مشكله\s*البحث", r"المشكله", r"problem\s*statement"],

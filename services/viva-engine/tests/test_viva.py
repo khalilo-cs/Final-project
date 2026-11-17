@@ -312,3 +312,29 @@ def test_an_answer_sent_twice_is_counted_once(client, started, people):
     assert repeat["current_question"]["text"] == first["current_question"]["text"]
     faculty = token(people["faculty"], "faculty")
     assert len(client.get(f"/api/v1/viva/{sid}", headers=faculty).json()["transcript"]) == 1
+
+
+def test_first_year_viva_is_shorter_and_easier(client, people):
+    import uuid
+
+    from tests.conftest import CONTEXT
+
+    def start(level):
+        body = {"project_id": str(uuid.uuid4()), "student_id": str(people["student"]),
+                "staff_ids": [str(people["faculty"])], "language": "ar",
+                "context": {**CONTEXT, "profile": {"level": level, "kind": "assignment"}}}  # fmt: skip
+        return client.post("/internal/sessions", json=body, headers=token("svc", "service")).json()
+
+    student = token(people["student"], "student")
+    first = start("year1")
+    assert first["max_questions"] == 5 and first["level"] == 1
+    levels, state = [first["current_question"]["level"]], first
+    while state["status"] == "in_progress":
+        state = answer(client, first["session_id"], GOOD + " " + GOOD, student).json()
+        if state["status"] == "in_progress":
+            levels.append(state["current_question"]["level"])
+    assert len(levels) == 5 and max(levels) <= 3  # never the hardest verification questions
+
+    postgrad = start("postgrad")
+    assert postgrad["max_questions"] == 8 and postgrad["level"] == 2
+    assert start("unknown-level")["max_questions"] == 8  # old payloads: the full viva

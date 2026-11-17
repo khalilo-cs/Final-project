@@ -21,6 +21,10 @@ class Course(Base):
     faculty_id: Mapped[uuid.UUID] = mapped_column(Uuid, index=True)
     semester: Mapped[str | None] = mapped_column(String(50))
     year: Mapped[int | None] = mapped_column(Integer)
+    # Who the students are and what they hand in: sets the default grading weights,
+    # the viva's length and difficulty, and the comprehension challenge's time.
+    level: Mapped[str] = mapped_column(String(20), default="year4", server_default="year4")
+    kind: Mapped[str] = mapped_column(String(30), default="graduation", server_default="graduation")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
 
 

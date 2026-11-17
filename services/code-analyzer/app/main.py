@@ -2,7 +2,7 @@ from fastapi import FastAPI
 
 from app.routes import analysis, challenge, fixes
 
-app = FastAPI(title="AI Project Examiner — Code Analyzer", version="0.1.0")
+app = FastAPI(title="Mihakk — Code Analyzer", version="0.1.0")
 app.include_router(analysis.router)
 app.include_router(fixes.router)
 app.include_router(challenge.router)
