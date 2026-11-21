@@ -1,0 +1,466 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<title>مِحَكّ — الوثيقة الشاملة للمشروع</title>
+<style>
+  @page { size: A4; margin: 2cm 1.7cm; @bottom-center { content: "مِحَكّ — الوثيقة الشاملة · " counter(page); font-size: 8.5pt; color: #777; } }
+  @page :first { @bottom-center { content: ""; } }
+  body { font-family: "Noto Naskh Arabic", "Noto Sans Arabic", "DejaVu Sans", sans-serif; font-size: 10.8pt; line-height: 1.8; color: #1a1a1a; }
+  h1 { font-size: 16pt; color: #2b3a8f; border-bottom: 2px solid #2b3a8f; padding-bottom: 4px; margin-top: 24px; break-after: avoid; }
+  h1.page { break-before: page; margin-top: 0; }
+  h2 { font-size: 12.3pt; color: #2b3a8f; margin-top: 14px; break-after: avoid; }
+  p { margin: 5px 0; text-align: justify; }
+  ul, ol { margin: 4px 0; padding-right: 22px; }
+  li { margin: 2px 0; }
+  table { width: 100%; border-collapse: collapse; margin: 8px 0; font-size: 9.6pt; break-inside: avoid; }
+  th { background: #2b3a8f; color: #fff; padding: 5px 7px; text-align: right; }
+  td { border: 1px solid #c9cde0; padding: 4px 7px; vertical-align: top; }
+  tr:nth-child(even) td { background: #f5f6fb; }
+  td.num, th.num { text-align: center; white-space: nowrap; }
+  tr.total td { background: #e3e6f5 !important; font-weight: bold; }
+  .cover { text-align: center; padding-top: 2.4cm; break-after: page; }
+  .cover .uni { font-size: 14pt; line-height: 2; }
+  .cover .title { font-size: 30pt; font-weight: bold; color: #2b3a8f; margin-top: 2cm; }
+  .cover .en { font-size: 15pt; color: #555; direction: ltr; margin-top: 4px; }
+  .cover .sub { font-size: 12.5pt; margin-top: 14px; color: #333; }
+  .cover .kind { display: inline-block; margin-top: 18px; padding: 6px 22px; border: 2px solid #2b3a8f; border-radius: 6px; font-size: 13pt; font-weight: bold; color: #2b3a8f; }
+  .cover .meta { margin: 2.2cm auto 0; width: 75%; font-size: 12pt; }
+  .cover .meta td { border: none; background: none !important; padding: 6px; }
+  .cover .meta td:first-child { width: 38%; color: #555; }
+  .fill { border-bottom: 1px dotted #666; display: inline-block; min-width: 6cm; }
+  .box { border: 1px solid #c9cde0; border-right: 5px solid #2b3a8f; background: #f5f6fb; padding: 7px 12px; margin: 9px 0; break-inside: avoid; }
+  .warn { border-right-color: #b45309; background: #fff8ec; }
+  .ok { border-right-color: #0a7a3d; background: #effaf3; }
+  .done { color: #0a7a3d; font-weight: bold; } .todo { color: #b45309; font-weight: bold; }
+  code, .ltr { direction: ltr; unicode-bidi: embed; font-family: "DejaVu Sans Mono", monospace; font-size: 9pt; }
+  .small { font-size: 9pt; color: #555; }
+  .toc td { border: none; background: none !important; padding: 2px 6px; font-size: 10.5pt; }
+  .toc td.n { width: 8%; color: #2b3a8f; font-weight: bold; }
+  .kpis { width: 100%; border-collapse: separate; border-spacing: 6px; margin: 6px 0; }
+  .kpis td { border: 1px solid #c9cde0; background: #f5f6fb !important; text-align: center; padding: 8px 4px; width: 25%; }
+  .kpis b { display: block; font-size: 17pt; color: #2b3a8f; line-height: 1.3; }
+  .kpis span { font-size: 9pt; color: #444; }
+  /* مخطط المعمارية */
+  .arch { width: 100%; border-collapse: separate; border-spacing: 5px; margin: 6px 0; font-size: 9pt; }
+  .arch td { border: 1.5px solid #2b3a8f; border-radius: 5px; text-align: center; padding: 5px 3px; background: #fff !important; vertical-align: middle; }
+  .arch td.layer { border: none; background: none !important; color: #2b3a8f; font-weight: bold; width: 14%; text-align: right; }
+  .arch td.front { background: #e3e6f5 !important; }
+  .arch td.gw { background: #2b3a8f !important; color: #fff; }
+  .arch td.data { background: #effaf3 !important; border-color: #0a7a3d; }
+  .arch .p { display: block; font-size: 7.5pt; color: #666; direction: ltr; }
+  .arch td.gw .p { color: #dde; }
+  /* الجدول الزمني */
+  .gantt td { padding: 3px 2px; font-size: 8.6pt; text-align: center; }
+  .gantt td.task { text-align: right; padding-right: 6px; width: 34%; }
+  .gantt td.on { background: #2b3a8f !important; }
+  .gantt td.half { background: #9aa4d8 !important; }
+  .gantt td.ms { background: #b45309 !important; }
+  .gantt th { font-size: 8.2pt; text-align: center; padding: 3px 1px; }
+  .sign td { border: none; background: none !important; padding-top: 26px; width: 50%; }
+  .steps { counter-reset: s; list-style: none; padding-right: 0; }
+  .steps li { counter-increment: s; padding-right: 30px; position: relative; margin: 4px 0; }
+  .steps li::before { content: counter(s); position: absolute; right: 0; top: 1px; width: 21px; height: 21px; border-radius: 50%; background: #2b3a8f; color: #fff; text-align: center; font-size: 9pt; line-height: 21px; }
+  .ltrn { direction: ltr; unicode-bidi: embed; }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <div class="uni">الجمهورية اليمنية<br>جامعة صنعاء<br>كلية الحاسوب وتكنولوجيا المعلومات</div>
+  <div class="title">مِحَكّ</div>
+  <div class="en">Mihakk</div>
+  <div class="sub">نظام ذكي لتقييم المشاريع البرمجية في كل مستويات الحاسوب<br>والتحقق من فهم الطالب لها وأصالتها</div>
+  <div class="kind">الوثيقة الشاملة: الفكرة · المكونات · الخطة الزمنية · التكاليف · المتطلبات</div>
+  <table class="meta">
+    <tr><td>إعداد</td><td><b>المهندس محمد عبدالرحيم خليل</b></td></tr>
+    <tr><td>الرقم الجامعي</td><td><span class="fill">&nbsp;</span></td></tr>
+    <tr><td>القسم</td><td><span class="fill">&nbsp;</span></td></tr>
+    <tr><td>المشرف</td><td><span class="fill">&nbsp;</span></td></tr>
+    <tr><td>تاريخ الإصدار</td><td>نوفمبر 2026</td></tr>
+  </table>
+</div>
+
+<h1 style="margin-top:0">المحتويات</h1>
+<table class="toc">
+  <tr><td class="n">1</td><td>الملخص التنفيذي</td></tr>
+  <tr><td class="n">2</td><td>المشكلة ولماذا الآن</td></tr>
+  <tr><td class="n">3</td><td>الفكرة والحل: كيف يعمل مِحَكّ</td></tr>
+  <tr><td class="n">4</td><td>المستخدمون ورحلة كل منهم</td></tr>
+  <tr><td class="n">5</td><td>المكونات والميزات بالتفصيل</td></tr>
+  <tr><td class="n">6</td><td>ما الجديد في مِحَكّ (الابتكار)</td></tr>
+  <tr><td class="n">7</td><td>التكيف مع كل مستويات الحاسوب</td></tr>
+  <tr><td class="n">8</td><td>المعمارية والتقنيات المستخدمة</td></tr>
+  <tr><td class="n">9</td><td>الذكاء الاصطناعي والخصوصية</td></tr>
+  <tr><td class="n">10</td><td>الأمان والأخلاقيات والعدالة</td></tr>
+  <tr><td class="n">11</td><td>ما أُنجز حتى الآن</td></tr>
+  <tr><td class="n">12</td><td>الخطة الزمنية</td></tr>
+  <tr><td class="n">13</td><td>التكاليف</td></tr>
+  <tr><td class="n">14</td><td>المتطلبات (الأجهزة والبرمجيات والأشخاص)</td></tr>
+  <tr><td class="n">15</td><td>التقييم ومؤشرات النجاح</td></tr>
+  <tr><td class="n">16</td><td>المخاطر وطرق معالجتها</td></tr>
+  <tr><td class="n">17</td><td>المطلوب من الكلية</td></tr>
+  <tr><td class="n">18</td><td>الملكية الفكرية</td></tr>
+  <tr><td class="n">19</td><td>التطوير المستقبلي والخاتمة</td></tr>
+</table>
+
+<h1>1. الملخص التنفيذي</h1>
+<p><b>مِحَكّ</b> نظام يساعد دكاترة كليات الحاسوب في تقييم الأعمال البرمجية للطلاب بكل مستوياتها: الواجب الأسبوعي في السنة الأولى، ومشروع المادة، ومشروع التخرج، وصولاً إلى الدراسات العليا. يرفع الطالب مشروعه، فيحلل النظام الكود والأمان وقاعدة البيانات والتقرير، ويقيس الأداء، ثم يجري مع الطالب <b>مناقشة ذكية</b> أسئلتها مأخوذة من كوده هو، ويتحقق من <b>أصالة العمل وفهم الطالب له</b>، ويقترح في النهاية <b>درجة مبررة</b> يعتمدها الدكتور أو يعدّلها.</p>
+<p>الاسم «مِحَكّ» من المحكّ، وهو الحجر الذي يُختبر به الذهب ليُعرف أصيله من زائفه. وهذا ما يفعله النظام مع العمل البرمجي.</p>
+<table class="kpis">
+  <tr>
+    <td><b>10</b><span>خدمات مصغرة مستقلة</span></td>
+    <td><b>6</b><span>لغات برمجة مدعومة</span></td>
+    <td><b>308</b><span>اختباراً آلياً ناجحاً</span></td>
+    <td><b>≈ 21,000</b><span>سطر برمجي مكتوب</span></td>
+  </tr>
+  <tr>
+    <td><b><span class="ltrn">&lrm;0&nbsp;$&lrm;</span></b><span>تكلفة البرمجيات (كلها مفتوحة المصدر)</span></td>
+    <td><b>يعمل محلياً</b><span>بدون إنترنت وبدون إرسال بيانات للخارج</span></td>
+    <td><b>عربي أولاً</b><span>واجهة وتقارير ومناقشة صوتية</span></td>
+    <td><b>من <span class="ltrn">&lrm;210&nbsp;$&lrm;</span></b><span>أجهزة لمرة واحدة (الموصى به ≈ 3,450–<span class="ltrn">&lrm;5,900&nbsp;$&lrm;</span>)</span></td>
+  </tr>
+</table>
+<div class="box"><b>المبدأ الحاكم:</b> النظام مساعد للدكتور وليس بديلاً عنه. كل درجة تظهر مع سببها، والقرار النهائي للدكتور دائماً، وأي شبهة غش تُعرض عليه وحده ولا يراها الطالب.</div>
+
+<h1>2. المشكلة ولماذا الآن</h1>
+<h2>2.1 مشكلة برمجية عامة</h2>
+<ul>
+  <li><b>الوقت:</b> فحص مشروع تخرج واحد بدقة يأخذ ساعات، ومراجعة واجبات مئات الطلاب أسبوعياً شبه مستحيلة يدوياً، فيُقيَّم كثير منها بالنظر السريع.</li>
+  <li><b>تفاوت التقييم:</b> المعايير تختلف من ممتحن لآخر، والطالب لا يحصل غالباً على ملاحظات مفصلة يتعلم منها.</li>
+  <li><b>الكود المولَّد بالذكاء الاصطناعي:</b> صار الطالب قادراً على تقديم مشروع يعمل دون أن يفهم سطراً منه. أدوات كشف التشابه التقليدية لا تكشف ذلك، لأن الكود جديد وليس منسوخاً.</li>
+  <li><b>النسخ المعاد صياغته:</b> تغيير أسماء المتغيرات وترتيب الدوال يكفي لخداع أدوات المقارنة النصية.</li>
+</ul>
+<h2>2.2 مشكلة محلية في اليمن</h2>
+<ul>
+  <li><b>انقطاع الكهرباء وضعف الإنترنت:</b> رفع مشروع حجمه عشرات الميجابايت أو إجراء مناقشة إلكترونية قد ينقطع في منتصفه، فيضيع جهد الطالب ويُظلم في الوقت.</li>
+  <li><b>كلفة الخدمات السحابية والقيود:</b> الأدوات العالمية مدفوعة بالدولار، وبعضها غير متاح في اليمن، وإرسال أعمال الطلاب إلى خوادم خارجية يثير مسألة الخصوصية.</li>
+  <li><b>اللغة:</b> تقاريرنا عربية، وأدوات الانتحال العالمية ضعيفة مع النص العربي.</li>
+  <li><b>عدد الطلاب مقابل عدد الدكاترة:</b> النسبة كبيرة، ووقت الدكتور هو المورد الأندر.</li>
+</ul>
+
+<h1>3. الفكرة والحل: كيف يعمل مِحَكّ</h1>
+<ol class="steps">
+  <li><b>ينشئ الدكتور المادة</b> ويحدد مستواها (سنة أولى… دراسات عليا) ونوع العمل (واجب، مشروع مادة، مشروع تخرج)، فيضبط النظام الأوزان وصعوبة الأسئلة تلقائياً.</li>
+  <li><b>يرفع الطالب مشروعه</b> (ملف ZIP أو رابط GitHub) مع التقرير. الرفع مجزأ وقابل للاستكمال: لو انقطعت الكهرباء يكمل من حيث توقف.</li>
+  <li><b>التحليل الآلي:</b> الكود (الجودة، التعقيد، التكرار، التصميم)، الأمان (الثغرات مع اقتراح الإصلاح)، قاعدة البيانات (المفاتيح، التطبيع)، التقرير (الانتحال ومطابقته للكود)، والأداء (تشغيل المشروع في بيئة معزولة وقياس سرعته).</li>
+  <li><b>فحص الأصالة:</b> مقارنة بمشاريع الدفعة والدفعات السابقة نصياً وبنيوياً ودلالياً، وكشف الكود المعاد صياغته.</li>
+  <li><b>المناقشة الذكية:</b> أسئلة من كود الطالب نفسه، تصعب أو تسهل حسب إجاباته، كتابةً أو بالصوت.</li>
+  <li><b>بصمة الفهم:</b> يُعرض على الطالب جزء من دالته هو بعد تغيير رمز واحد فيه، ويُطلب منه خلال وقت محدد أن يحدد أثر التغيير. من كتب الكود وفهمه يجيب بسرعة، ومن لم يفهمه يتعثر.</li>
+  <li><b>الدرجة المقترحة:</b> يجمع النظام كل ما سبق في درجة واحدة مع تفصيل كل جزء وسببه، ويعرضها على الدكتور ليعتمدها أو يعدلها. وتعديلات الدكاترة تُستخدم لتحسين النظام لاحقاً.</li>
+</ol>
+
+<h1>4. المستخدمون ورحلة كل منهم</h1>
+<table>
+  <tr><th style="width:18%">الدور</th><th>ماذا يفعل في النظام</th></tr>
+  <tr><td><b>الطالب</b></td><td>يرفع المشروع ويتابع حالة التحليل، يرى نتائج التحليل وملاحظات التحسين، يطبق إصلاحات الأمان المقترحة بموافقته، يجري المناقشة وتحدي بصمة الفهم، ويستلم الدرجة بعد اعتمادها.</td></tr>
+  <tr><td><b>الدكتور / الممتحن</b></td><td>ينشئ المواد ويحدد المستوى والأوزان، يرى لوحة المشاريع والتنبيهات، يراجع تقرير الأصالة وتفاصيل المناقشة، يعتمد الدرجة أو يعدلها، ويصدر تقارير PDF و Excel.</td></tr>
+  <tr><td><b>رئيس القسم</b></td><td>إحصائيات على مستوى القسم: توزيع الدرجات، المشاكل الأكثر تكراراً، حالات الشبهة، مقارنة الدفعات.</td></tr>
+  <tr><td><b>مدير النظام</b></td><td>إدارة المستخدمين والصلاحيات، ربط الدخول الموحد للجامعة (SSO)، النسخ الاحتياطي، ومتابعة صحة الخدمات.</td></tr>
+</table>
+<div class="box small">الطالب لا يرى أبداً درجة الأصالة أو الشبهات؛ هذه تظهر للدكتور فقط، حتى لا يُتهم طالب علناً بناء على مؤشر آلي.</div>
+
+<h1>5. المكونات والميزات بالتفصيل</h1>
+<table>
+  <tr><th style="width:21%">المكوّن</th><th>ما يقدمه</th><th style="width:12%">الحالة</th></tr>
+  <tr><td>تحليل الكود</td><td>Python، Java، JavaScript/TypeScript، C#، C/C++، PHP: التعقيد الحلقي، الكود المكرر والميت، طول الدوال، التسمية، والتوثيق.</td><td class="done">مُنجز</td></tr>
+  <tr><td>خريطة المعرفة للمشروع</td><td>رسم بياني تفاعلي للملفات والأصناف والدوال والعلاقات بينها، مع كشف الاعتماديات الدائرية، والمكونات المحورية، وأنماط التصميم (Singleton، Factory، Observer…) ومبادئ SOLID.</td><td class="done">مُنجز</td></tr>
+  <tr><td>تحليل الأمان</td><td>حقن SQL والأوامر، XSS، كلمات مرور ومفاتيح داخل الكود، التشفير الضعيف، مع اقتراح إصلاح يُطبَّق بموافقة الطالب. الثغرة الحرجة تحدّ الدرجة العليا (79) حتى تُصلح.</td><td class="done">مُنجز</td></tr>
+  <tr><td>قاعدة البيانات</td><td>المفاتيح الأساسية والأجنبية، التطبيع، أنواع البيانات، الفهارس، ومخطط ER.</td><td class="done">مُنجز</td></tr>
+  <tr><td>تحليل التقرير</td><td>الانتحال بالعربية والإنجليزية، ومطابقة ما يدّعيه التقرير لما في الكود فعلاً.</td><td class="done">مُنجز</td></tr>
+  <tr><td>اختبار الأداء</td><td>تشغيل المشروع داخل حاوية معزولة بلا إنترنت، وقياس زمن الاستجابة والحمل، مع حماية من المشاريع الخبيثة.</td><td class="done">مُنجز</td></tr>
+  <tr><td>كشف الغش والأصالة</td><td>بصمات Winnowing، مقارنة بنيوية لشكل الدوال، تشابه دلالي يكشف إعادة الصياغة، ومقارنة مع الدفعات السابقة.</td><td class="done">مُنجز</td></tr>
+  <tr><td>المناقشة الذكية</td><td>أسئلة من الكود نفسه، تكيفية الصعوبة، بمحرك مدمج يعمل دون إنترنت أو بنموذج ذكاء اصطناعي محلي أو سحابي حسب الإعداد.</td><td class="done">مُنجز</td></tr>
+  <tr><td>المناقشة الصوتية</td><td>تحويل كلام الطالب لنص بنموذج Whisper يعمل على خادم الكلية.</td><td class="done">مُنجز</td></tr>
+  <tr><td>بصمة الفهم</td><td>تحدٍّ زمني على كود الطالب نفسه بعد تعديل رمز واحد، يُصحح آلياً.</td><td class="done">مُنجز</td></tr>
+  <tr><td>وضع الصمود</td><td>رفع مجزأ قابل للاستكمال، مناقشة تتوقف مؤقتاً عند انقطاع الاتصال دون احتساب الوقت الضائع، وحفظ المسودات محلياً.</td><td class="done">مُنجز</td></tr>
+  <tr><td>الدرجة المقترحة</td><td>أوزان حسب نوع العمل، تبرير لكل جزء، وتعديل الدكتور النهائي.</td><td class="done">مُنجز</td></tr>
+  <tr><td>الإشعارات</td><td>داخل النظام وبالبريد الإلكتروني.</td><td class="done">مُنجز</td></tr>
+  <tr><td>الدخول الموحد</td><td>ربط حسابات الجامعة عبر OpenID Connect.</td><td class="done">مُنجز</td></tr>
+  <tr><td>أداة قياس الدقة</td><td>مقارنة درجات النظام بدرجات لجنة بشرية إحصائياً (MAE، Pearson، Kappa…).</td><td class="done">مُنجز</td></tr>
+  <tr><td>إشعارات SMS، ربط LDAP</td><td>للبيئات التي تحتاجها.</td><td class="todo">مخطط</td></tr>
+</table>
+
+<h1>6. ما الجديد في مِحَكّ (الابتكار)</h1>
+<p>توجد أدوات عالمية تحلل جودة الكود (مثل SonarQube) وأخرى تكشف التشابه (مثل MOSS). لكن لا يوجد، حسب بحثنا، نظام يجمع ما يلي في منصة واحدة تعمل محلياً بالعربية:</p>
+<table>
+  <tr><th style="width:26%">الابتكار</th><th>لماذا هو مختلف</th></tr>
+  <tr><td><b>بصمة الفهم</b></td><td>بدلاً من سؤال «هل هذا الكود منسوخ؟» يسأل النظام «هل يفهم الطالب هذا الكود؟». التحدي مبني من كود الطالب نفسه بتعديل رمز واحد ذي أثر، فلا يمكن حفظ إجابته مسبقاً ولا البحث عنها. وهذا يعالج مشكلة الكود المولد بالذكاء الاصطناعي من جذرها.</td></tr>
+  <tr><td><b>فجوة المناقشة</b></td><td>مقارنة جودة الكود بمستوى إجابات الطالب في المناقشة: مشروع ممتاز مع إجابات ضعيفة جداً مؤشر يُعرض على الدكتور.</td></tr>
+  <tr><td><b>وضع الصمود</b></td><td>صُمم لظروف انقطاع الكهرباء والإنترنت: رفع يستكمل من حيث توقف بالتحقق CRC-32، ومناقشة لا تحتسب على الطالب وقت الانقطاع.</td></tr>
+  <tr><td><b>التكيف مع المستوى</b></td><td>نفس النظام يخدم واجب السنة الأولى ومشروع التخرج، بأوزان وصعوبة وعدد أسئلة مختلفة.</td></tr>
+  <tr><td><b>العمل المحلي والعربية</b></td><td>كل شيء يعمل على خادم الكلية بلا اشتراكات ولا إرسال لأعمال الطلاب للخارج، بواجهة وتقارير عربية.</td></tr>
+</table>
+
+<h1>7. التكيف مع كل مستويات الحاسوب</h1>
+<table>
+  <tr><th>المستوى</th><th class="num">أسئلة المناقشة</th><th class="num">أعلى صعوبة</th><th class="num">تحديات بصمة الفهم</th><th class="num">وقت كل تحدٍّ</th></tr>
+  <tr><td>السنة الأولى</td><td class="num">5</td><td class="num">3 من 4</td><td class="num">2</td><td class="num">6 دقائق</td></tr>
+  <tr><td>السنة الثانية</td><td class="num">6</td><td class="num">3 من 4</td><td class="num">3</td><td class="num">5 دقائق</td></tr>
+  <tr><td>السنة الثالثة</td><td class="num">7</td><td class="num">4 من 4</td><td class="num">3</td><td class="num">4 دقائق</td></tr>
+  <tr><td>السنة الرابعة</td><td class="num">8</td><td class="num">4 من 4</td><td class="num">3</td><td class="num">4 دقائق</td></tr>
+  <tr><td>الدراسات العليا</td><td class="num">8</td><td class="num">4 من 4</td><td class="num">3</td><td class="num">4 دقائق</td></tr>
+</table>
+<table>
+  <tr><th>نوع العمل</th><th>الأوزان الافتراضية (يعدلها الدكتور)</th></tr>
+  <tr><td>واجب برمجي</td><td>التركيز على جودة الكود والمناقشة؛ لا وزن للتقرير وقاعدة البيانات غالباً.</td></tr>
+  <tr><td>مشروع مادة</td><td>توزيع متوازن بين الكود والأمان وقاعدة البيانات والمناقشة.</td></tr>
+  <tr><td>مشروع تخرج</td><td>كل المحاور: الكود، الأمان، قاعدة البيانات، التقرير، الأداء، المناقشة.</td></tr>
+</table>
+
+<h1 class="page">8. المعمارية والتقنيات المستخدمة</h1>
+<p>النظام مبني بأسلوب <b>الخدمات المصغرة (Microservices)</b>: كل وظيفة خدمة مستقلة بقاعدة بياناتها، تتواصل عبر بوابة واحدة. هذا يسمح بتطوير كل جزء واختباره وتوسيعه منفرداً.</p>
+<table class="arch">
+  <tr><td class="layer">الواجهة</td><td class="front" colspan="5">واجهة الويب (React + TypeScript) — عربية، تعمل على الجوال، وتُثبَّت كتطبيق (PWA)</td></tr>
+  <tr><td class="layer">البوابة</td><td class="gw" colspan="5">بوابة Nginx<span class="p">TLS · security headers · gzip · routing</span></td></tr>
+  <tr><td class="layer">الخدمات</td>
+    <td>المصادقة<span class="p">auth-service</span></td>
+    <td>المشاريع والدرجات<span class="p">project-service</span></td>
+    <td>تحليل الكود<span class="p">code-analyzer</span></td>
+    <td>قواعد البيانات<span class="p">db-analyzer</span></td>
+    <td>التقرير<span class="p">report-analyzer</span></td></tr>
+  <tr><td class="layer"></td>
+    <td>كشف الغش<span class="p">fraud-detector</span></td>
+    <td>المناقشة<span class="p">viva-engine</span></td>
+    <td>بيئة التشغيل<span class="p">sandbox-runner</span></td>
+    <td>الصوت<span class="p">speech-service</span></td>
+    <td>العمليات الخلفية<span class="p">workers</span></td></tr>
+  <tr><td class="layer">البيانات</td>
+    <td class="data" colspan="2">PostgreSQL<span class="p">database per service</span></td>
+    <td class="data">Redis<span class="p">queues · cache</span></td>
+    <td class="data" colspan="2">تخزين الملفات<span class="p">uploads · reports</span></td></tr>
+</table>
+<table>
+  <tr><th style="width:24%">الطبقة</th><th>التقنيات</th></tr>
+  <tr><td>الخدمات الخلفية</td><td class="ltr" style="text-align:right">Python 3.12 · FastAPI · SQLAlchemy 2 · Alembic · Pydantic</td></tr>
+  <tr><td>تحليل الكود</td><td class="ltr" style="text-align:right">tree-sitter · Python ast · NetworkX · Winnowing</td></tr>
+  <tr><td>الواجهة</td><td class="ltr" style="text-align:right">React · TypeScript · Vite · d3-force · Service Worker</td></tr>
+  <tr><td>الذكاء الاصطناعي</td><td class="ltr" style="text-align:right">Built-in engine · Ollama (local LLM) · Claude API (optional) · faster-whisper</td></tr>
+  <tr><td>البنية والتشغيل</td><td class="ltr" style="text-align:right">Docker Compose · Nginx · PostgreSQL · Redis · GitHub Actions CI</td></tr>
+  <tr><td>الأمان</td><td class="ltr" style="text-align:right">JWT · OIDC SSO + PKCE · bcrypt · sandbox isolation</td></tr>
+</table>
+
+<h1>9. الذكاء الاصطناعي والخصوصية</h1>
+<p>يعمل النظام بثلاثة أوضاع يختارها مدير النظام، ويعمل في جميعها دون أن يتوقف:</p>
+<table>
+  <tr><th style="width:24%">الوضع</th><th>الوصف</th><th style="width:22%">التكلفة</th></tr>
+  <tr><td><b>المحرك المدمج</b></td><td>أسئلة مولدة بقوالب من تحليل الكود نفسه. لا يحتاج إنترنت ولا كرت شاشة.</td><td>مجاني</td></tr>
+  <tr><td><b>نموذج محلي</b> (Ollama)</td><td>نموذج لغوي مفتوح المصدر يعمل على خادم الكلية. أسئلة أغنى، والبيانات لا تخرج من الكلية.</td><td>مجاني (يحتاج ذاكرة أكبر أو كرت شاشة)</td></tr>
+  <tr><td><b>نموذج سحابي</b> (Claude)</td><td>أعلى جودة في الأسئلة والتقييم، لكنه يحتاج إنترنت ويرسل مقتطفات من الكود للخارج.</td><td>حسب الاستخدام (انظر القسم 13)</td></tr>
+</table>
+<div class="box">أعمال الطلاب تبقى على خادم الكلية. الوضع السحابي اختياري ومعطل افتراضياً، ويُفعَّل بقرار من الكلية فقط.</div>
+
+<h1>10. الأمان والأخلاقيات والعدالة</h1>
+<ul>
+  <li><b>تشغيل آمن لمشاريع الطلاب:</b> كل مشروع يُشغَّل في حاوية معزولة بلا إنترنت، بحدود للذاكرة والمعالج والوقت.</li>
+  <li><b>حماية من الملفات الخبيثة:</b> فحص الأرشيفات ضد ملفات الضغط المتفجرة (zip bomb) والمسارات الخادعة والروابط الرمزية.</li>
+  <li><b>صلاحيات صارمة:</b> كل طلب يُتحقق من صاحبه ودوره؛ الطالب لا يرى إلا عمله.</li>
+  <li><b>مراجعة أمنية شاملة</b> أُجريت على كل الخدمات وأُصلحت الثغرات المكتشفة (DNS rebinding، تحويلات HTTP، كشف الأسرار…).</li>
+  <li><b>العدالة:</b> مؤشر الأصالة لا يكفي وحده للاتهام؛ يُعرض على الدكتور مع الأدلة، ويُعطى الطالب فرصة الشرح. وفي حالة التشابه بين طالبين لا يُفترض أن أحدهما هو الناسخ.</li>
+  <li><b>الشفافية:</b> لكل درجة تفصيل وسبب، ولكل تعديل من الدكتور سجل.</li>
+</ul>
+
+<h1 class="page">11. ما أُنجز حتى الآن</h1>
+<table>
+  <tr><th>البند</th><th class="num">القيمة</th></tr>
+  <tr><td>الخدمات المصغرة المكتملة</td><td class="num">10 خدمات + بوابة + واجهة</td></tr>
+  <tr><td>الاختبارات الآلية الناجحة</td><td class="num">308 اختبار</td></tr>
+  <tr><td>أسطر Python في الخدمات</td><td class="num">≈ 18,200</td></tr>
+  <tr><td>أسطر الواجهة (TypeScript/React)</td><td class="num">≈ 2,700</td></tr>
+  <tr><td>لغات البرمجة المدعومة في التحليل</td><td class="num">6</td></tr>
+  <tr><td>تكامل مستمر (CI) يشغل الاختبارات وفحص الجودة مع كل تعديل</td><td class="num done">يعمل</td></tr>
+  <tr><td>الكود منشور على GitHub</td><td class="num ltr">khalilo-cs/Final-project</td></tr>
+</table>
+<p><b>المتبقي قبل التسليم:</b> تشغيل النظام كاملاً على جهاز الكلية، تجربة ميدانية على مادة حقيقية، مقارنة درجاته بدرجات لجنة بشرية، كتابة التوثيق النهائي، والتحضير للمناقشة.</p>
+
+<h1>12. الخطة الزمنية</h1>
+<h2>12.1 مشروع التخرج (فصلان دراسيان ≈ 32 أسبوعاً)</h2>
+<table class="gantt">
+  <tr><th>المرحلة</th><th>2</th><th>4</th><th>6</th><th>8</th><th>10</th><th>12</th><th>14</th><th>16</th><th>18</th><th>20</th><th>22</th><th>24</th><th>26</th><th>28</th><th>30</th><th>32</th></tr>
+  <tr><td class="task">دراسة المشكلة والمتطلبات</td><td class="on"></td><td class="on"></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+  <tr><td class="task">التصميم والمعمارية</td><td></td><td class="half"></td><td class="on"></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+  <tr><td class="task">البنية الأساسية والمصادقة والمشاريع</td><td></td><td></td><td class="half"></td><td class="on"></td><td class="on"></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+  <tr><td class="task">محللات الكود والأمان وقاعدة البيانات</td><td></td><td></td><td></td><td></td><td class="on"></td><td class="on"></td><td class="on"></td><td class="half"></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+  <tr><td class="task">التقرير وكشف الغش وبيئة التشغيل</td><td></td><td></td><td></td><td></td><td></td><td></td><td class="half"></td><td class="on"></td><td class="on"></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+  <tr><td class="task">عرض نهاية الفصل الأول</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="ms"></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+  <tr><td class="task">المناقشة الذكية والصوت</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="on"></td><td class="on"></td><td class="on"></td><td></td><td></td><td></td><td></td><td></td></tr>
+  <tr><td class="task">بصمة الفهم ووضع الصمود</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="half"></td><td class="on"></td><td class="half"></td><td></td><td></td><td></td></tr>
+  <tr><td class="task">الواجهة ولوحة الدكتور والتقارير</td><td></td><td></td><td></td><td></td><td class="half"></td><td class="half"></td><td class="half"></td><td class="half"></td><td class="half"></td><td class="half"></td><td class="on"></td><td class="on"></td><td class="on"></td><td></td><td></td><td></td></tr>
+  <tr><td class="task">المراجعة الأمنية والاختبارات</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="half"></td><td class="on"></td><td class="on"></td><td></td><td></td></tr>
+  <tr><td class="task">التجربة الميدانية ومقارنة اللجنة</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="on"></td><td class="on"></td><td></td></tr>
+  <tr><td class="task">التوثيق والتحضير للمناقشة</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="half"></td><td class="on"></td></tr>
+  <tr><td class="task">المناقشة النهائية</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="ms"></td></tr>
+</table>
+<p class="small">الأرقام أعلى الأعمدة رقم الأسبوع (كل عمود أسبوعان). المربع الداكن عمل رئيسي، والفاتح عمل جزئي، والبرتقالي محطة تسليم. معظم مراحل التطوير أُنجزت مبكراً؛ المتبقي أساساً التجربة الميدانية والتوثيق.</p>
+
+<h2>12.2 خطة تشغيله في الكلية بعد التخرج</h2>
+<table>
+  <tr><th style="width:22%">المرحلة</th><th style="width:16%">المدة</th><th>ما يتم فيها</th></tr>
+  <tr><td>التجهيز</td><td><span class="ltrn">&lrm;2–4&lrm;</span> أسابيع</td><td>شراء أو تخصيص الجهاز، التثبيت، ربط حسابات الجامعة، تدريب <span class="ltrn">&lrm;2–3&lrm;</span> دكاترة ومدير نظام.</td></tr>
+  <tr><td>التجربة المحدودة</td><td>فصل دراسي</td><td>مادة أو مادتان (مثلاً برمجة 1 ومشاريع التخرج)، مع تقييم يدوي موازٍ لقياس الدقة.</td></tr>
+  <tr><td>المراجعة</td><td><span class="ltrn">&lrm;2–3&lrm;</span> أسابيع</td><td>تحليل نتائج التجربة، ضبط الأوزان، معالجة ملاحظات الدكاترة والطلاب.</td></tr>
+  <tr><td>التعميم</td><td>الفصل التالي</td><td>كل مواد البرمجة في القسم، ثم الأقسام الأخرى في الكلية.</td></tr>
+</table>
+
+<h1 class="page">13. التكاليف</h1>
+<div class="box warn"><b>تنبيه:</b> كل الأسعار تقديرية بالدولار الأمريكي حسب أسعار السوق العالمية في نوفمبر 2026، وقد تختلف في السوق اليمني بحسب التوفر والشحن وسعر الصرف المعمول به في منطقة الشراء. يُنصح بأخذ عروض أسعار محلية قبل الشراء.</div>
+
+<h2>13.1 تكلفة إنجاز مشروع التخرج نفسه</h2>
+<table>
+  <tr><th>البند</th><th class="num">التكلفة التقديرية</th><th>ملاحظة</th></tr>
+  <tr><td>جهاز التطوير</td><td class="num"><span class="ltrn">&lrm;0&nbsp;$&lrm;</span></td><td>جهاز الطالب الحالي (8 جيجا رام على الأقل، ويُفضل 16).</td></tr>
+  <tr><td>البرمجيات والأدوات</td><td class="num"><span class="ltrn">&lrm;0&nbsp;$&lrm;</span></td><td>كلها مفتوحة المصدر أو مجانية للطلاب (Python، Docker، PostgreSQL، GitHub).</td></tr>
+  <tr><td>الإنترنت لفترة التطوير</td><td class="num"><span class="ltrn">&lrm;60&nbsp;–&nbsp;150&nbsp;$&lrm;</span></td><td>باقات إنترنت لثمانية أشهر تقريباً.</td></tr>
+  <tr><td>تجربة النموذج السحابي (اختياري)</td><td class="num"><span class="ltrn">&lrm;10&nbsp;–&nbsp;30&nbsp;$&lrm;</span></td><td>لاختبار وضع Claude على عينة صغيرة؛ يمكن الاستغناء عنه بالمحرك المدمج.</td></tr>
+  <tr><td>طاقة احتياطية للتطوير (اختياري)</td><td class="num"><span class="ltrn">&lrm;0&nbsp;–&nbsp;150&nbsp;$&lrm;</span></td><td>بطارية أو UPS صغير لجهاز التطوير.</td></tr>
+  <tr><td>طباعة وتجليد التوثيق والملصق</td><td class="num"><span class="ltrn">&lrm;20&nbsp;–&nbsp;50&nbsp;$&lrm;</span></td><td>نسخ اللجنة والملصق التعريفي.</td></tr>
+  <tr class="total"><td>الإجمالي</td><td class="num"><span class="ltrn">&lrm;≈&nbsp;90&nbsp;–&nbsp;380&nbsp;$&lrm;</span></td><td>أغلبها اختياري؛ الحد الأدنى الفعلي قرابة <span class="ltrn">&lrm;100&nbsp;$&lrm;</span>.</td></tr>
+</table>
+
+<h2>13.2 تكلفة تشغيله في الكلية (أجهزة لمرة واحدة)</h2>
+<table>
+  <tr><th>البند</th><th class="num">الخيار الأدنى</th><th class="num">الخيار الموصى به</th><th>المواصفات</th></tr>
+  <tr><td>الخادم الرئيسي</td><td class="num"><span class="ltrn">&lrm;0&nbsp;–&nbsp;600&nbsp;$&lrm;</span></td><td class="num"><span class="ltrn">&lrm;1,200&nbsp;–&nbsp;2,000&nbsp;$&lrm;</span></td><td>الأدنى: إعادة استخدام جهاز مكتبي في الكلية (8 أنوية، <span class="ltrn">&lrm;16–32&lrm;</span> جيجا، SSD 512). الموصى به: <span class="ltrn">&lrm;12–16&lrm;</span> نواة، <span class="ltrn">&lrm;32–64&lrm;</span> جيجا رام، SSD سعة 1 تيرا.</td></tr>
+  <tr><td>جهاز منفصل لتشغيل مشاريع الطلاب</td><td class="num">—</td><td class="num"><span class="ltrn">&lrm;350&nbsp;–&nbsp;500&nbsp;$&lrm;</span></td><td>جهاز صغير (Mini PC) يعزل تشغيل المشاريع عن الخادم الرئيسي، لزيادة الأمان.</td></tr>
+  <tr><td>مزود طاقة غير منقطعة (UPS)</td><td class="num"><span class="ltrn">&lrm;150&nbsp;–&nbsp;300&nbsp;$&lrm;</span></td><td class="num"><span class="ltrn">&lrm;300&nbsp;–&nbsp;700&nbsp;$&lrm;</span></td><td><span class="ltrn">&lrm;1.5&nbsp;–&nbsp;3&lrm;</span> كيلو فولت أمبير، يكفي لإغلاق آمن أو لساعة تشغيل.</td></tr>
+  <tr><td>طاقة شمسية احتياطية</td><td class="num">—</td><td class="num"><span class="ltrn">&lrm;1,200&nbsp;–&nbsp;2,000&nbsp;$&lrm;</span></td><td>ألواح وبطاريات ومنظم تكفي لتشغيل الخادم أثناء انقطاع الكهرباء الطويل.</td></tr>
+  <tr><td>قرص نسخ احتياطي خارجي</td><td class="num"><span class="ltrn">&lrm;60&nbsp;–&nbsp;100&nbsp;$&lrm;</span></td><td class="num"><span class="ltrn">&lrm;100&nbsp;–&nbsp;200&nbsp;$&lrm;</span></td><td><span class="ltrn">&lrm;2–4&lrm;</span> تيرا، نسخة أسبوعية خارج الخادم.</td></tr>
+  <tr><td>كرت شاشة للنموذج المحلي (اختياري)</td><td class="num">—</td><td class="num"><span class="ltrn">&lrm;300&nbsp;–&nbsp;500&nbsp;$&lrm;</span></td><td><span class="ltrn">&lrm;12–16&lrm;</span> جيجا ذاكرة رسومية لتشغيل نموذج لغوي محلي وWhisper بسرعة.</td></tr>
+  <tr class="total"><td>الإجمالي</td><td class="num"><span class="ltrn">&lrm;≈&nbsp;210&nbsp;–&nbsp;1,000&nbsp;$&lrm;</span></td><td class="num"><span class="ltrn">&lrm;≈&nbsp;3,450&nbsp;–&nbsp;5,900&nbsp;$&lrm;</span></td><td>الخيار الأدنى يكفي لتجربة مادة أو مادتين.</td></tr>
+</table>
+
+<h2>13.3 البرمجيات والتراخيص</h2>
+<table>
+  <tr><th>البند</th><th class="num">التكلفة</th></tr>
+  <tr><td>نظام التشغيل (Linux)، Docker، PostgreSQL، Redis، Nginx، Python، React</td><td class="num"><span class="ltrn">&lrm;0&nbsp;$&lrm;</span></td></tr>
+  <tr><td>مكتبات التحليل (tree-sitter، NetworkX…) ونموذج Whisper ونماذج Ollama</td><td class="num"><span class="ltrn">&lrm;0&nbsp;$&lrm;</span></td></tr>
+  <tr><td>شهادة TLS (Let's Encrypt أو شهادة الجامعة)</td><td class="num"><span class="ltrn">&lrm;0&nbsp;$&lrm;</span></td></tr>
+  <tr><td>نطاق فرعي على موقع الجامعة</td><td class="num"><span class="ltrn">&lrm;0&nbsp;$&lrm;</span></td></tr>
+  <tr class="total"><td>الإجمالي</td><td class="num"><span class="ltrn">&lrm;0&nbsp;$&lrm;</span></td></tr>
+</table>
+
+<h2>13.4 تكلفة الذكاء الاصطناعي السحابي (اختيارية)</h2>
+<p>في حال اختارت الكلية الوضع السحابي، تُحسب التكلفة حسب عدد الكلمات (tokens). مناقشة طالب واحد تستهلك تقريباً 30 ألف token مدخلات و17 ألف مخرجات:</p>
+<table>
+  <tr><th>النموذج</th><th class="num">سعر المليون token (مدخلات / مخرجات)</th><th class="num">للطالب</th><th class="num">500 طالب / فصل</th></tr>
+  <tr><td>المحرك المدمج أو نموذج محلي</td><td class="num">—</td><td class="num"><span class="ltrn">&lrm;0&nbsp;$&lrm;</span></td><td class="num"><span class="ltrn">&lrm;0&nbsp;$&lrm;</span></td></tr>
+  <tr><td class="ltr" style="text-align:right">Claude Haiku 5.5</td><td class="num"><span class="ltrn">&lrm;0.10&nbsp;$&nbsp;/&nbsp;0.50&nbsp;$&lrm;</span></td><td class="num"><span class="ltrn">&lrm;≈&nbsp;0.01&nbsp;$&lrm;</span></td><td class="num"><span class="ltrn">&lrm;≈&nbsp;6&nbsp;$&lrm;</span></td></tr>
+  <tr><td class="ltr" style="text-align:right">Claude Sonnet 5.5</td><td class="num"><span class="ltrn">&lrm;2&nbsp;$&nbsp;/&nbsp;10&nbsp;$&lrm;</span></td><td class="num"><span class="ltrn">&lrm;≈&nbsp;0.23&nbsp;$&lrm;</span></td><td class="num"><span class="ltrn">&lrm;≈&nbsp;115&nbsp;$&lrm;</span></td></tr>
+  <tr><td class="ltr" style="text-align:right">Claude Opus 5.5</td><td class="num"><span class="ltrn">&lrm;4&nbsp;$&nbsp;/&nbsp;20&nbsp;$&lrm;</span></td><td class="num"><span class="ltrn">&lrm;≈&nbsp;0.46&nbsp;$&lrm;</span></td><td class="num"><span class="ltrn">&lrm;≈&nbsp;230&nbsp;$&lrm;</span></td></tr>
+</table>
+<p class="small">الأسعار من قائمة أسعار Anthropic الرسمية وقت إعداد الوثيقة، وقد تتغير. الاستهلاك تقديري ويختلف حسب حجم المشروع وطول الإجابات.</p>
+
+<h2>13.5 تكاليف التشغيل السنوية</h2>
+<table>
+  <tr><th>البند</th><th class="num">التكلفة السنوية التقديرية</th><th>ملاحظة</th></tr>
+  <tr><td>الكهرباء</td><td class="num"><span class="ltrn">&lrm;50&nbsp;–&nbsp;150&nbsp;$&lrm;</span></td><td>خادم بقدرة <span class="ltrn">&lrm;150–300&lrm;</span> واط؛ تقل كثيراً مع الطاقة الشمسية.</td></tr>
+  <tr><td>إدارة النظام</td><td class="num">ضمن عمل الكلية</td><td><span class="ltrn">&lrm;2–4&lrm;</span> ساعات أسبوعياً من فني أو معيد: تحديثات، نسخ احتياطي، متابعة.</td></tr>
+  <tr><td>صيانة واستبدال قطع</td><td class="num"><span class="ltrn">&lrm;50&nbsp;–&nbsp;150&nbsp;$&lrm;</span></td><td>بطاريات UPS تُستبدل كل <span class="ltrn">&lrm;3–4&lrm;</span> سنوات تقريباً.</td></tr>
+  <tr><td>الذكاء الاصطناعي السحابي</td><td class="num"><span class="ltrn">&lrm;0&nbsp;–&nbsp;460&nbsp;$&lrm;</span></td><td>صفر في الوضع المحلي؛ أعلى قيمة لـ 500 طالب في فصلين بنموذج Opus.</td></tr>
+  <tr class="total"><td>الإجمالي</td><td class="num"><span class="ltrn">&lrm;≈&nbsp;100&nbsp;–&nbsp;760&nbsp;$&lrm;</span></td><td>غالباً قرابة 100–<span class="ltrn">&lrm;300&nbsp;$&lrm;</span> في الوضع المحلي.</td></tr>
+</table>
+
+<h2>13.6 القيمة التقديرية للعمل لو نُفذ تجارياً</h2>
+<p>لو طلبت الكلية بناء نظام مماثل من شركة برمجيات، فالعمل يحتاج تقريباً فريقاً من 3 مطورين وخبير أمن جزئياً لمدة <span class="ltrn">&lrm;8–10&lrm;</span> أشهر:</p>
+<table>
+  <tr><th>السوق</th><th class="num">التقدير</th></tr>
+  <tr><td>شركة محلية في اليمن</td><td class="num"><span class="ltrn">&lrm;≈&nbsp;15,000&nbsp;–&nbsp;30,000&nbsp;$&lrm;</span></td></tr>
+  <tr><td>شركة إقليمية أو عالمية</td><td class="num"><span class="ltrn">&lrm;≈&nbsp;80,000&nbsp;–&nbsp;150,000&nbsp;$&lrm;</span></td></tr>
+</table>
+<p class="small">تقدير تقريبي مبني على متوسط أجور المطورين وحجم العمل المنجز، وليس عرض سعر.</p>
+
+<h2>13.7 العائد: الوقت الذي يوفره</h2>
+<table>
+  <tr><th>الافتراض</th><th class="num">القيمة</th></tr>
+  <tr><td>مشاريع تخرج في الفصل</td><td class="num">60 مشروعاً × 3 ساعات فحص = 180 ساعة</td></tr>
+  <tr><td>واجبات ومشاريع مواد في الفصل</td><td class="num">2,000 عمل × 15 دقيقة = 500 ساعة</td></tr>
+  <tr><td>ما يوفره النظام (تقدير محافظ 50%)</td><td class="num">≈ 340 ساعة عمل دكتور في كل فصل</td></tr>
+</table>
+<div class="box ok">بعبارة أخرى: الخيار الأدنى للأجهزة (أقل من <span class="ltrn">&lrm;1,000&nbsp;$&lrm;</span>) يستعيد قيمته من وقت الدكاترة في الفصل الأول تقريباً، إضافة إلى فائدة لا تُقاس بالمال: تقييم أعدل وملاحظات أوضح للطالب، وردع حقيقي للغش من السنة الأولى.</div>
+
+<h1 class="page">14. المتطلبات</h1>
+<h2>14.1 الأجهزة</h2>
+<table>
+  <tr><th>الاستخدام</th><th>المعالج</th><th>الذاكرة</th><th>التخزين</th></tr>
+  <tr><td>تطوير وتجربة</td><td>4 أنوية</td><td><span class="ltrn">&lrm;8–16&lrm;</span> جيجا</td><td>SSD سعة 256 جيجا</td></tr>
+  <tr><td>تجربة مادة أو مادتين (حتى 200 طالب)</td><td>8 أنوية</td><td><span class="ltrn">&lrm;16–32&lrm;</span> جيجا</td><td>SSD سعة 512 جيجا</td></tr>
+  <tr><td>الكلية كاملة (حتى 2,000 طالب)</td><td><span class="ltrn">&lrm;12–16&lrm;</span> نواة</td><td><span class="ltrn">&lrm;32–64&lrm;</span> جيجا</td><td>SSD سعة 1 تيرا + قرص نسخ احتياطي</td></tr>
+</table>
+<h2>14.2 البرمجيات</h2>
+<ul>
+  <li>نظام Linux (Ubuntu Server 24.04 أو ما يماثله).</li>
+  <li>Docker و Docker Compose، وكل الخدمات تعمل بأمر واحد: <span class="ltr">docker compose up -d</span>.</li>
+  <li>متصفح حديث للمستخدمين (Chrome، Firefox، Edge، أو متصفح الجوال).</li>
+</ul>
+<h2>14.3 الشبكة</h2>
+<ul>
+  <li>الشبكة الداخلية للجامعة كافية؛ الإنترنت مطلوب فقط لاستيراد مشاريع من GitHub أو للوضع السحابي.</li>
+  <li>سرعة <span class="ltrn">&lrm;1–2&lrm;</span> ميجابت تكفي للطالب بفضل الرفع المجزأ.</li>
+</ul>
+<h2>14.4 الأشخاص</h2>
+<table>
+  <tr><th>الدور</th><th>المطلوب</th></tr>
+  <tr><td>مدير النظام</td><td>فني أو معيد بمعرفة أساسية بـ Linux و Docker، <span class="ltrn">&lrm;2–4&lrm;</span> ساعات أسبوعياً.</td></tr>
+  <tr><td>الدكاترة</td><td>جلسة تدريب واحدة (ساعتان) على إنشاء المواد ومراجعة النتائج.</td></tr>
+  <tr><td>الطلاب</td><td>دليل استخدام مختصر من صفحة واحدة؛ الواجهة عربية ومباشرة.</td></tr>
+</table>
+
+<h1>15. التقييم ومؤشرات النجاح</h1>
+<p>يُقاس نجاح النظام بمقارنة درجاته بدرجات لجنة بشرية على نفس المشاريع، بأداة القياس المرفقة بالمشروع:</p>
+<table>
+  <tr><th>المؤشر</th><th>الهدف</th></tr>
+  <tr><td>متوسط الفرق المطلق بين درجة النظام ودرجة اللجنة (MAE)</td><td class="num">أقل من 8 درجات من 100</td></tr>
+  <tr><td>معامل الارتباط مع درجات اللجنة (Pearson)</td><td class="num">0.75 أو أكثر</td></tr>
+  <tr><td>معامل الاتفاق Quadratic Weighted Kappa</td><td class="num">0.70 أو أكثر</td></tr>
+  <tr><td>كشف حالات النسخ المعروفة في عينة الاختبار</td><td class="num">90% أو أكثر</td></tr>
+  <tr><td>وقت تحليل المشروع المتوسط</td><td class="num">أقل من 5 دقائق</td></tr>
+  <tr><td>نجاح الرفع رغم انقطاع الاتصال</td><td class="num">100% من الحالات المستكملة</td></tr>
+  <tr><td>رضا الدكاترة والطلاب (استبيان)</td><td class="num">4 من 5 أو أكثر</td></tr>
+</table>
+<p class="small">بروتوكول التقييم الكامل موجود في ملف <span class="ltr">docs/EVALUATION_PROTOCOL_AR.md</span>.</p>
+
+<h1>16. المخاطر وطرق معالجتها</h1>
+<table>
+  <tr><th style="width:30%">الخطر</th><th class="num" style="width:11%">الاحتمال</th><th>المعالجة</th></tr>
+  <tr><td>انقطاع الكهرباء عن الخادم</td><td class="num">عالٍ</td><td>UPS وطاقة شمسية، وحفظ كل العمليات في قاعدة البيانات لتُستأنف بعد عودة التشغيل.</td></tr>
+  <tr><td>اتهام طالب بالغش خطأً</td><td class="num">متوسط</td><td>المؤشر لا يُعرض على الطالب، ولا يُتخذ قرار إلا بمراجعة الدكتور والاستماع للطالب.</td></tr>
+  <tr><td>درجة آلية غير دقيقة</td><td class="num">متوسط</td><td>الدرجة اقتراح فقط، مع تفصيل الأسباب، والدكتور يعدلها، والتعديلات تحسّن النظام.</td></tr>
+  <tr><td>مشروع طالب خبيث يحاول اختراق الخادم</td><td class="num">منخفض</td><td>تشغيل معزول بلا إنترنت مع حدود موارد، ويُفضل جهاز منفصل للتشغيل.</td></tr>
+  <tr><td>ضعف تقبل الدكاترة لأداة جديدة</td><td class="num">متوسط</td><td>البدء بتجربة محدودة مع المتحمسين، وتدريب قصير، وإظهار الوقت الموفر بالأرقام.</td></tr>
+  <tr><td>لغة أو إطار غير مدعوم</td><td class="num">متوسط</td><td>التحليل العام (التقرير، الأصالة، المناقشة) يعمل مع أي مشروع، ويمكن إضافة لغات جديدة لاحقاً.</td></tr>
+  <tr><td>تعطل الجهاز وفقد البيانات</td><td class="num">منخفض</td><td>نسخ احتياطي أسبوعي لقرص خارجي، والنظام كله يُعاد تثبيته بأمر واحد.</td></tr>
+</table>
+
+<h1>17. المطلوب من الكلية</h1>
+<ol>
+  <li>الموافقة على المشروع وتعيين مشرف.</li>
+  <li>توفير جهاز للتجربة (ولو جهازاً مكتبياً موجوداً) مع UPS.</li>
+  <li>اختيار مادة أو مادتين للتجربة في فصل دراسي، وتعاون دكاترتها.</li>
+  <li>تشكيل لجنة صغيرة (<span class="ltrn">&lrm;2–3&lrm;</span> دكاترة) لتقييم عينة من المشاريع يدوياً لمقارنة النتائج.</li>
+  <li>الإذن باستخدام مشاريع سابقة مجهولة الهوية كقاعدة مقارنة لكشف النسخ.</li>
+  <li>عند النجاح: تبني النظام رسمياً وتخصيص فني لإدارته.</li>
+</ol>
+
+<h1>18. الملكية الفكرية</h1>
+<p>الفكرة والتنفيذ من إعداد <b>المهندس محمد عبدالرحيم خليل</b>. أُعدت مسودة طلب براءة اختراع لفكرة «بصمة الفهم» (ملف <span class="ltr">docs/PATENT_DRAFT_AR.md</span>) تتضمن عشر مطالبات.</p>
+<div class="box warn">الكود منشور علناً على GitHub منذ 21 نوفمبر 2026. في كثير من الدول يُعد النشر العلني إفصاحاً قد يمنع تسجيل البراءة لاحقاً، وبعض الأنظمة تمنح مهلة سماح (غالباً 12 شهراً). يُنصح باستشارة مكتب الملكية الفكرية في وزارة الصناعة والتجارة أو محامٍ مختص قبل التقديم، وبالاحتفاظ بسجل Git كإثبات لتاريخ الابتكار.</div>
+
+<h1>19. التطوير المستقبلي والخاتمة</h1>
+<h2>التطوير المستقبلي</h2>
+<ul>
+  <li>إشعارات SMS للطلاب، وربط LDAP / Active Directory.</li>
+  <li>لغات إضافية: Kotlin، Go، Dart (Flutter).</li>
+  <li>تكامل مع أنظمة التعلم الإلكتروني (Moodle).</li>
+  <li>نموذج لغوي عربي محلي مدرب على مناقشات حقيقية لتحسين الأسئلة.</li>
+  <li>نسخة تخدم أكثر من جامعة مع عزل كامل لبيانات كل جامعة.</li>
+</ul>
+<h2>الخاتمة</h2>
+<p>مِحَكّ ليس أداة لملاحقة الطلاب، بل أداة تعيد للتقييم معناه: أن يُكافأ من تعلّم وفهم، وأن يجد الدكتور وقتاً ليعلّم بدلاً من أن يقضيه في الفحص اليدوي. وهو مبني لظروفنا: يعمل بلا إنترنت، ويصمد أمام انقطاع الكهرباء، ويتكلم العربية، ولا يكلف الكلية اشتراكات.</p>
+
+<table class="sign">
+  <tr><td>الطالب: المهندس محمد عبدالرحيم خليل<br>التوقيع: <span class="fill">&nbsp;</span></td><td>المشرف: <span class="fill">&nbsp;</span><br>التوقيع: <span class="fill">&nbsp;</span></td></tr>
+  <tr><td>رئيس القسم: <span class="fill">&nbsp;</span><br>التوقيع: <span class="fill">&nbsp;</span></td><td>التاريخ: <span class="fill">&nbsp;</span></td></tr>
+</table>
+
+</body>
+</html>
