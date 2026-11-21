@@ -139,3 +139,34 @@ def test_secret_placeholders_ignored():
         """
     )
     assert scan_secrets("settings.py", source) == []
+
+
+def test_label_shaped_values_are_not_secrets():
+    labels = "\n".join([
+        'const TOKEN_KEY = "aipe.tokens";',
+        '    "Hardcoded Secret": "vuln:hardcoded_secret",',
+        'SESSION_TOKEN_COOKIE = "user-session"',
+        'TOKEN_URL = "/api/v1/auth/token"',
+        'AUTH_ENDPOINT = "https://login.example.com/oauth2/token"',
+    ])  # fmt: skip
+    assert scan_secrets("config.js", labels) == []
+
+    real = "\n".join([
+        'SECRET_KEY = "k8$x!2pQz9@Lm4vT"',
+        'DB_PASSWORD = "admin-pass"',  # a weak password still counts, whatever its shape
+        'DATABASE_URL = "mysql://root:Pa55w0rd@localhost/shop"',
+        'api_token = "a1b2c3d4e5f6g7h8"',
+    ])  # fmt: skip
+    assert [f.line for f in scan_secrets("settings.py", real)] == [1, 2, 3, 4]
+
+
+def test_connection_url_passwords():
+    source = "\n".join([
+        'DATABASE_URL = "mysql://root:Pa55w0rd@localhost/shop"',
+        "url: postgresql://app:${DB_PASS}@db/app",  # read from the environment: fine
+        'link = "https://example.com/page"',
+    ])  # fmt: skip
+    (finding,) = scan_secrets("settings.py", source)
+    assert (
+        finding.line == 1 and "Pa55w0rd" not in finding.evidence and "Pa******" in finding.evidence
+    )

@@ -32,6 +32,7 @@ def _grade_out(db, project: Project) -> GradeOut:
         suggested_total=suggestion.suggested_total,
         coverage=suggestion.coverage,
         missing_criteria=suggestion.missing,
+        cap_reason=suggestion.cap_reason,
         breakdown=suggestion.breakdown,
         final_total=final.faculty_adjusted_total if final else None,
         faculty_notes=final.faculty_notes if final else None,

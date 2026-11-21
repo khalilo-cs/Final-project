@@ -39,16 +39,15 @@ def test_suggested_grade_and_justification(client, users, project):
     assert grade["missing_criteria"] == ["viva", "performance"]
     rows = {row["criterion"]: row for row in grade["breakdown"]}
     assert rows["code_quality"]["points"] == 19.0
-    assert rows["security"]["justification"].startswith("1 critical")
+    assert rows["security"]["justification"].startswith("0 critical, 1 high")
     assert "SQL Injection" in rows["security"]["justification"]
     assert "plagiarism 42.0%" in rows["report"]["justification"]
     assert rows["viva"]["score"] is None and rows["viva"]["label_ar"] == "المناقشة"
     assert {a["type"] for a in grade["alerts"]} == {
         "plagiarism",
-        "critical_vulnerability",
         "report_inconsistency",
         "database_design",
-    }
+    }  # the default finding is High: the critical alert has its own test
     assert grade["final_total"] is None
 
 
@@ -162,7 +161,7 @@ def test_dashboard(client, users, project):
     assert summary["average_by_criterion"]["viva"] is None
 
     alerts = client.get("/api/v1/dashboard/faculty/alerts", headers=faculty).json()
-    assert [a["severity"] for a in alerts] == ["High", "High", "Medium", "Low"]
+    assert [a["severity"] for a in alerts] == ["High", "Medium", "Low"]  # no critical finding
     assert alerts[0]["project_id"] == project
 
     other = users["other_faculty"].headers
@@ -187,3 +186,26 @@ def test_department_analytics(client, users, project):
     assert data["terms"] == [{"term": "CS499", "projects": 1, "average": 81.5}]
     assert client.get("/api/v1/dashboard/department/analytics",
                       headers=users["student"].headers).status_code == 403  # fmt: skip
+
+
+def test_a_critical_vulnerability_caps_the_suggestion(client, users, course, analyzer):  # noqa: F811
+    import copy
+
+    from tests.conftest import ANALYZER_RESPONSE
+
+    response = copy.deepcopy(ANALYZER_RESPONSE)
+    response["security"]["vulnerabilities"] = [
+        {"type": "SQL Injection", "severity": "Critical", "file": "a.py", "line": 3,
+         "description": "x", "evidence": "x"}
+    ]  # fmt: skip
+    response["security"]["critical_count"], response["security"]["high_count"] = 1, 0
+    analyzer.routes["/api/v1/analysis/code"] = (200, response)
+    pid = submit(client, users["student"], course["id"]).json()["id"]
+    grade = client.get(f"/api/v1/grades/{pid}", headers=users["faculty"].headers).json()
+    assert grade["suggested_total"] == 79.0
+    assert grade["cap_reason"] == "الدرجة المقترحة لا تتجاوز 79 لوجود ثغرة أمنية حرجة في الكود"
+    # Without the critical finding the weights alone decide.
+    analyzer.routes.pop("/api/v1/analysis/code", None)
+    safe = submit(client, users["student"], course["id"], title="آمن").json()["id"]
+    uncapped = client.get(f"/api/v1/grades/{safe}", headers=users["faculty"].headers).json()
+    assert uncapped["suggested_total"] > 79 and uncapped["cap_reason"] is None

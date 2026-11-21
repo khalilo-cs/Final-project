@@ -1,3 +1,5 @@
+import uuid
+
 import httpx
 
 from app.knowledge import store
@@ -54,3 +56,47 @@ def test_robots_and_url_rules(db, monkeypatch, people):
 
     monkeypatch.setattr(store, "check_public_address", True)
     assert "non-public" in run("https://localhost/admin").error  # SSRF guard
+
+
+def test_fetch_connects_to_the_checked_address_and_caps_the_size(db, monkeypatch):
+    """DNS rebinding: the request goes to the address that passed the check, never to a
+    second lookup; the certificate is still verified for the real host name."""
+    import httpx
+
+    from app.knowledge import store
+    from app.models import KnowledgeSource
+
+    monkeypatch.setattr(store, "check_public_address", True)
+    monkeypatch.setattr(store.socket, "getaddrinfo",
+                        lambda host, port: [(None, None, None, "", ("93.184.216.34", port))])  # fmt: skip
+    seen = []
+
+    def server(request: httpx.Request):
+        seen.append(request)
+        if request.url.path == "/robots.txt":
+            return httpx.Response(404)
+        if request.url.path == "/huge":
+            return httpx.Response(200, headers={"content-type": "text/html"},
+                                  content=b"<p>" + b"x" * (3 * 1024 * 1024) + b"</p>")  # fmt: skip
+        return httpx.Response(200, headers={"content-type": "text/html"},
+                              content="<h1>دليل</h1><p>محتوى الصفحة</p>".encode())  # fmt: skip
+
+    monkeypatch.setattr(store, "transport", httpx.MockTransport(server))
+    source = KnowledgeSource(
+        url="https://docs.example.org/guide", status="pending", added_by=uuid.uuid4()
+    )
+    db.add(source)
+    db.commit()
+    store.ingest_url(db, source)
+    assert source.status == "indexed", source.error
+    page = seen[-1]
+    assert page.url.host == "93.184.216.34" and page.headers["host"] == "docs.example.org"
+    assert page.extensions["sni_hostname"] == "docs.example.org"
+
+    huge = KnowledgeSource(
+        url="https://docs.example.org/huge", status="pending", added_by=uuid.uuid4()
+    )
+    db.add(huge)
+    db.commit()
+    store.ingest_url(db, huge)
+    assert huge.status == "failed" and "too large" in huge.error

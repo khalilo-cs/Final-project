@@ -45,6 +45,7 @@ def test_serious_alerts_reach_the_faculty(client, users, course, analyzer):  # n
         {"type": "SQL Injection", "severity": "Critical", "file": "a.py", "line": 3,
          "description": "x", "evidence": "x"}
     ]  # fmt: skip
+    response["security"]["critical_count"], response["security"]["high_count"] = 1, 0
     analyzer.routes["/api/v1/analysis/code"] = (200, response)
     submit(client, users["student"], course["id"])
     alert = next(

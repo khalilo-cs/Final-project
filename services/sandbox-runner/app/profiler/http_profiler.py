@@ -13,10 +13,25 @@ import httpx
 transport: httpx.BaseTransport | None = None
 _LINK = re.compile(r"""href=["']([^"'#?]+)""", re.I)
 MAX_PATHS = 8
+MAX_BODY_BYTES = 1024 * 1024
 
 
 def _client(timeout: float = 10) -> httpx.Client:
-    return httpx.Client(timeout=timeout, transport=transport, follow_redirects=True)
+    # Never follow redirects: the runner also sits on the system's internal network, and a
+    # student's app could redirect it to an internal service. A 3xx is measured as is.
+    return httpx.Client(timeout=timeout, transport=transport, follow_redirects=False)
+
+
+def _fetch(client: httpx.Client, url: str) -> tuple[int, bytes]:
+    """(status, at most MAX_BODY_BYTES of the body): an endless response cannot fill
+    the runner's memory."""
+    with client.stream("GET", url) as response:
+        body = bytearray()
+        for piece in response.iter_bytes():
+            body += piece
+            if len(body) >= MAX_BODY_BYTES:
+                break
+        return response.status_code, bytes(body[:MAX_BODY_BYTES])
 
 
 def wait_until_ready(base: str, timeout: float, alive: Callable[[], bool]) -> float | None:
@@ -27,7 +42,7 @@ def wait_until_ready(base: str, timeout: float, alive: Callable[[], bool]) -> fl
             if not alive():
                 return None
             try:
-                client.get(base + "/")
+                _fetch(client, base + "/")
                 return round(time.monotonic() - started, 2)
             except httpx.HTTPError:
                 time.sleep(0.5)
@@ -38,7 +53,7 @@ def discover_paths(base: str) -> list[str]:
     paths = ["/"]
     try:
         with _client() as client:
-            html = client.get(base + "/").text
+            html = _fetch(client, base + "/")[1].decode("utf-8", errors="replace")
     except httpx.HTTPError:
         return paths
     host = urlparse(base).netloc
@@ -63,7 +78,7 @@ def measure_endpoints(base: str, paths: list[str], repeat: int = 5) -> list[dict
             for _ in range(repeat):
                 start = time.perf_counter()
                 try:
-                    statuses.append(client.get(base + path).status_code)
+                    statuses.append(_fetch(client, base + path)[0])
                 except httpx.HTTPError:
                     statuses.append(0)
                 times.append((time.perf_counter() - start) * 1000)
@@ -91,8 +106,8 @@ def load_test(base: str, path: str, concurrency: int, total: int, timeout: float
         start = time.perf_counter()
         try:
             with _client(timeout) as client:
-                response = client.get(base + path)
-            return (time.perf_counter() - start) * 1000, response.status_code >= 500, False
+                status = _fetch(client, base + path)[0]
+            return (time.perf_counter() - start) * 1000, status >= 500, False
         except httpx.TimeoutException:
             return None, True, True
         except httpx.HTTPError:

@@ -151,6 +151,7 @@ class GradeOut(BaseModel):
     suggested_total: float | None
     coverage: float
     missing_criteria: list[str]
+    cap_reason: str | None = None
     breakdown: list[GradeBreakdown]
     final_total: float | None
     faculty_notes: str | None

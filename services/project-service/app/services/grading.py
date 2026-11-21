@@ -94,6 +94,18 @@ class Suggestion:
     coverage: float  # % of the total weight that has a score
     missing: list[str]
     breakdown: list[dict] = field(default_factory=list)
+    # Why the suggestion was held below what the weights alone give (Arabic), if it was.
+    cap_reason: str | None = None
+
+
+CRITICAL_CAP = 79.0  # the top of "جيد": excellent work has no critical vulnerability
+
+
+def _critical_phrase(n: int) -> str:
+    from app.services.arabic import count_phrase
+
+    return count_phrase(n, "ثغرة أمنية حرجة", "ثغرتين أمنيتين حرجتين", "ثغرات أمنية حرجة",
+                        "ثغرة أمنية حرجة")  # fmt: skip
 
 
 def default_weights(kind: str | None) -> dict[str, float]:
@@ -261,9 +273,20 @@ def suggest(weights: dict[str, float], results: ProjectResults) -> Suggestion:
     total_weight = sum(weights.values())
     covered = sum(weights[c] for c in available)
     suggested = None
+    cap_reason = None
     if covered > 0:
         # Average over what is known; `coverage` tells how much is still missing.
         suggested = round(sum(available[c] * weights[c] for c in available) / covered, 1)
+        # A critical vulnerability (SQL injection, command injection, ...) is not offset by
+        # good marks elsewhere: security weighs only 10%, so without a cap a project open
+        # to SQL injection could be suggested 90+. The professor's final grade is free.
+        critical = results.security.critical_count if results.security else 0
+        if critical and weights.get("security", 0) > 0 and suggested > CRITICAL_CAP:
+            suggested = CRITICAL_CAP
+            cap_reason = (
+                f"الدرجة المقترحة لا تتجاوز {CRITICAL_CAP:g} لوجود "
+                f"{_critical_phrase(critical)} في الكود"
+            )
     breakdown = [
         {
             "criterion": criterion,
@@ -284,6 +307,7 @@ def suggest(weights: dict[str, float], results: ProjectResults) -> Suggestion:
         coverage=round(100 * covered / total_weight, 1) if total_weight else 0.0,
         missing=[c for c in CRITERIA if c not in available and weights.get(c, 0) > 0],
         breakdown=breakdown,
+        cap_reason=cap_reason,
     )
 
 

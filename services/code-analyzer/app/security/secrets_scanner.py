@@ -26,6 +26,23 @@ _PLACEHOLDER = re.compile(
 )
 
 
+# Values shaped like a name, not a secret: "aipe.tokens", "vuln:hardcoded_secret",
+# "user-session". Only trusted for token/secret/key names; a "password" stays suspicious
+# whatever it looks like ("admin-pass" is a weak password, not a label).
+_IDENTIFIER_LIKE = re.compile(r"^[a-z]+(?:[._:\-][a-z]+)+$")
+# A password in a connection URL: scheme://user:PASSWORD@host/db.
+_URL_CREDENTIALS = re.compile(r"\b[a-z][a-z0-9+.\-]*://[^/\s:@'\"]+:(?P<password>[^@\s/'\"]+)@")
+_PASSWORD_NAME = re.compile(r"(?i)pass(?:word|wd)?|pwd")
+# A path or a URL without credentials ("/api/v1/auth/token"); "mysql://root:pw@host" has them.
+_PATH_OR_URL = re.compile(r"^(?:/[^\s]*|https?://[^\s@]+)$")
+
+
+def _looks_like_a_label(name: str, value: str) -> bool:
+    if _PATH_OR_URL.match(value):
+        return True
+    return bool(_IDENTIFIER_LIKE.match(value)) and not _PASSWORD_NAME.search(name)
+
+
 def shannon_entropy(text: str) -> float:
     if not text:
         return 0.0
@@ -55,11 +72,29 @@ def scan_secrets(path: str, source: str) -> list[Vulnerability]:
                 )
                 break
         else:
+            url = _URL_CREDENTIALS.search(line)
+            if url and not _PLACEHOLDER.match(url["password"]) and len(url["password"]) >= 3:
+                findings.append(
+                    Vulnerability(
+                        "Hardcoded Secret",
+                        Severity.high,
+                        path,
+                        number,
+                        "Password inside a connection URL; read it from an environment variable",
+                        evidence=_URL_CREDENTIALS.sub(
+                            lambda m: m.group(0).replace(m["password"], _mask(m["password"])),
+                            line.strip(),
+                        )[:160],
+                    )
+                )
+                continue
             match = _ASSIGNMENT.search(line)
             if not match:
                 continue
             value = match["value"]
             if _PLACEHOLDER.match(value) or " " in value.strip():
+                continue
+            if _looks_like_a_label(match["name"], value):
                 continue
             # Short, low-entropy literals are usually labels or field names.
             if len(value) < 8 and shannon_entropy(value) < 2.5:

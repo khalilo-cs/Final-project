@@ -147,7 +147,7 @@ def test_submit_runs_analysis_and_stores_results(client, users, course, analyzer
     security = client.get(
         f"/api/v1/analysis/security/{pid}/results", headers=users["student"].headers
     )
-    assert security.json()["critical_count"] == 1
+    assert security.json()["high_count"] == 1
 
 
 def test_submit_requires_enrolled_student(client, users, course):

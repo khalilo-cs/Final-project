@@ -105,7 +105,10 @@ def chunk(text: str, size: int = CHUNK_WORDS) -> list[str]:
     ]
 
 
-def _validate_url(url: str) -> None:
+def _validate_url(url: str) -> str | None:
+    """Check the URL; returns the public IP address to connect to (None when the check
+    is disabled in tests). Connecting to that same address closes the DNS-rebinding gap
+    between checking a name and connecting to it."""
     parsed = urlparse(url)
     if parsed.scheme != "https" or not parsed.hostname:
         raise IngestError("Only https:// URLs are accepted")
@@ -122,13 +125,44 @@ def _validate_url(url: str) -> None:
         for address in addresses:
             if not ipaddress.ip_address(address).is_global:
                 raise IngestError(f"{host} resolves to a non-public address")
+        return sorted(addresses)[0]
+    return None
 
 
-def _robots_allow(client: httpx.Client, url: str) -> bool:
+def _pinned(url: str, address: str | None) -> tuple[str, dict, dict]:
+    """(URL to request, headers, extensions) that reach `address` but still verify the
+    TLS certificate for the original host name."""
+    if address is None:
+        return url, {}, {}
+    parsed = urlparse(url)
+    host = parsed.hostname or ""
+    literal = f"[{address}]" if ":" in address else address
+    netloc = literal + (f":{parsed.port}" if parsed.port else "")
+    return parsed._replace(netloc=netloc).geturl(), {"Host": parsed.netloc}, {"sni_hostname": host}
+
+
+def _get(client: httpx.Client, url: str, address: str | None, limit: int) -> httpx.Response:
+    """GET with the pinned address, reading at most `limit` bytes of body."""
+    target, headers, extensions = _pinned(url, address)
+    request = client.build_request("GET", target, headers=headers, extensions=extensions)
+    response = client.send(request, stream=True)
+    try:
+        body = bytearray()
+        for piece in response.iter_bytes():
+            body += piece
+            if len(body) > limit:
+                raise IngestError("Page is too large")
+        response._content = bytes(body)  # make .text / .content available
+    finally:
+        response.close()
+    return response
+
+
+def _robots_allow(client: httpx.Client, url: str, address: str | None = None) -> bool:
     robots_url = urljoin(url, "/robots.txt")
     try:
-        response = client.get(robots_url)
-    except httpx.HTTPError:
+        response = _get(client, robots_url, address, 512 * 1024)
+    except (httpx.HTTPError, IngestError):
         return True  # no robots.txt reachable: allowed by convention
     if response.status_code >= 400:
         return True
@@ -141,20 +175,19 @@ def ingest_url(db: Session, source: KnowledgeSource) -> None:
     """Fetch one page, split it into chunks and index them. Records success or the error."""
     settings = get_settings()
     try:
-        _validate_url(source.url)
+        address = _validate_url(source.url)
         with httpx.Client(
             timeout=20,
             transport=transport,
             headers={"User-Agent": USER_AGENT},
             follow_redirects=False,  # a redirect could point at an internal host
         ) as client:
-            if not _robots_allow(client, source.url):
+            if not _robots_allow(client, source.url, address):
                 raise IngestError("robots.txt does not allow fetching this page")
-            response = client.get(source.url)
+            # Streamed and capped: a huge page cannot fill the memory.
+            response = _get(client, source.url, address, settings.knowledge_max_page_kb * 1024)
             if response.status_code != 200:
                 raise IngestError(f"HTTP {response.status_code}")
-            if len(response.content) > settings.knowledge_max_page_kb * 1024:
-                raise IngestError("Page is too large")
             content_type = response.headers.get("content-type", "")
             if "html" in content_type:
                 title, text = html_to_text(response.text)

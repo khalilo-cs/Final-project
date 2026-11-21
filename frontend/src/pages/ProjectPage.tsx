@@ -304,6 +304,7 @@ function GradePanel({ id }: { id: string }) {
         <Score value={grade.final_total} label="النهائية (الدكتور)" />
         <div className="text-sm text-slate-600">التغطية: <b className="ltr inline-block">{grade.coverage}%</b>{grade.missing_criteria.length > 0 && <> — لم يُقيَّم بعد: {grade.missing_criteria.map((c) => grade.breakdown.find((b) => b.criterion === c)?.label_ar ?? c).join("، ")}</>}</div>
       </div>
+      {grade.cap_reason && <p role="note" className="mt-3 rounded-lg border-r-4 border-amber-500 bg-amber-50 px-3 py-2 text-sm text-amber-900">⚠ {grade.cap_reason}. الدرجة النهائية قرارك.</p>}
       <table className="mt-4 w-full text-sm">
         <thead><tr className="border-b text-right text-slate-500"><th className="py-2">المعيار</th><th>الوزن</th><th>الدرجة</th><th>التبرير</th></tr></thead>
         <tbody>

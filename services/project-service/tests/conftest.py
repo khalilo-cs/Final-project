@@ -36,9 +36,11 @@ ANALYZER_RESPONSE = {
         ],
     },
     "security": {
-        "vulnerabilities": [{"type": "SQL Injection", "severity": "Critical", "line": 3}],
-        "critical_count": 1,
-        "high_count": 0,
+        # High, not Critical: a critical finding caps the suggested grade, which has its
+        # own test (test_a_critical_vulnerability_caps_the_suggestion).
+        "vulnerabilities": [{"type": "SQL Injection", "severity": "High", "line": 3}],
+        "critical_count": 0,
+        "high_count": 1,
         "medium_count": 0,
         "low_count": 0,
         "overall_security_score": 75.0,

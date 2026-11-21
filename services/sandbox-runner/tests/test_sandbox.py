@@ -173,3 +173,28 @@ def test_score_rules():
     assert value == 20.0
     assert {f["type"] for f in flags} == {"slow_startup", "slow_under_load", "errors_under_load",
                                           "unresponsive", "high_memory"}  # fmt: skip
+
+
+def test_profiler_never_follows_redirects_or_reads_endless_bodies(monkeypatch):
+    """A student's app must not steer the runner to internal services or fill its memory."""
+    import httpx
+
+    from app.profiler import http_profiler
+
+    visited = []
+
+    def app(request: httpx.Request):
+        visited.append(str(request.url))
+        if request.url.path == "/":
+            return httpx.Response(
+                302, headers={"location": "http://auth-service:8001/api/v1/users"}
+            )
+        return httpx.Response(200, content=b"x" * (5 * 1024 * 1024))
+
+    monkeypatch.setattr(http_profiler, "transport", httpx.MockTransport(app))
+    results = http_profiler.measure_endpoints("http://app:5000", ["/", "/big"], repeat=1)
+    assert [r["status"] for r in results] == [302, 200]
+    assert not any("auth-service" in url for url in visited)
+    with httpx.Client(transport=httpx.MockTransport(app)) as client:
+        status, body = http_profiler._fetch(client, "http://app:5000/big")
+    assert status == 200 and len(body) == http_profiler.MAX_BODY_BYTES

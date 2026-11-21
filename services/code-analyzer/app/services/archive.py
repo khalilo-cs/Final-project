@@ -2,6 +2,7 @@
 
 import stat
 import zipfile
+import zlib
 from pathlib import Path
 
 
@@ -37,3 +38,14 @@ def extract_zip(archive: Path, destination: Path, max_bytes: int, max_files: int
                         sink.write(chunk)
     except zipfile.BadZipFile as exc:
         raise ArchiveError("not a valid ZIP archive") from exc
+    except NotImplementedError as exc:  # a RuntimeError subclass: must come first
+        raise ArchiveError(
+            "the archive uses an unsupported compression method; use a normal ZIP"
+        ) from exc
+    except RuntimeError as exc:  # zipfile raises it for encrypted members
+        raise ArchiveError(
+            "the archive is password-protected; upload it without a password"
+        ) from exc
+    except (OSError, EOFError, zlib.error, ValueError) as exc:
+        # e.g. a file and a folder with the same name, or damaged data
+        raise ArchiveError(f"the archive could not be extracted ({type(exc).__name__})") from exc

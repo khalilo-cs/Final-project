@@ -156,3 +156,29 @@ def test_mixed_python_and_java_project():
     assert [(v["type"], v["file"]) for v in body["security"]["vulnerabilities"]] == [
         ("SQL Injection", "src/main/java/UserDao.java")
     ]
+
+
+def test_malformed_archives_give_a_clear_error():
+    import struct
+
+    def corrupt(data: bytes, central: dict, local: dict) -> bytes:
+        raw = bytearray(data)
+        i, j = raw.find(b"PK\x01\x02"), raw.find(b"PK\x03\x04")
+        for offset, value in central.items():
+            raw[i + offset : i + offset + len(value)] = value
+        for offset, value in local.items():
+            raw[j + offset : j + offset + len(value)] = value
+        return bytes(raw)
+
+    plain = make_zip({"f.py": "x = 1\n"})
+    encrypted = corrupt(plain, {8: b"\x01\x00"}, {6: b"\x01\x00"})
+    unsupported = corrupt(plain, {10: struct.pack("<H", 99)}, {8: struct.pack("<H", 99)})
+    cases = {
+        "same name": (make_zip({"a": "x", "a/b.py": "y = 2\n"}), "could not be extracted"),
+        "encrypted": (encrypted, "password-protected"),
+        "compression": (unsupported, "unsupported compression"),
+    }
+    for name, (data, message) in cases.items():
+        response = upload(data)
+        assert response.status_code == 400, name
+        assert message in response.json()["detail"], name
