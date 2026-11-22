@@ -79,12 +79,17 @@ _SMELL_AR = {
     "god_class": "كلاس ضخم",
     "duplicate_code": "كود مكرر",
     "dead_code": "كود غير مستخدم",
+    "n_plus_one_query": "استعلام داخل حلقة (N+1)",
 }
 _DB_AR = {"missing_primary_key": "جدول بلا مفتاح أساسي", "missing_foreign_key": "مفتاح أجنبي مفقود",
           "repeating_group": "أعمدة مكررة (1NF)", "multivalued_column": "قيم متعددة في حقل (1NF)",
           "partial_dependency": "اعتماد جزئي (2NF)", "transitive_dependency": "اعتماد متعدٍّ (3NF)",
           "plaintext_password": "كلمات مرور كنص واضح", "float_for_money": "FLOAT للمال",
-          "date_as_text": "تاريخ كنص", "phone_as_number": "هاتف كرقم"}  # fmt: skip
+          "date_as_text": "تاريخ كنص", "phone_as_number": "هاتف كرقم",
+          "possible_bcnf_violation": "مفاتيح متداخلة (BCNF)",
+          "inconsistent_field_type": "نوع حقل غير ثابت (MongoDB)",
+          "reference_as_string": "مرجع كنص (MongoDB)",
+          "unbounded_array": "مصفوفة بلا حد"}  # fmt: skip
 
 
 @router.get("/department/analytics")

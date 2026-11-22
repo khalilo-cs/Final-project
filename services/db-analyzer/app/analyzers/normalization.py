@@ -131,14 +131,46 @@ def _third_nf(schema: Schema, table: Table) -> list[Issue]:
     return issues
 
 
+def _bcnf(table: Table) -> list[Issue]:
+    """Overlapping composite candidate keys: the textbook case of 3NF but not BCNF.
+
+    Example: enrollments(student_id, course_id, teacher_id) with PRIMARY KEY
+    (student_id, course_id) and UNIQUE (student_id, teacher_id): if each teacher
+    teaches one course, teacher_id -> course_id, and teacher_id is not a key.
+    A schema alone cannot prove the dependency, so this is a Low "check" issue.
+    """
+    keys = [k for k in [table.primary_key, *table.unique] if len(k) > 1]
+    for i, a in enumerate(keys):
+        for b in keys[i + 1 :]:
+            shared = set(a) & set(b)
+            if shared and set(a) != set(b):
+                others = sorted((set(a) | set(b)) - shared)
+                return [
+                    Issue(
+                        "possible_bcnf_violation",
+                        Severity.low,
+                        table.name,
+                        f"Two overlapping composite keys ({', '.join(a)}) and ({', '.join(b)}): "
+                        f"if one of {', '.join(others)} determines the other, the table is in "
+                        "3NF but not BCNF",
+                        columns=others,
+                        line=table.line,
+                        suggestion="Split the dependency into its own table "
+                        f"({' , '.join(others)}) so every determinant is a key",
+                    )
+                ]
+    return []
+
+
 def analyze_normalization(schema: Schema) -> tuple[str | None, list[Issue]]:
     """Return (estimated normal form, issues). None when there are no tables."""
     if not schema.tables:
         return None, []
-    first, second, third = [], [], []
+    first, second, third, boyce = [], [], [], []
     for table in schema.tables.values():
         first += _first_nf(table)
         second += _second_nf(schema, table)
         third += _third_nf(schema, table)
-    level = "UNF" if first else "1NF" if second else "2NF" if third else "3NF"
-    return level, first + second + third
+        boyce += _bcnf(table)
+    level = "UNF" if first else "1NF" if second else "2NF" if third else "3NF" if boyce else "BCNF"
+    return level, first + second + third + boyce

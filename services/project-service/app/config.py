@@ -12,6 +12,9 @@ class Settings(BaseSettings):
     # Durable analysis queue: parallel jobs per process, and how often the queue is polled
     # (0 disables the poller; requests still start their own job right away).
     analysis_workers: int = 4
+    # Projects submitted as a Git link (https only, these hosts only: no internal addresses).
+    git_allowed_hosts: list[str] = ["github.com", "gitlab.com", "bitbucket.org", "codeberg.org"]
+    git_clone_timeout_seconds: int = 180
     job_poll_seconds: float = 15
     # Single-replica deployments: at startup every "running" job belonged to the dead process.
     recover_all_running_jobs: bool = True

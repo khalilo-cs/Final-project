@@ -12,6 +12,8 @@ class Settings(BaseSettings):
     jwt_algorithm: str = "HS256"
 
     max_upload_mb: int = 50
+    # Analyses of identical archives kept in memory (0 disables the cache).
+    result_cache_size: int = 32
     max_extracted_mb: int = 200
     max_files: int = 5000
 

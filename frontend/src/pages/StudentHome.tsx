@@ -41,6 +41,13 @@ function SubmitForm({ courses, onDone }: { courses: Course[]; onDone: () => void
     event.preventDefault();
     const form = event.currentTarget;
     const data = new FormData(form);
+    const code = data.get("code") as File | null;
+    const gitUrl = String(data.get("git_url") ?? "").trim();
+    if (!gitUrl) data.delete("git_url");
+    if (!code?.size && !gitUrl) {
+      setError(new Error("أرفق ملف الكود (ZIP) أو ضع رابط مستودع Git."));
+      return;
+    }
     setBusy(true);
     setError(undefined);
     try {
@@ -81,7 +88,8 @@ function SubmitForm({ courses, onDone }: { courses: Course[]; onDone: () => void
         <select name="course_id" required className="rounded-lg border border-slate-300 px-3 py-2 text-sm">
           {courses.map((c) => <option key={c.id} value={c.id}>{c.code} — {c.name} ({KINDS_AR[c.kind] ?? c.kind})</option>)}
         </select>
-        <label className="text-sm">الكود (ZIP) *<Input name="code" type="file" accept=".zip" required /></label>
+        <label className="text-sm">الكود (ZIP)<Input name="code" type="file" accept=".zip" /></label>
+        <label className="text-sm">أو رابط مستودع Git<Input name="git_url" type="url" inputMode="url" dir="ltr" pattern="https://.*" placeholder="https://github.com/user/project" /></label>
         <label className="text-sm">التقرير (PDF/DOCX)<Input name="report" type="file" accept=".pdf,.docx" /></label>
         <label className="text-sm">قاعدة البيانات (SQL أو MongoDB JSON)<Input name="database" type="file" accept=".sql,.json" /></label>
         <label className="text-sm">نوع قاعدة البيانات

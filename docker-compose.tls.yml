@@ -1,0 +1,12 @@
+# HTTPS on this server (NFR-02). Put the certificate in ./certs:
+#   certs/fullchain.pem  certs/privkey.pem   (e.g. from the university or Let's Encrypt)
+# then:
+#   docker compose -f docker-compose.yml -f docker-compose.tls.yml up -d
+services:
+  frontend:
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./certs:/etc/nginx/certs:ro
+    command: ["sh", "-c", "cp /etc/nginx/mihakk/tls.conf /etc/nginx/conf.d/default.conf && exec nginx -g 'daemon off;'"]

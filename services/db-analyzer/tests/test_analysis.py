@@ -44,7 +44,7 @@ def test_clean_mysql_dump():
     result = analyze(LIBRARY)
     assert result["total_tables"] == 2
     assert result["issues"] == []
-    assert result["normalization_level"] == "3NF"
+    assert result["normalization_level"] == "BCNF"  # clean schema, no overlapping composite keys
     assert result["overall_db_score"] == 100.0
     books = next(t for t in result["tables"] if t["name"] == "books")
     assert books["primary_key"] == ["id"]
@@ -240,3 +240,24 @@ def test_prefixed_table_names_and_copied_columns():
         ("transitive_dependency", "tbl_orders"),
     ]
     assert "REFERENCES tbl_users(user_id)" in result["missing_foreign_keys"][0]["suggestion"]
+
+
+def test_overlapping_composite_keys_are_3nf_not_bcnf():
+    sql = """
+    CREATE TABLE students (id INT PRIMARY KEY, name VARCHAR(100));
+    CREATE TABLE teachers (id INT PRIMARY KEY, name VARCHAR(100));
+    CREATE TABLE enrollments (
+        student_id INT NOT NULL REFERENCES students(id),
+        course_code VARCHAR(10) NOT NULL,
+        teacher_id INT NOT NULL REFERENCES teachers(id),
+        PRIMARY KEY (student_id, course_code),
+        UNIQUE (student_id, teacher_id)
+    );
+    """
+    result = analyze_database(sql)
+    assert result["normalization_level"] == "3NF"
+    issue = next(i for i in result["issues"] if i["type"] == "possible_bcnf_violation")
+    assert issue["table"] == "enrollments" and set(issue["columns"]) == {
+        "course_code",
+        "teacher_id",
+    }

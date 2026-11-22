@@ -24,7 +24,7 @@ from app.models.project import (
     ReportAnalysisResult,
     SecurityAnalysisResult,
 )
-from app.services import crypto_store, internal_http, notify
+from app.services import crypto_store, git_import, internal_http, notify
 
 log = logging.getLogger(__name__)
 
@@ -220,6 +220,16 @@ def run_analysis(project_id: uuid.UUID) -> None:
         if project is None:
             return
         errors = []
+        if project.git_url and not Path(project.code_path).exists():
+            try:
+                git_import.import_repository(project.git_url, Path(project.code_path))
+            except git_import.GitImportError as exc:
+                project.status = ProjectStatus.analysis_failed
+                project.analysis_error = f"Git import failed: {exc}"
+                sent = _notify_analyzed(db, project)
+                db.commit()
+                notify.send_emails(sent)
+                return
         for label, applies, store in _ANALYSES:
             if not applies(project):
                 continue

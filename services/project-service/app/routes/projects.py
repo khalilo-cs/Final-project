@@ -10,7 +10,7 @@ from app.config import get_settings
 from app.models.project import Project, ProjectStatus
 from app.routes.deps import CurrentPrincipal, DbSession, forbidden
 from app.schemas.schemas import ProjectOut, ProjectStatusOut
-from app.services import access, jobs, notify, storage, uploads
+from app.services import access, git_import, jobs, notify, storage, uploads
 from app.services.analysis_runner import forget_report
 
 router = APIRouter(prefix="/api/v1/projects", tags=["projects"])
@@ -81,8 +81,16 @@ def submit_project(
             uploads.claim(db, principal.id, code_upload_id, "code", code_path)
         elif code is not None and code.filename:
             storage.save_upload(code, code_path, settings.max_code_mb, storage.ZIP_MAGIC)
+        elif git_url:
+            # Cloned by the analysis job (it can take minutes on a weak connection).
+            try:
+                git_url = git_import.validate_url(git_url)
+            except git_import.GitImportError as exc:
+                raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, str(exc)) from exc
         else:
-            raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, "The code ZIP is required")
+            raise HTTPException(
+                status.HTTP_422_UNPROCESSABLE_CONTENT, "The code ZIP (or a Git link) is required"
+            )
         report_path = None
         if report_upload_id is not None:
             name = uploads.get_own(db, principal.id, report_upload_id).filename

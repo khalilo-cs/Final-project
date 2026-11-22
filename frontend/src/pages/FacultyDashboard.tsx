@@ -13,8 +13,34 @@ export function FacultyDashboard() {
   const [summary] = useLoad(() => get<Summary>("projects", "/api/v1/dashboard/faculty/summary"));
   const [alerts] = useLoad(() => get<Alert[]>("projects", "/api/v1/dashboard/faculty/alerts"));
   const [courses, , reloadCourses] = useLoad(() => get<Course[]>("projects", "/api/v1/courses"));
+  // FR-10.2: filter by course, cohort (term) and type of work.
+  const [filter, setFilter] = useState({ course: "", term: "", kind: "" });
+  const term = (c: Course) => `${c.semester ?? ""} ${c.year ?? ""}`.trim();
+  const terms = [...new Set((courses ?? []).map(term).filter(Boolean))];
+  const visible = (courses ?? []).filter((c) =>
+    (!filter.course || c.id === filter.course) && (!filter.term || term(c) === filter.term) && (!filter.kind || c.kind === filter.kind));
+  const visibleIds = new Set(visible.map((c) => c.id));
+  const shownAlerts = alerts?.filter((a) => visibleIds.has(a.course_id));
+  const select = "rounded-lg border border-slate-300 px-2 py-1 text-sm";
   return (
     <>
+      {courses && courses.length > 1 && (
+        <div className="flex flex-wrap items-center gap-2 text-sm">
+          <span className="text-slate-500">تصفية:</span>
+          <select aria-label="المادة" className={select} value={filter.course} onChange={(e) => setFilter({ ...filter, course: e.target.value })}>
+            <option value="">كل المواد</option>
+            {courses.map((c) => <option key={c.id} value={c.id}>{c.code} — {c.name}</option>)}
+          </select>
+          <select aria-label="الدفعة" className={select} value={filter.term} onChange={(e) => setFilter({ ...filter, term: e.target.value })}>
+            <option value="">كل الدفعات</option>
+            {terms.map((t) => <option key={t} value={t}>{t}</option>)}
+          </select>
+          <select aria-label="نوع العمل" className={select} value={filter.kind} onChange={(e) => setFilter({ ...filter, kind: e.target.value })}>
+            <option value="">كل الأنواع</option>
+            {Object.entries(KINDS_AR).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+          </select>
+        </div>
+      )}
       <div className="grid gap-4 md:grid-cols-4">
         <Card><Score count value={summary?.total_projects} label="مشاريع" /></Card>
         <Card><Score value={summary?.average_suggested_total} label="متوسط الدرجة المقترحة" /></Card>
@@ -29,9 +55,9 @@ export function FacultyDashboard() {
         </Card>
       )}
       <Card title="🚨 تنبيهات تحتاج انتباهك">
-        {!alerts ? <Loading /> : alerts.length === 0 ? <p className="text-sm text-slate-500">لا توجد تنبيهات.</p> : (
+        {!shownAlerts ? <Loading /> : shownAlerts.length === 0 ? <p className="text-sm text-slate-500">لا توجد تنبيهات.</p> : (
           <div className="divide-y divide-slate-100">
-            {alerts.map((a, i) => (
+            {shownAlerts.map((a, i) => (
               <Link key={i} to={`/projects/${a.project_id}`} className="flex items-center gap-3 py-2 text-sm hover:bg-slate-50">
                 <Badge tone={severityTone(a.severity)}>{a.severity}</Badge>
                 <span className="font-semibold">{a.project_title}</span>
@@ -44,7 +70,7 @@ export function FacultyDashboard() {
       <Card title="المواد">
         {!courses ? <Loading /> : (
           <div className="divide-y divide-slate-100">
-            {courses.map((c) => (
+            {visible.map((c) => (
               <Link key={c.id} to={`/courses/${c.id}`} className="flex justify-between py-2 hover:bg-slate-50">
                 <span className="font-semibold">{c.code} — {c.name}</span>
                 <span className="mx-2 inline-flex gap-1 align-middle"><Badge>{KINDS_AR[c.kind] ?? c.kind}</Badge><Badge tone="blue">{LEVELS_AR[c.level] ?? c.level}</Badge></span>

@@ -39,6 +39,10 @@ _DB_AR = {
     "plaintext_password": "كلمات مرور مخزنة كنص واضح",
     "float_for_money": "FLOAT للمبالغ المالية",
     "date_as_text": "تواريخ مخزنة كنص",
+    "possible_bcnf_violation": "مفاتيح مركبة متداخلة (قد تخالف BCNF)",
+    "inconsistent_field_type": "حقل بأنواع مختلفة بين المستندات (MongoDB)",
+    "reference_as_string": "مرجع مخزن كنص بدل ObjectId",
+    "unbounded_array": "مصفوفة مضمّنة تكبر بلا حد",
 }
 _SECTION_AR = {
     "introduction": "المقدمة", "problem_statement": "مشكلة البحث", "objectives": "الأهداف",
