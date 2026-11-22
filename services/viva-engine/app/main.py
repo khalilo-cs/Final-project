@@ -8,7 +8,7 @@ from app.config import get_settings
 from app.database import SessionLocal, engine
 from app.engine import autolearn
 from app.migrate import migrate
-from app.routes import ai, viva
+from app.routes import ai, live, viva
 
 log = logging.getLogger(__name__)
 
@@ -38,6 +38,7 @@ async def lifespan(_: FastAPI):
 
 app = FastAPI(title="Mihakk — Viva Engine", version="0.2.0", lifespan=lifespan)
 app.include_router(viva.router)
+app.include_router(live.router)
 app.include_router(ai.router)
 app.include_router(ai.internal)
 

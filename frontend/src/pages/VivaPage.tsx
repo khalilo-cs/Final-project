@@ -1,3 +1,4 @@
+import { CodeView } from "../components/CodeView";
 import { useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { get, post, put } from "../api";
@@ -106,7 +107,7 @@ export function VivaPage() {
             <button title="اقرأ السؤال بصوت" onClick={() => speak(question.text, state.language)} className="rounded-full bg-slate-100 p-2 text-lg hover:bg-indigo-100">🔊</button>
           )}
         </div>
-        {question.code && <pre className="mt-3 max-h-80 overflow-auto rounded-lg bg-slate-900 p-3 text-xs leading-5 text-slate-100">{question.code}</pre>}
+        {question.code && <CodeView code={question.code} file={question.related_file} lines={question.related_lines} />}
       </Card>
       <Card>
         <textarea ref={box} value={answer} onChange={(e) => setAnswer(e.target.value)} rows={6}

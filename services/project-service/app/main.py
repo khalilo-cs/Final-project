@@ -19,6 +19,7 @@ from app.routes import (
     fraud,
     grades,
     notifications,
+    plan_api,
     projects,
     reports,
     sandbox,
@@ -53,6 +54,7 @@ app.include_router(reports.router)
 app.include_router(notifications.router)
 app.include_router(fingerprint.router)
 app.include_router(uploads.router)
+app.include_router(plan_api.router)
 
 
 @app.get("/health", tags=["meta"])

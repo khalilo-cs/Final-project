@@ -166,6 +166,34 @@ def get_transcript(session_id: str, db: DbSession, principal: CurrentPrincipal):
     return dialogue.transcript(db, session)
 
 
+@router.get("/api/v1/viva/{session_id}/next-question")
+def next_question(session_id: str, db: DbSession, principal: CurrentPrincipal):
+    """The question waiting for an answer (null once the viva has ended)."""
+    session = _load(db, session_id, principal)
+    state = _state(db, session, principal)
+    keys = ("status", "question_number", "max_questions", "current_question", "seconds_left")
+    return {key: state[key] for key in keys}
+
+
+@router.get("/api/v1/viva/{session_id}/results")
+def results(session_id: str, db: DbSession, principal: CurrentPrincipal):
+    """Score and graded transcript; for the student only after the viva has ended."""
+    session = _load(db, session_id, principal)
+    if not principal.is_staff and session.status == "in_progress":
+        raise HTTPException(status.HTTP_409_CONFLICT, "Available after the viva")
+    answered = dialogue.transcript(db, session)
+    return {
+        "session_id": str(session.id),
+        "status": session.status,
+        "overall_score": session.overall_score,
+        "level": session.level,
+        "questions": len(answered),
+        "transcript": answered,
+        "started_at": session.started_at.isoformat(),
+        "ended_at": session.ended_at.isoformat() if session.ended_at else None,
+    }
+
+
 @router.put("/api/v1/viva/qa/{qa_id}/review")
 def review_answer(qa_id: str, data: ReviewRequest, db: DbSession, principal: CurrentPrincipal):
     """A professor corrects the grade of one answer. This is what the system learns from."""

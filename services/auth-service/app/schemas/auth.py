@@ -27,6 +27,16 @@ class CreateUserRequest(RegisterRequest):
     role: Role
 
 
+class UpdateUserRequest(BaseModel):
+    """Fields a user may change; `role` and `email` only by an admin."""
+
+    full_name: str | None = Field(default=None, min_length=1, max_length=255)
+    department: str | None = Field(default=None, max_length=100)
+    student_id: str | None = Field(default=None, max_length=50)
+    email: EmailStr | None = None
+    role: Role | None = None
+
+
 class LoginRequest(BaseModel):
     username: str = Field(description="Username or email")
     password: str
