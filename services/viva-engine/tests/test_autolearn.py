@@ -41,9 +41,9 @@ def staff(people):
 
 def test_builtin_pack_loads_automatically_once(client, db, people):
     status = client.get("/api/v1/ai/status", headers=staff(people)).json()["auto_learning"]
-    assert status["topics"] == 19
-    assert status["question_bank"] == {"builtin": 26}
-    assert status["knowledge_by_source"]["builtin"] == 38
+    assert status["topics"] == 21
+    assert status["question_bank"] == {"builtin": 28}
+    assert status["knowledge_by_source"]["builtin"] == 42
     assert autolearn.seed_builtin(db) == 0  # idempotent
     events = client.get("/api/v1/ai/learning/events", headers=staff(people)).json()
     assert events[0]["kind"] == "builtin"

@@ -23,6 +23,7 @@ from app.security.js_rules import scan_javascript
 from app.security.models import Severity, Vulnerability
 from app.security.python_rules import scan_python
 from app.security.secrets_scanner import scan_secrets
+from app.security.web_rules import find_n_plus_one, scan_web
 
 ANALYZERS: list[BaseAnalyzer] = [
     PythonAnalyzer(), JavaAnalyzer(), JavaScriptAnalyzer(), CSharpAnalyzer(), CppAnalyzer(),
@@ -85,6 +86,7 @@ def analyze_project(root: Path) -> dict:
     python_sources: dict[str, str] = {}
     all_sources: dict[str, str] = {}
     dead: list[dict] = []
+    n_plus_one: list[dict] = []
     for path, relative in _project_files(root):
         technologies.feed_path(relative)
         size = path.stat().st_size
@@ -97,6 +99,8 @@ def analyze_project(root: Path) -> dict:
             continue
         source = path.read_text(encoding="utf-8", errors="replace")
         vulnerabilities.extend(scan_secrets(relative, source))
+        vulnerabilities.extend(scan_web(relative, source))
+        n_plus_one.extend(find_n_plus_one(relative, source))
         technologies.feed_text(relative, source.lower())
         analyzer = _BY_EXTENSION.get(path.suffix.lower())
         if analyzer is None:
@@ -114,18 +118,24 @@ def analyze_project(root: Path) -> dict:
 
     dead.extend(python_dead_code(python_sources))
     duplication = find_duplicates(all_sources)
+    code = _code_summary(files, skipped, duplication, dead, n_plus_one)
     return {
-        "code": _code_summary(files, skipped, duplication, dead),
+        "code": code,
         "security": _security_summary(vulnerabilities),
         "stack": technologies.result(),
     }
 
 
 def _code_summary(
-    files: list[FileAnalysis], skipped: list[dict], duplication: dict, dead: list[dict]
+    files: list[FileAnalysis],
+    skipped: list[dict],
+    duplication: dict,
+    dead: list[dict],
+    n_plus_one: list[dict] | None = None,
 ) -> dict:
     functions = [func for file in files for func in file.functions]
     smells = [asdict(smell) for file in files for smell in detect_smells(file)]
+    smells.extend(n_plus_one or [])
     for block in duplication["duplicate_blocks"]:
         smells.append({
             "type": "duplicate_code", "file": block["other_file"], "line": block["other_lines"][0],

@@ -20,6 +20,34 @@ _UNSAFE_LOADERS = {
     "dill.loads",
 }
 _WEAK_HASHES = {"hashlib.md5", "hashlib.sha1"}
+# File APIs that must never receive a raw user-supplied path.
+_FILE_SINKS = {
+    "open",
+    "send_file",
+    "send_from_directory_unsafe",
+    "os.remove",
+    "os.unlink",
+    "os.rmdir",
+    "shutil.rmtree",
+    "shutil.copy",
+    "shutil.move",
+    "os.open",
+    "io.open",
+    "FileResponse",
+    "Path",
+    "pathlib.Path",
+}
+_PATH_SAFE = {
+    "secure_filename", "os.path.basename", "basename", "safe_join",
+    "werkzeug.utils.secure_filename",
+}  # fmt: skip
+# Reading these means the value came straight from the HTTP request.
+_REQUEST_ROOTS = ("request.args", "request.form", "request.values", "request.json",
+                  "request.get_json", "request.files", "request.GET", "request.POST",
+                  "request.data", "request.cookies", "request.query_params")  # fmt: skip
+_VALIDATORS = ("validate", "is_valid", "isdigit", "isnumeric", "isalnum", "fullmatch", "match",
+               "int", "float", "len", "isinstance", "schema", "load", "parse_obj",
+               "model_validate", "secure_filename", "clean")  # fmt: skip
 
 
 def _dotted(node: ast.AST) -> str:
@@ -74,6 +102,10 @@ class _Scanner(ast.NodeVisitor):
         self.findings: list[Vulnerability] = []
         # Variables holding SQL text built from dynamic parts, per function scope.
         self.tainted_sql: list[set[str]] = [set()]
+        # Variables holding raw request input, per function scope.
+        self.from_request: list[set[str]] = [set()]
+        self.request_reads: list[list[ast.AST]] = [[]]
+        self.validated: list[bool] = [False]
 
     def _add(self, kind: str, severity: Severity, node: ast.AST, description: str) -> None:
         self.findings.append(
@@ -82,12 +114,66 @@ class _Scanner(ast.NodeVisitor):
 
     def _scoped(self, node: ast.AST) -> None:
         self.tainted_sql.append(set())
+        self.from_request.append(set())
+        self.request_reads.append([])
+        self.validated.append(False)
         self.generic_visit(node)
         self.tainted_sql.pop()
+        self.from_request.pop()
+        reads = self.request_reads.pop()
+        validated = self.validated.pop()
+        if reads and not validated:
+            self._add(
+                "Missing Input Validation",
+                Severity.medium,
+                reads[0],
+                "Request input is used without any validation (type, length, format or range)",
+            )
+
+    def _is_request(self, node: ast.AST) -> bool:
+        for sub in ast.walk(node):
+            if isinstance(sub, ast.Attribute | ast.Call | ast.Subscript):
+                target = sub.func if isinstance(sub, ast.Call) else sub
+                if isinstance(target, ast.Subscript):
+                    target = target.value
+                if _dotted(target).startswith(_REQUEST_ROOTS):
+                    return True
+            if isinstance(sub, ast.Name) and sub.id in self.from_request[-1]:
+                return True
+        return False
+
+    def _reads_request(self, node: ast.AST) -> bool:
+        saved = self.from_request[-1]
+        self.from_request[-1] = set()
+        try:
+            return self._is_request(node)
+        finally:
+            self.from_request[-1] = saved
 
     visit_FunctionDef = visit_AsyncFunctionDef = _scoped
 
+    def visit_If(self, node: ast.If) -> None:
+        if self._is_request(node.test):
+            self.validated[-1] = True
+        self.generic_visit(node)
+
+    def visit_Try(self, node: ast.Try) -> None:
+        if node.handlers:
+            self.validated[-1] = True
+        self.generic_visit(node)
+
     def visit_Assign(self, node: ast.Assign) -> None:
+        if self._is_request(node.value) and not _sanitized(node.value):
+            if not any(isinstance(n, ast.Name) and n.id in self.from_request[-1]
+                       for n in ast.walk(node.value)):  # fmt: skip
+                self.request_reads[-1].append(node)
+            for target in node.targets:
+                if isinstance(target, ast.Name):
+                    self.from_request[-1].add(target.id)
+        elif _sanitized(node.value):
+            for target in node.targets:
+                if isinstance(target, ast.Name):
+                    self.from_request[-1].discard(target.id)
         if _is_dynamic_string(node.value) and _looks_like_sql(node.value):
             for target in node.targets:
                 if isinstance(target, ast.Name):
@@ -111,7 +197,24 @@ class _Scanner(ast.NodeVisitor):
         self._check_sql(node, first)
         self._check_command(node, name, first)
         self._check_misc(node, name, first)
+        self._check_path(node, name)
+        if name.split(".")[-1] in _VALIDATORS and any(self._is_request(a) for a in node.args):
+            self.validated[-1] = True
+        elif any(self._reads_request(a) for a in [*node.args, *(k.value for k in node.keywords)]):
+            self.request_reads[-1].append(node)
         self.generic_visit(node)
+
+    def _check_path(self, node: ast.Call, name: str) -> None:
+        if name not in _FILE_SINKS:
+            return
+        if any(self._is_request(arg) and not _sanitized(arg) for arg in node.args):
+            self._add(
+                "Path Traversal",
+                Severity.high,
+                node,
+                f"{name}() receives a path taken from the request; use "
+                "secure_filename()/basename and check it stays inside the upload folder",
+            )
 
     def _check_sql(self, node: ast.Call, first: ast.AST | None) -> None:
         if not (isinstance(node.func, ast.Attribute) and node.func.attr in _SQL_METHODS):
@@ -198,6 +301,13 @@ class _Scanner(ast.NodeVisitor):
                 node,
                 f"{name} is broken for security purposes (never use it for passwords)",
             )
+
+
+def _sanitized(node: ast.AST) -> bool:
+    return any(
+        isinstance(sub, ast.Call) and _dotted(sub.func) in _PATH_SAFE | {"int", "float"}
+        for sub in ast.walk(node)
+    )
 
 
 def _is_false(node: ast.AST | None) -> bool:

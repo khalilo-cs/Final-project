@@ -151,6 +151,42 @@ TOPICS: dict[str, dict] = {
             ),
         ],
     },
+    "vuln:csrf": {
+        "title": "Cross-Site Request Forgery (CSRF)",
+        "ar": "في CSRF يستغل موقع خبيث أن متصفح الضحية يرسل الكوكيز تلقائياً، فيرسل طلباً يغيّر "
+        "البيانات باسمه (تحويل، حذف، تغيير كلمة مرور). الحل: رمز CSRF عشوائي في كل نموذج يُتحقق "
+        "منه في الخادم، وكوكيز SameSite، وعدم تعطيل الحماية الجاهزة في الإطار.",
+        "en": "CSRF abuses the browser sending cookies automatically, so another site can submit "
+        "state-changing requests as the victim. Use per-form CSRF tokens, SameSite cookies and "
+        "keep the framework protection on.",
+        "points": ["token", "samesite", "cookie", "state-changing", "origin"],
+        "questions": [
+            (
+                "ar",
+                "challenge",
+                3,
+                "لماذا يحتاج نموذج التحويل في مشروعك إلى رمز CSRF مع أن المستخدم مسجّل الدخول؟",
+                ["cookie", "token", "another site"],
+            ),
+        ],
+    },
+    "vuln:input_validation": {
+        "title": "Input validation",
+        "ar": "كل مدخل يأتي من المستخدم غير موثوق: يجب التحقق من نوعه وطوله وصيغته ومداه قبل "
+        "استخدامه أو تخزينه، ويُفضَّل التحقق بقائمة المسموح (whitelist) وفي الخادم لا في الواجهة فقط.",
+        "en": "All user input is untrusted: validate type, length, format and range on the server "
+        "before using or storing it, preferably against an allow-list.",
+        "points": ["type", "length", "whitelist", "server side", "schema"],
+        "questions": [
+            (
+                "ar",
+                "technical",
+                2,
+                "لماذا لا يكفي التحقق من المدخلات في الواجهة (JavaScript) فقط؟",
+                ["server", "bypass", "curl", "postman"],
+            ),
+        ],
+    },
     "vuln:weak_hash": {
         "title": "Password hashing",
         "ar": "MD5 و SHA-1 سريعة جداً فتُكسر كلمات المرور بها بالتخمين خلال ثوانٍ. لكلمات المرور "
@@ -442,6 +478,8 @@ VULNERABILITY_TOPICS = {
     "Hardcoded Secret": "vuln:hardcoded_secret",
     "Insecure Deserialization": "vuln:insecure_deserialization",
     "Weak Hash Algorithm": "vuln:weak_hash",
+    "CSRF": "vuln:csrf",
+    "Missing Input Validation": "vuln:input_validation",
 }
 DATABASE_TOPICS = {
     "repeating_group": "db:normalization",

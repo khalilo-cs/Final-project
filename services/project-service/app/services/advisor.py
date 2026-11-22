@@ -16,6 +16,7 @@ _SMELL_AR = {
     "god_class": "كلاسات ضخمة تقوم بكل شيء",
     "duplicate_code": "كود مكرر (نسخ ولصق)",
     "dead_code": "دوال أو كلاسات غير مستخدمة",
+    "n_plus_one_query": "استعلامات داخل حلقات (N+1)",
 }
 _FIX_AR = {
     "SQL Injection": "استخدم الاستعلامات المُعدّة (parameterized) بدل دمج المدخلات في نص SQL",
@@ -25,6 +26,8 @@ _FIX_AR = {
     "Hardcoded Secret": "انقل كلمات المرور والمفاتيح إلى متغيرات البيئة",
     "Insecure Deserialization": "لا تفك تسلسل بيانات غير موثوقة؛ استخدم JSON",
     "Weak Hash Algorithm": "استخدم bcrypt أو argon2 لكلمات المرور",
+    "CSRF": "فعّل حماية CSRF وأرسل رمز التحقق (token) مع كل نموذج يغيّر البيانات",
+    "Missing Input Validation": "تحقق من نوع المدخلات وطولها وصيغتها قبل استخدامها",
 }
 _DB_AR = {
     "missing_primary_key": "جداول بلا مفتاح أساسي",

@@ -135,5 +135,8 @@ def test_javascript_project_through_the_api():
     )
     body = upload(archive).json()
     assert body["code"]["languages"] == {"javascript": 1}
-    assert [v["type"] for v in body["security"]["vulnerabilities"]] == ["SQL Injection"]
+    assert [v["type"] for v in body["security"]["vulnerabilities"]] == [
+        "SQL Injection",
+        "Missing Input Validation",
+    ]
     assert {t["name"] for t in body["stack"]["technologies"]} == {"Express", "MySQL"}

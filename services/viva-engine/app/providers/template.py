@@ -18,6 +18,8 @@ _FIX_POINTS = {
     "Insecure Deserialization": ["json", "safe", "trusted", "whitelist"],
     "Hardcoded Secret": ["environment", "env", "متغير", "vault", "config"],
     "Weak Hash Algorithm": ["bcrypt", "argon2", "sha-256", "salt"],
+    "CSRF": ["token", "samesite", "cookie", "csrf", "رمز"],
+    "Missing Input Validation": ["validate", "type", "length", "schema", "whitelist", "تحقق"],
 }
 _VAGUE = [
     "تقريبا", "شي ما", "شيء ما", "بشكل عام", "مثل كذا", "وكذا", "something", "kind of",
