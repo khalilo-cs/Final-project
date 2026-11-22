@@ -20,6 +20,9 @@ class Settings(BaseSettings):
     # The run container joins only this network: no internet, reachable by the runner.
     sandbox_network: str = "aipe-sandbox"
 
+    # Needs the image built with SCREENSHOTS=1 (Playwright + Chromium); skipped otherwise.
+    screenshots: bool = True
+
     load_levels: list[int] = [1, 10, 50]
     requests_per_level: int = 100
     max_upload_mb: int = 50

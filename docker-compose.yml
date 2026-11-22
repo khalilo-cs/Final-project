@@ -186,7 +186,10 @@ services:
   # SECURITY: access to the Docker socket is root-equivalent on the host. Run this on a
   # dedicated machine or VM in production, never next to sensitive data.
   sandbox-runner:
-    build: ./services/sandbox-runner
+    build:
+      context: ./services/sandbox-runner
+      args:
+        SCREENSHOTS: ${SANDBOX_SCREENSHOTS:-1}
     environment:
       JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET in .env}
       SANDBOX_NETWORK: aipe-sandbox

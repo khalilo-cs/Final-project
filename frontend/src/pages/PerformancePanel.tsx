@@ -4,7 +4,7 @@ import { Badge, Button, Card, ErrorBox, Score, severityTone, useLoad } from "../
 
 interface Level { concurrent_users: number; requests: number; error_rate: number; requests_per_second: number | null; p50_ms: number | null; p95_ms: number | null }
 interface Endpoint { path: string; status: number; avg_ms: number; max_ms: number }
-interface Details { stack?: string; startup_seconds?: number; endpoints?: Endpoint[]; load_test?: Level[]; memory_peak_mb?: number; cpu_peak_percent?: number; flags?: { type: string; severity: string; evidence: string; evidence_ar?: string }[]; logs?: string; notes?: string[] }
+interface Details { stack?: string; startup_seconds?: number; endpoints?: Endpoint[]; load_test?: Level[]; memory_peak_mb?: number; cpu_peak_percent?: number; flags?: { type: string; severity: string; evidence: string; evidence_ar?: string }[]; logs?: string; notes?: string[]; screenshots?: { path: string; title: string; image_jpeg_base64: string }[] }
 interface Perf { status: string; runs_successfully: boolean | null; overall_performance_score: number | null; error: string | null; details: Details }
 
 export function PerformancePanel({ id, canRun }: { id: string; canRun: boolean }) {
@@ -70,6 +70,17 @@ export function PerformancePanel({ id, canRun }: { id: string; canRun: boolean }
             <div className="mt-3 flex flex-wrap gap-2 text-xs">{d.endpoints.map((e) => (
               <Badge key={e.path} tone={e.status >= 500 ? "red" : "gray"}><span className="ltr">{e.path} · {e.status} · {e.avg_ms} ms</span></Badge>
             ))}</div>
+          )}
+          {d.screenshots && d.screenshots.length > 0 && (
+            <div className="mt-4">
+              <div className="mb-2 text-sm font-semibold">لقطات من واجهة المشروع أثناء تشغيله</div>
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{d.screenshots.map((s) => (
+                <figure key={s.path} className="overflow-hidden rounded-lg border border-slate-200">
+                  <img src={`data:image/jpeg;base64,${s.image_jpeg_base64}`} alt={s.title || s.path} className="w-full" loading="lazy" />
+                  <figcaption className="bg-slate-50 px-2 py-1 text-xs text-slate-600"><span className="ltr">{s.path}</span>{s.title ? ` — ${s.title}` : ""}</figcaption>
+                </figure>
+              ))}</div>
+            </div>
           )}
           {d.logs && <pre className="mt-3 max-h-48 overflow-auto rounded-lg bg-slate-900 p-3 text-xs text-slate-200">{d.logs}</pre>}
         </>

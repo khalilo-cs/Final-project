@@ -9,6 +9,7 @@ from pathlib import Path
 
 from app.config import get_settings
 from app.profiler import http_profiler as profiler
+from app.profiler import screenshots
 from app.sandbox.backend import Backend, BuildFailed
 from app.sandbox.detect import UnsupportedProject, detect
 
@@ -99,6 +100,10 @@ def execute(run_id: str, project: Path, backend: Backend) -> None:
             idle = backend.stats(handle)
             paths = profiler.discover_paths(base)
             run["endpoints"] = profiler.measure_endpoints(base, paths)
+            if settings.screenshots:
+                run["phase"] = "screenshots"
+                run["screenshots"] = screenshots.capture(base, run["endpoints"])
+                run["phase"] = "measuring"
             memory = [idle["memory_mb"]]
             cpu = [idle["cpu_percent"]]
             levels = []
