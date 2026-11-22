@@ -8,3 +8,4 @@ bcrypt~=5.0.0
 PyJWT[crypto]~=2.15.1
 httpx~=0.28.1
 alembic~=1.20.1
+ldap3~=2.9.1

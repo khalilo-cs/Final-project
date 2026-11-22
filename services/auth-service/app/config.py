@@ -46,6 +46,27 @@ class Settings(BaseSettings):
     oidc_faculty_values: list[str] = []
     oidc_student_id_claim: str | None = None  # e.g. "employeeId"
 
+    # -- University directory (LDAP / Active Directory) -------------------------------
+    # Enabled when ldap_url is set. Users sign in with their directory username and
+    # password on the normal login form; the account is created on first sign-in.
+    ldap_url: str | None = None  # ldaps://dc.university.edu.ye:636 (or ldap:// + start_tls)
+    ldap_start_tls: bool = True  # ignored for ldaps://
+    ldap_ca_file: str | None = None  # the university CA, if not publicly trusted
+    # Find the user with a service account (recommended) ...
+    ldap_bind_dn: str | None = None
+    ldap_bind_password: str | None = None
+    ldap_base_dn: str | None = None  # ou=people,dc=university,dc=edu,dc=ye
+    ldap_user_filter: str = "(|(uid={username})(sAMAccountName={username}))"
+    # ... or bind directly with a DN template: uid={username},ou=people,dc=...
+    ldap_user_dn_template: str | None = None
+    ldap_email_attribute: str = "mail"
+    ldap_name_attribute: str = "displayName"
+    ldap_student_id_attribute: str | None = None  # e.g. employeeNumber
+    # Members of these groups (memberOf DNs or group names) become faculty.
+    # Admin rights are never granted through LDAP.
+    ldap_faculty_groups: list[str] = []
+    ldap_timeout_seconds: int = 5
+
 
 @lru_cache
 def get_settings() -> Settings:

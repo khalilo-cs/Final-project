@@ -3,6 +3,7 @@ import { useAuth } from "../auth";
 import { ConnectionBanner } from "./Connection";
 import { NotificationBell } from "./Notifications";
 import { Button } from "./ui";
+import { LanguageSwitch } from "./LanguageSwitch";
 
 export function Layout() {
   const { user, logout } = useAuth();
@@ -29,6 +30,7 @@ export function Layout() {
             )}
           </nav>
           <div className="flex items-center gap-3 text-sm">
+            <LanguageSwitch />
             <NotificationBell />
             <span className="text-slate-600">{user?.full_name}</span>
             <Button variant="secondary" onClick={() => void logout()}>خروج</Button>

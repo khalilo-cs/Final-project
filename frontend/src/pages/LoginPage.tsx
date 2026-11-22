@@ -1,3 +1,4 @@
+import { LanguageSwitch } from "../components/LanguageSwitch";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { ApiError, get } from "../api";
 import { useAuth } from "../auth";
@@ -72,6 +73,7 @@ export function LoginPage() {
     <div className="flex min-h-screen items-center justify-center p-4">
       <div className="w-full max-w-md space-y-4">
         <div className="text-center">
+          <div className="mb-2 flex justify-end"><LanguageSwitch /></div>
           <div className="text-3xl font-black text-indigo-700">مِحَكّ</div>
           <p className="mt-2 text-sm text-slate-500">تقييم المشاريع البرمجية لكل مستويات الحاسوب والتحقق من فهم الطالب لها — جامعة صنعاء</p>
         </div>

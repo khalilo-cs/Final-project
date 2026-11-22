@@ -1,3 +1,4 @@
+import logging
 import uuid
 from datetime import UTC, datetime, timedelta
 
@@ -9,7 +10,9 @@ from sqlalchemy.orm import Session
 from app.config import get_settings
 from app.models.user import LoginThrottle, RevokedToken, Role, User
 from app.schemas.auth import RegisterRequest, TokenPair
-from app.services import jwt_service
+from app.services import jwt_service, ldap_auth
+
+log = logging.getLogger(__name__)
 
 # Compared against when the user does not exist, so both paths cost one bcrypt check.
 _DUMMY_HASH = bcrypt.hashpw(b"dummy-password", bcrypt.gensalt())
@@ -96,6 +99,20 @@ def authenticate(db: Session, identifier: str, password: str) -> User:
     identifier = identifier.strip().lower()
     _check_lock(db, identifier)
     user = db.scalar(select(User).where(or_(User.username == identifier, User.email == identifier)))
+    directory_account = user is not None and (user.external_id or "").startswith("ldap|")
+    if ldap_auth.enabled() and (user is None or directory_account):
+        try:
+            found = ldap_auth.verify(identifier, password)
+        except ldap_auth.LdapUnavailable as exc:
+            log.warning("LDAP unavailable: %s", exc)
+            found = None
+        if found is not None and (linked := ldap_auth.account(db, found)) is not None:
+            _clear_failures(db, identifier)
+            return linked
+        if user is None or directory_account:
+            # Directory accounts have no usable local password.
+            _record_failure(db, identifier)
+            raise AuthError
     if user is None:
         bcrypt.checkpw(b"dummy-password", _DUMMY_HASH)
         _record_failure(db, identifier)
