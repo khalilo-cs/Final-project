@@ -47,9 +47,13 @@ export STORAGE_DIR="$DATA/storage"
 
 start() {  # name port [extra env...]
   local name=$1 port=$2; shift 2
-  ( cd "$ROOT/services/$name" && env DATABASE_URL="sqlite:///$DATA/$name.db" "$@" \
+  # exec: the recorded PID is uvicorn itself (so `stop` reaches it), and no shell is
+  # left holding the caller's terminal open.
+  ( cd "$ROOT/services/$name" || exit 1
+    exec env DATABASE_URL="sqlite:///$DATA/$name.db" "$@" \
       "$VENV/bin/uvicorn" app.main:app --host 127.0.0.1 --port "$port" \
-      < /dev/null > "$DATA/logs/$name.log" 2>&1 & echo $! > "$DATA/run/$name.pid" )
+      < /dev/null > "$DATA/logs/$name.log" 2>&1 ) &
+  echo $! > "$DATA/run/$name.pid"
 }
 start auth-service 8001
 start project-service 8002
@@ -88,7 +92,8 @@ CONF
   nginx -c "$DATA/run/nginx.conf" < /dev/null >> "$DATA/logs/nginx.log" 2>&1
 else
   echo "nginx not found: using the Vite dev server instead"
-  ( npx vite --port "$PORT" --strictPort > "$DATA/logs/vite.log" 2>&1 & echo $! > "$DATA/run/vite.pid" )
+  ( exec npx vite --port "$PORT" --strictPort < /dev/null > "$DATA/logs/vite.log" 2>&1 ) &
+  echo $! > "$DATA/run/vite.pid"
 fi
 
 # -- wait until everything answers -------------------------------------------------
