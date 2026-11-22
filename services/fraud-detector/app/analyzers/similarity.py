@@ -15,6 +15,7 @@ MIN_SOURCE_SIMILARITY = 0.05
 BOILERPLATE_MIN_CORPUS = 5
 BOILERPLATE_FRACTION = 0.3
 _CHUNK = 500
+MAX_SOURCES = 10  # projects reported (and examined line by line)
 
 
 def project_fingerprints(root: Path) -> dict[int, tuple[str, int]]:
@@ -44,9 +45,53 @@ def compare_and_index(
     corpus = db.scalar(
         select(func.count()).select_from(CodeDocument).where(CodeDocument.id.not_in(others))
     )
-    owners: dict[int, list[tuple[str, str, int]]] = defaultdict(list)  # hash -> (doc, file, line)
     values = list(mine)
+
+    # Phase 1, in the database: how many earlier projects contain each of my
+    # fingerprints. Only counts travel, never the matching rows themselves, so a
+    # fingerprint shared by hundreds of projects costs one row, not hundreds.
+    spread: dict[int, int] = {}
     for i in range(0, len(values), _CHUNK):
+        spread.update(
+            db.execute(
+                select(CodeFingerprint.hash, func.count(CodeFingerprint.document_id))
+                .where(
+                    CodeFingerprint.hash.in_(values[i : i + _CHUNK]),
+                    CodeFingerprint.document_id.not_in(others),
+                )
+                .group_by(CodeFingerprint.hash)
+            ).all()
+        )
+    ignored = 0
+    boilerplate: set[int] = set()
+    if corpus >= BOILERPLATE_MIN_CORPUS:
+        threshold = max(3, BOILERPLATE_FRACTION * corpus)
+        boilerplate = {h for h, n in spread.items() if n >= threshold}
+        ignored = len(boilerplate)
+    considered = max(len(mine) - ignored, 0)
+    shared_values = [h for h in spread if h not in boilerplate]
+
+    # Phase 2: fingerprints shared with each project, still counted in SQL.
+    shared: dict[str, int] = defaultdict(int)
+    for i in range(0, len(shared_values), _CHUNK):
+        for doc, count in db.execute(
+            select(CodeFingerprint.document_id, func.count())
+            .where(
+                CodeFingerprint.hash.in_(shared_values[i : i + _CHUNK]),
+                CodeFingerprint.document_id.not_in(others),
+            )
+            .group_by(CodeFingerprint.document_id)
+        ):
+            shared[doc] += count
+    needed = max(1, int(MIN_SOURCE_SIMILARITY * considered)) if considered else 1
+    candidates = sorted((d for d, n in shared.items() if n >= needed),
+                        key=lambda d: shared[d], reverse=True)[:MAX_SOURCES]  # fmt: skip
+
+    # Phase 3: line-level detail only for the projects that will be reported.
+    per_doc: dict[str, dict] = defaultdict(lambda: {"shared": 0, "pairs": defaultdict(list)})
+    for doc in candidates:
+        per_doc[doc]["shared"] = shared[doc]
+    for i in range(0, len(shared_values), _CHUNK) if candidates else ():
         rows = db.execute(
             select(
                 CodeFingerprint.hash,
@@ -54,26 +99,12 @@ def compare_and_index(
                 CodeFingerprint.file,
                 CodeFingerprint.line,
             ).where(
-                CodeFingerprint.hash.in_(values[i : i + _CHUNK]),
-                CodeFingerprint.document_id.not_in(others),
+                CodeFingerprint.hash.in_(shared_values[i : i + _CHUNK]),
+                CodeFingerprint.document_id.in_(candidates),
             )
         )
         for value, doc, file, line in rows:
-            owners[value].append((doc, file, line))
-
-    ignored = 0
-    if corpus >= BOILERPLATE_MIN_CORPUS:
-        threshold = max(3, BOILERPLATE_FRACTION * corpus)
-        for value in [h for h, o in owners.items() if len({d for d, _, _ in o}) >= threshold]:
-            del owners[value]
-            ignored += 1
-    considered = max(len(mine) - ignored, 0)
-
-    per_doc: dict[str, dict] = defaultdict(lambda: {"shared": 0, "pairs": defaultdict(list)})
-    for value, places in owners.items():
-        my_file, my_line = mine[value]
-        for doc, file, line in places:
-            per_doc[doc]["shared"] += 1
+            my_file, my_line = mine[value]
             per_doc[doc]["pairs"][(my_file, file)].append((my_line, line))
     totals = dict(
         db.execute(
@@ -112,7 +143,7 @@ def compare_and_index(
         _index(db, document_id, mine)
     return {
         "max_similarity": sources[0]["similarity"] if sources else 0.0,
-        "sources": sources[:10],
+        "sources": sources[:MAX_SOURCES],
         "fingerprint_count": len(mine),
         "ignored_boilerplate": ignored,
         "corpus_size": corpus,

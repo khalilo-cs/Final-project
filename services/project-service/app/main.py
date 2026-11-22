@@ -1,3 +1,4 @@
+import logging
 import threading
 from contextlib import asynccontextmanager
 
@@ -27,6 +28,9 @@ from app.routes import (
     viva,
 )
 from app.services import jobs
+
+# Our own INFO lines (e.g. how long each analysis stage took) next to uvicorn's.
+logging.basicConfig(level=logging.INFO, format="%(levelname)s:     %(name)s: %(message)s")
 
 
 @asynccontextmanager

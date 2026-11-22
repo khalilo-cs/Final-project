@@ -26,7 +26,7 @@ from playwright.sync_api import expect, sync_playwright
 
 ADMIN = ("admin", "admin-password-1")
 
-APP_PY = '''from flask import Flask, request, render_template_string
+APP_PY = """from flask import Flask, request, render_template_string
 import sqlite3
 
 app = Flask(__name__)
@@ -70,7 +70,7 @@ def calculate_discount(total, is_member):
     if total > 100:
         return total * 0.05
     return 0
-'''
+"""
 
 SCHEMA = """
 CREATE TABLE users (id INT PRIMARY KEY, name VARCHAR(100), password VARCHAR(50));
@@ -120,7 +120,9 @@ def api(base: str):
 
 
 def login_token(http: httpx.Client, username: str, password: str) -> str:
-    response = http.post("/svc/auth/api/v1/auth/login", json={"username": username, "password": password})
+    response = http.post(
+        "/svc/auth/api/v1/auth/login", json={"username": username, "password": password}
+    )
     response.raise_for_status()
     return response.json()["access_token"]
 
@@ -144,21 +146,52 @@ def main() -> int:
     print("1. accounts and course (API)")
     admin = {"Authorization": f"Bearer {login_token(http, *ADMIN)}"}
     faculty_name, student_name = f"dr{run}", f"st{run}"
-    created = http.post("/svc/auth/api/v1/users", headers=admin, json={
-        "username": faculty_name, "email": f"{faculty_name}@su.edu.ye", "password": "faculty-pass-1",
-        "full_name": "د. هدى", "role": "faculty"})  # fmt: skip
+    created = http.post(
+        "/svc/auth/api/v1/users",
+        headers=admin,
+        json={
+            "username": faculty_name,
+            "email": f"{faculty_name}@su.edu.ye",
+            "password": "faculty-pass-1",
+            "full_name": "د. هدى",
+            "role": "faculty",
+        },
+    )
     check("admin creates a faculty account", created.status_code == 201, created.text)
-    registered = http.post("/svc/auth/api/v1/auth/register", json={
-        "username": student_name, "email": f"{student_name}@su.edu.ye", "password": "student-pass-1",
-        "full_name": "علي صالح", "student_id": "2022" + run[:3]})  # fmt: skip
+    registered = http.post(
+        "/svc/auth/api/v1/auth/register",
+        json={
+            "username": student_name,
+            "email": f"{student_name}@su.edu.ye",
+            "password": "student-pass-1",
+            "full_name": "علي صالح",
+            "student_id": "2022" + run[:3],
+        },
+    )
     check("student registers", registered.status_code == 201, registered.text)
     faculty = {"Authorization": f"Bearer {login_token(http, faculty_name, 'faculty-pass-1')}"}
-    course = http.post("/svc/projects/api/v1/courses", headers=faculty, json={
-        "name": "مشروع تخرج", "code": f"CS{run[:3]}", "semester": "Fall", "year": 2026,
-        "level": "year4", "kind": "graduation"}).json()  # fmt: skip
-    enrolled = http.post(f"/svc/projects/api/v1/courses/{course['id']}/students", headers=faculty,
-                         json={"student_ids": [registered.json()["id"]]})  # fmt: skip
-    check("faculty creates a course and enrolls the student", enrolled.status_code == 200, enrolled.text)
+    course = http.post(
+        "/svc/projects/api/v1/courses",
+        headers=faculty,
+        json={
+            "name": "مشروع تخرج",
+            "code": f"CS{run[:3]}",
+            "semester": "Fall",
+            "year": 2026,
+            "level": "year4",
+            "kind": "graduation",
+        },
+    ).json()
+    enrolled = http.post(
+        f"/svc/projects/api/v1/courses/{course['id']}/students",
+        headers=faculty,
+        json={"student_ids": [registered.json()["id"]]},
+    )
+    check(
+        "faculty creates a course and enrolls the student",
+        enrolled.status_code == 200,
+        enrolled.text,
+    )
 
     with sync_playwright() as pw:
         browser = pw.chromium.launch()
@@ -196,24 +229,41 @@ def main() -> int:
         student = {"Authorization": f"Bearer {login_token(http, student_name, 'student-pass-1')}"}
         status = {}
         for _ in range(120):
-            status = http.get(f"/svc/projects/api/v1/projects/{project_id}/status", headers=student).json()
+            status = http.get(
+                f"/svc/projects/api/v1/projects/{project_id}/status", headers=student
+            ).json()
             if status["status"] != "analyzing":
                 break
             time.sleep(1)
         check("analysis finished", status.get("status") == "analyzed", str(status))
-        security = http.get(f"/svc/projects/api/v1/analysis/security/{project_id}/results", headers=student).json()
+        security = http.get(
+            f"/svc/projects/api/v1/analysis/security/{project_id}/results", headers=student
+        ).json()
         kinds = {v["type"] for v in security["vulnerabilities"]}
         check("SQL injection found", "SQL Injection" in kinds, str(kinds))
         check("CSRF found", "CSRF" in kinds, str(kinds))
-        code = http.get(f"/svc/projects/api/v1/analysis/code/{project_id}/results", headers=student).json()
+        code = http.get(
+            f"/svc/projects/api/v1/analysis/code/{project_id}/results", headers=student
+        ).json()
         smells = {s["type"] for s in code["code_smells"]}
         check("N+1 query found", "n_plus_one_query" in smells, str(smells))
-        database = http.get(f"/svc/projects/api/v1/analysis/database/{project_id}/results", headers=student).json()
-        check("database analyzed (missing foreign key)", bool(database["missing_foreign_keys"]), str(database)[:300])
-        report = http.get(f"/svc/projects/api/v1/analysis/report/{project_id}/results", headers=student).json()
+        database = http.get(
+            f"/svc/projects/api/v1/analysis/database/{project_id}/results", headers=student
+        ).json()
+        check(
+            "database analyzed (missing foreign key)",
+            bool(database["missing_foreign_keys"]),
+            str(database)[:300],
+        )
+        report = http.get(
+            f"/svc/projects/api/v1/analysis/report/{project_id}/results", headers=student
+        ).json()
         issues = {i["type"] for i in report.get("inconsistencies", [])}
-        check("report: table not in schema + UML class not in code",
-              {"table_not_in_schema", "uml_class_not_found"} <= issues, str(issues))  # fmt: skip
+        check(
+            "report: table not in schema + UML class not in code",
+            {"table_not_in_schema", "uml_class_not_found"} <= issues,
+            str(issues),
+        )
         page.reload()
         expect(page.get_by_text("نتائج التحليل")).to_be_visible(timeout=15_000)
         shot("1-student-results")
@@ -224,8 +274,10 @@ def main() -> int:
         for _ in range(3):
             box = page.locator("textarea")
             box.wait_for(timeout=15_000)
-            box.fill("الدالة orders_of في OrderService تستعلم من جدول orders لكل مستخدم، "
-                     "والأفضل استعلام واحد مع IN لتجنب N+1، واستخدام معاملات بدل دمج النص.")  # fmt: skip
+            box.fill(
+                "الدالة orders_of في OrderService تستعلم من جدول orders لكل مستخدم، "
+                "والأفضل استعلام واحد مع IN لتجنب N+1، واستخدام معاملات بدل دمج النص."
+            )
             page.get_by_role("button", name="إرسال الإجابة").click()
             page.wait_for_timeout(800)
         shot("2-viva")
@@ -237,8 +289,11 @@ def main() -> int:
         page.evaluate("sessionStorage.clear()")
         sign_in(faculty_name, "faculty-pass-1")
         alerts = http.get("/svc/projects/api/v1/dashboard/faculty/alerts", headers=faculty).json()
-        check("faculty gets an alert for the project",
-              any(a["project_id"] == project_id for a in alerts), str(alerts)[:300])  # fmt: skip
+        check(
+            "faculty gets an alert for the project",
+            any(a["project_id"] == project_id for a in alerts),
+            str(alerts)[:300],
+        )
         page.goto(f"{args.base}/projects/{project_id}")
         total = page.locator('input[type="number"]').last
         total.wait_for(timeout=20_000)
@@ -253,15 +308,21 @@ def main() -> int:
         page.get_by_role("button", name="English").click()
         page.wait_for_load_state()
         expect(page.get_by_text("Final grade").first).to_be_visible(timeout=10_000)
-        check("interface switches to English (ltr)", page.evaluate("document.documentElement.dir") == "ltr")
+        check(
+            "interface switches to English (ltr)",
+            page.evaluate("document.documentElement.dir") == "ltr",
+        )
         shot("4-english")
         page.evaluate("localStorage.removeItem('mihakk.lang')")
         browser.close()
 
     print("7. audit log")
     entries = http.get(f"/svc/projects/api/v1/audit?target_id={project_id}", headers=admin).json()
-    check("audit log records the grade approval",
-          any(e["method"] == "PUT" and "/grades/" in e["path"] for e in entries), str(entries)[:300])  # fmt: skip
+    check(
+        "audit log records the grade approval",
+        any(e["method"] == "PUT" and "/grades/" in e["path"] for e in entries),
+        str(entries)[:300],
+    )
     check("audit log records the real client address", all(e["ip"] for e in entries))
 
     print(f"\nall {len(check.passed)} checks passed")

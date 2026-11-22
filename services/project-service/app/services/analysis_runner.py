@@ -6,6 +6,7 @@ Each analysis is independent: one failing does not discard the others' results.
 
 import json
 import logging
+import time
 import uuid
 from pathlib import Path
 
@@ -230,12 +231,15 @@ def run_analysis(project_id: uuid.UUID) -> None:
                 db.commit()
                 notify.send_emails(sent)
                 return
+        timings: dict[str, float] = {}
         for label, applies, store in _ANALYSES:
             if not applies(project):
                 continue
+            began = time.perf_counter()
             try:
                 store(db, project)
                 db.commit()
+                timings[label] = round(time.perf_counter() - began, 2)
             except AnalysisRejected as exc:
                 db.rollback()
                 errors.append(f"{label} file rejected: {exc}")
@@ -249,13 +253,20 @@ def run_analysis(project_id: uuid.UUID) -> None:
             return
         project.status = ProjectStatus.analysis_failed if errors else ProjectStatus.analyzed
         project.analysis_error = "; ".join(errors) or None
+        began = time.perf_counter()
         sent = _notify_analyzed(db, project)
         db.commit()
         notify.send_emails(sent)
+        timings["notify"] = round(time.perf_counter() - began, 2)
+        began = time.perf_counter()
         teach_viva_engine(db, project)
+        timings["teach_viva"] = round(time.perf_counter() - began, 2)
         from app.services.performance import start_run
 
+        began = time.perf_counter()
         start_run(db, project)  # minutes-long: runs in the background on sandbox-runner
+        timings["sandbox_start"] = round(time.perf_counter() - began, 2)
+        log.info("analysis of %s took %s", project_id, timings)
 
 
 def _notify_analyzed(db: Session, project: Project) -> list:
