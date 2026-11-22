@@ -4,6 +4,7 @@
 
 services:
   frontend:
+    restart: unless-stopped
     build: ./frontend
     ports:
       - "127.0.0.1:8080:80"
@@ -14,6 +15,7 @@ services:
       - speech-service
 
   postgres:
+    restart: unless-stopped
     image: postgres:16-alpine
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
@@ -28,6 +30,12 @@ services:
       retries: 10
 
   auth-service:
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8001/health', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
     build: ./services/auth-service
     environment:
       PUBLIC_URL: ${PUBLIC_URL:-http://localhost:8080}
@@ -56,6 +64,12 @@ services:
         condition: service_healthy
 
   project-service:
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8002/health', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
     build: ./services/project-service
     environment:
       DATABASE_URL: postgresql+psycopg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
@@ -94,6 +108,12 @@ services:
         condition: service_started
 
   code-analyzer:
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8003/health', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
     build: ./services/code-analyzer
     environment:
       EMBEDDING_URL: ${EMBEDDING_URL:-}
@@ -109,6 +129,12 @@ services:
       - no-new-privileges:true
 
   db-analyzer:
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8004/health', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
     build: ./services/db-analyzer
     environment:
       JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET in .env}
@@ -122,6 +148,12 @@ services:
       - no-new-privileges:true
 
   report-analyzer:
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8005/health', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
     build: ./services/report-analyzer
     environment:
       # Plagiarism fingerprint index (tables: documents, fingerprints).
@@ -140,6 +172,12 @@ services:
       - no-new-privileges:true
 
   fraud-detector:
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8007/health', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
     build: ./services/fraud-detector
     environment:
       # Code fingerprint index (tables: code_documents, code_fingerprints).
@@ -158,6 +196,12 @@ services:
       - no-new-privileges:true
 
   report-generator:
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8009/health', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
     build: ./services/report-generator
     environment:
       JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET in .env}
@@ -173,6 +217,12 @@ services:
   # Speech-to-text for spoken viva answers (Whisper). Audio stays on this server with
   # the default local engine; the model (~500 MB for "small") downloads on first use.
   speech-service:
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8010/health', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
     build: ./services/speech-service
     environment:
       JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET in .env}
@@ -215,6 +265,12 @@ services:
     restart: unless-stopped
 
   sandbox-runner:
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8008/health', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
     build:
       context: ./services/sandbox-runner
       args:
@@ -229,6 +285,12 @@ services:
       - "127.0.0.1:8008:8008"
 
   viva-engine:
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8006/health', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
     build: ./services/viva-engine
     environment:
       DATABASE_URL: postgresql+psycopg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
@@ -250,16 +312,19 @@ services:
   # Local model server (free, private). Start with: docker compose --profile ai up -d
   # then: docker compose exec ollama ollama pull qwen2.5:7b, and set OLLAMA_URL in .env.
   ollama:
+    restart: unless-stopped
     image: ollama/ollama
     profiles: [ai]
     volumes:
       - ollama-models:/root/.ollama
 
   redis:
+    restart: unless-stopped
     image: redis:7-alpine
     profiles: [infra]
 
   rabbitmq:
+    restart: unless-stopped
     image: rabbitmq:3.13-management-alpine
     profiles: [infra]
     environment:
@@ -269,6 +334,7 @@ services:
       - "127.0.0.1:15672:15672"
 
   minio:
+    restart: unless-stopped
     image: minio/minio
     profiles: [infra]
     command: server /data --console-address ":9001"
