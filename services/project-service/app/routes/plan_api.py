@@ -5,6 +5,7 @@ compute; the logic lives in those routes and services.
 """
 
 import uuid
+from dataclasses import asdict
 from datetime import UTC, datetime, timedelta
 
 import httpx
@@ -17,7 +18,7 @@ from app.models.project import Project
 from app.routes import analysis, dashboard, fraud, grades
 from app.routes.deps import CurrentPrincipal, DbSession, forbidden
 from app.schemas.schemas import ProjectStatusOut
-from app.services import access, jobs, student_report
+from app.services import access, jobs, learning, student_report
 from app.services.performance import refresh
 
 router = APIRouter(prefix="/api/v1", tags=["plan"])
@@ -126,3 +127,19 @@ def admin_stats(db: DbSession, principal: CurrentPrincipal):
             .where(AuditEntry.at >= day_ago, AuditEntry.status_code >= 500)
         ),
     }
+
+
+@router.get("/courses/{course_id}/criteria/learned")
+def learned_weights(course_id: uuid.UUID, db: DbSession, principal: CurrentPrincipal):
+    """Weights fitted to the faculty's own approved grades (FR-12.2); apply with PUT criteria."""
+    course = access.get_course(db, course_id)
+    access.require_course_manage(principal, course)
+    return asdict(learning.learn_weights(db, course_id))
+
+
+@router.get("/fraud/course/{course_id}/rings")
+def course_copy_rings(course_id: uuid.UUID, db: DbSession, principal: CurrentPrincipal):
+    """Groups of 3+ projects linked by similarity: a shared source (FR-12.4). Staff only."""
+    course = access.get_course(db, course_id)
+    access.require_course_manage(principal, course)
+    return learning.copy_rings(db, course_id)

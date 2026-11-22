@@ -6,7 +6,7 @@ from sqlalchemy import select
 from app.models.course import Course
 from app.models.project import Project
 from app.routes.deps import CurrentPrincipal, DbSession, forbidden
-from app.services import grading
+from app.services import grading, learning
 from app.services.alerts import project_alerts, sort_alerts
 
 router = APIRouter(prefix="/api/v1/dashboard", tags=["dashboard"])
@@ -53,8 +53,21 @@ def summary(db: DbSession, principal: CurrentPrincipal):
 @router.get("/faculty/alerts")
 def alerts(db: DbSession, principal: CurrentPrincipal):
     found = []
-    for project in _staff_projects(db, principal):
+    projects = _staff_projects(db, principal)
+    for project in projects:
         found += project_alerts(project, grading.load_results(db, project.id))
+    # Copy rings: a pattern only visible across a whole course (FR-12.4).
+    for course_id in {p.course_id for p in projects}:
+        for ring in learning.copy_rings(db, course_id):
+            first = ring["projects"][0]
+            found.append({
+                "type": "copy_ring", "severity": "High",
+                "message": f"{ring['size']} projects are linked by similarity (copy ring)",
+                "message_ar": ring["message_ar"],
+                "project_id": first["project_id"], "project_title": first["title"],
+                "student_id": first["student_id"], "course_id": str(course_id),
+                "ring": [p["project_id"] for p in ring["projects"]],
+            })  # fmt: skip
     return sort_alerts(found)
 
 

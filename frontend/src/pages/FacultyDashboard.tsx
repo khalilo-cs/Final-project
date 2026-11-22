@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from "react";
+import { CompareStudents } from "../components/CompareStudents";
 import { Link, useParams } from "react-router-dom";
 import { download, get, post, put } from "../api";
 import { Badge, Button, Card, ErrorBox, Input, Loading, Score, STATUS_AR, severityTone, useLoad } from "../components/ui";
@@ -92,6 +93,11 @@ function CreateCourse({ onDone }: { onDone: () => void }) {
 
 interface Row { project_id: string; student_name: string | null; student_number: string | null; title: string; status: string; scores: Record<string, number | null>; suggested_total: number | null; coverage: number; final_total: number | null; alerts: number }
 interface Criterion { criterion: string; label_ar: string; weight: number }
+interface Learned { graded_projects: number; suggested: Record<string, number> | null; error_now: number | null; error_suggested: number | null; note_ar: string }
+const CRITERION_AR: Record<string, string> = {
+  code_quality: "جودة الكود", security: "الأمان", database: "قاعدة البيانات", report: "التقرير",
+  viva: "المناقشة", authenticity: "الأصالة", performance: "الأداء",
+};
 
 export function CoursePage() {
   const { id = "" } = useParams();
@@ -123,6 +129,14 @@ export function CoursePage() {
           </div>
         )}
       </Card>
+      {grades && grades.projects.length > 1 && (
+        <Card title="مقارنة الطلاب">
+          <CompareStudents
+            rows={grades.projects.map((r) => ({ project_id: r.project_id, label: r.student_name ?? r.title, total: r.final_total ?? r.suggested_total, scores: r.scores }))}
+            criteria={Object.keys(grades.projects[0]?.scores ?? {}).map((key) => ({ key, label: CRITERION_AR[key] ?? key }))}
+          />
+        </Card>
+      )}
       <div className="grid gap-6 md:grid-cols-2">
         <EnrollStudents courseId={id} onDone={reload} />
         <Weights courseId={id} onDone={reload} />
@@ -163,7 +177,18 @@ function Weights({ courseId, onDone }: { courseId: string; onDone: () => void })
   const [criteria, , reload] = useLoad(() => get<Criterion[]>("projects", `/api/v1/courses/${courseId}/criteria`), [courseId]);
   const [values, setValues] = useState<Record<string, string>>({});
   const [error, setError] = useState<unknown>();
+  const [learned, setLearned] = useState<Learned>();
   if (!criteria) return <Loading />;
+  const learn = async () => {
+    setError(undefined);
+    try {
+      const result = await get<Learned>("projects", `/api/v1/courses/${courseId}/criteria/learned`);
+      setLearned(result);
+      if (result.suggested) setValues(Object.fromEntries(Object.entries(result.suggested).map(([k, v]) => [k, String(v)])));
+    } catch (reason) {
+      setError(reason);
+    }
+  };
   const current = (c: Criterion) => values[c.criterion] ?? String(c.weight);
   const total = criteria.reduce((sum, c) => sum + Number(current(c) || 0), 0);
   const save = async () => {
@@ -188,8 +213,12 @@ function Weights({ courseId, onDone }: { courseId: string; onDone: () => void })
       </div>
       <div className="mt-3 flex items-center justify-between">
         <span className={`text-sm font-bold ${Math.abs(total - 100) < 0.01 ? "text-emerald-600" : "text-rose-600"}`}>المجموع: {total}%</span>
-        <Button disabled={Math.abs(total - 100) > 0.01} onClick={() => void save()}>حفظ الأوزان</Button>
+        <div className="flex gap-2">
+          <Button variant="secondary" onClick={() => void learn()} title="أوزان تطابق درجاتكم المعتمدة في هذه المادة">اقترح من درجاتي</Button>
+          <Button disabled={Math.abs(total - 100) > 0.01} onClick={() => void save()}>حفظ الأوزان</Button>
+        </div>
       </div>
+      {learned && <p className={`mt-2 text-xs ${learned.suggested ? "text-indigo-700" : "text-slate-500"}`}>{learned.note_ar}{learned.suggested ? " راجع القيم ثم احفظ." : ""}</p>}
       <ErrorBox error={error} />
     </Card>
   );

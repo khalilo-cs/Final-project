@@ -237,6 +237,16 @@ export const EN: Record<string, string> = {
   "أوزان التقييم": "Grading weights",
   "المجموع:": "Total:",
   "حفظ الأوزان": "Save weights",
+  "مقارنة الطلاب": "Compare students",
+  "قارن حسب:": "Compare by:",
+  "الدرجة الكلية": "Total grade",
+  "المتوسط:": "Average:",
+  "لا درجات بعد.": "No grades yet.",
+  "الخط الرمادي هو متوسط المادة. الدرجة النهائية إن اعتُمدت، وإلا المقترحة.":
+    "The grey line is the course average. Final grade if approved, otherwise the suggested one.",
+  "اقترح من درجاتي": "Suggest from my grades",
+  "أوزان تطابق درجاتكم المعتمدة في هذه المادة": "Weights that match your approved grades in this course",
+  "تحليل الأمان": "Security analysis",
   // fingerprint
   "التحدي": "Challenge",
   "الدالة": "Function",
