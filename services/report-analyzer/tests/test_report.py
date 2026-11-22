@@ -257,3 +257,37 @@ def test_dotnet_report_consistency():
         ("claimed_not_found", "The report mentions Qt (1 times)"),
         ("undocumented", "The report never mentions ASP.NET Core"),
     ]
+
+
+# ---- database description and UML (FR-05.7, FR-06.5) ------------------------------------
+
+
+def test_report_tables_missing_from_schema():
+    facts = {**FACTS, "tables": ["users", "orders"]}
+    text = (
+        "The users table stores accounts. The orders table stores purchases. "
+        "We also keep a payments table for invoices, and جدول coupons للخصومات."
+    )
+    found = [i for i in check_consistency(text, facts)["inconsistencies"]
+             if i["type"] == "table_not_in_schema"]  # fmt: skip
+    assert sorted(i["report_claim"].split("'")[1] for i in found) == ["coupons", "payments"]
+
+
+def test_uml_class_diagram_checked_against_code():
+    facts = {**FACTS, "classes": ["User", "OrderService", "Product"]}
+    text = (
+        "Figure 4: Class Diagram. The class User is linked to OrderService and to "
+        "PaymentGateway. InvoicePrinter prints receipts. We used JavaScript and MySQL."
+    )
+    result = check_consistency(text, facts)
+    uml = result["uml"]
+    assert uml["has_uml"] and "class" in uml["diagrams"]
+    assert uml["classes_matched"] == ["OrderService", "User"]
+    assert uml["classes_not_in_code"] == ["InvoicePrinter", "PaymentGateway"]
+    assert uml["code_classes_documented_pct"] == 66.7
+    assert "uml_class_not_found" in [i["type"] for i in result["inconsistencies"]]
+
+
+def test_no_uml_section_reports_nothing():
+    result = check_consistency("A simple report with no diagrams.", {**FACTS, "classes": ["A"]})
+    assert result["uml"] == {"has_uml": False, "diagrams": []}

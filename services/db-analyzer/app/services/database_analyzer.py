@@ -4,9 +4,11 @@ from dataclasses import asdict
 from app.analyzers.er_generator import generate_er_diagram
 from app.analyzers.issues import Issue, Severity
 from app.analyzers.key_analyzer import analyze_indexes, analyze_keys
+from app.analyzers.mongo_analyzer import analyze_mongo
 from app.analyzers.normalization import analyze_normalization
 from app.analyzers.query_analyzer import analyze_queries
 from app.analyzers.type_checker import check_types
+from app.parsers.mongo_parser import parse_mongo
 from app.parsers.schema_parser import parse_schema
 
 # Starting weights, to be tuned against faculty grades later.
@@ -23,13 +25,26 @@ def _score(issues: list[Issue], table_count: int) -> float:
 
 
 def analyze_database(sql: str, dialect: str = "mysql") -> dict:
-    schema = parse_schema(sql, dialect)
-    key_issues = analyze_keys(schema)
-    index_issues = analyze_indexes(schema)
-    level, normalization_issues = analyze_normalization(schema)
-    type_issues = check_types(schema)
-    query_issues = analyze_queries(schema)
-    issues = key_issues + index_issues + normalization_issues + type_issues + query_issues
+    if dialect == "mongodb":
+        schema, stats = parse_mongo(sql)
+        key_issues: list[Issue] = []
+        index_issues: list[Issue] = []
+        query_issues: list[Issue] = []
+        issues = analyze_mongo(schema, stats)
+        level = "document model"
+        note = "MongoDB uses documents, not normal forms; checked types, references and arrays."
+    else:
+        schema = parse_schema(sql, dialect)
+        key_issues = analyze_keys(schema)
+        index_issues = analyze_indexes(schema)
+        level, normalization_issues = analyze_normalization(schema)
+        type_issues = check_types(schema)
+        query_issues = analyze_queries(schema)
+        issues = key_issues + index_issues + normalization_issues + type_issues + query_issues
+        note = (
+            "Estimated from column names and keys; functional dependencies cannot be "
+            "proven from a schema alone."
+        )
 
     tables = schema.tables.values()
     return {
@@ -38,10 +53,7 @@ def analyze_database(sql: str, dialect: str = "mysql") -> dict:
         "total_columns": sum(len(t.columns) for t in tables),
         "total_foreign_keys": sum(len(t.foreign_keys) for t in tables),
         "normalization_level": level,
-        "normalization_note": (
-            "Estimated from column names and keys; functional dependencies cannot be "
-            "proven from a schema alone."
-        ),
+        "normalization_note": note,
         "missing_primary_keys": [i.table for i in key_issues if i.type == "missing_primary_key"],
         "missing_foreign_keys": [asdict(i) for i in key_issues if i.type == "missing_foreign_key"],
         "missing_indexes": [asdict(i) for i in index_issues],

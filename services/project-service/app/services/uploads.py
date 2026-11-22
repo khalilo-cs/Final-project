@@ -32,7 +32,7 @@ def _limits() -> dict[str, tuple[int, set[str]]]:
     return {
         "code": (settings.max_code_mb, {".zip"}),
         "report": (settings.max_report_mb, set(storage.REPORT_EXTENSIONS)),
-        "database": (settings.max_sql_mb, {".sql"}),
+        "database": (settings.max_sql_mb, {".sql", ".json"}),
     }
 
 

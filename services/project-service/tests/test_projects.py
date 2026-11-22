@@ -329,6 +329,8 @@ def test_report_analysis_receives_code_and_db_facts(client, users, course, analy
         "technologies": ["Flask"],
         "architecture": [],
         "total_tables": 2,
+        "classes": [],
+        "tables": [],
     }
     faculty = users["faculty"].headers
     result = client.get(f"/api/v1/analysis/report/{pid}/results", headers=faculty).json()

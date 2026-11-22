@@ -83,10 +83,10 @@ function SubmitForm({ courses, onDone }: { courses: Course[]; onDone: () => void
         </select>
         <label className="text-sm">الكود (ZIP) *<Input name="code" type="file" accept=".zip" required /></label>
         <label className="text-sm">التقرير (PDF/DOCX)<Input name="report" type="file" accept=".pdf,.docx" /></label>
-        <label className="text-sm">قاعدة البيانات (SQL)<Input name="database" type="file" accept=".sql" /></label>
+        <label className="text-sm">قاعدة البيانات (SQL أو MongoDB JSON)<Input name="database" type="file" accept=".sql,.json" /></label>
         <label className="text-sm">نوع قاعدة البيانات
           <select name="db_dialect" className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
-            <option value="mysql">MySQL</option><option value="postgresql">PostgreSQL</option><option value="sqlite">SQLite</option>
+            <option value="mysql">MySQL</option><option value="postgresql">PostgreSQL</option><option value="sqlite">SQLite</option><option value="mongodb">MongoDB</option>
           </select>
         </label>
         <div className="md:col-span-2 space-y-2">

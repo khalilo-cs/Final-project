@@ -48,9 +48,10 @@ def submit_project(
     code: Annotated[UploadFile | None, File(description="Source code as a ZIP archive")] = None,
     report: Annotated[UploadFile | None, File(description="Report (PDF or DOCX)")] = None,
     database: Annotated[
-        UploadFile | None, File(description="Database schema / dump (.sql)")
+        UploadFile | None,
+        File(description="Database schema / dump (.sql) or MongoDB export (.json)"),
     ] = None,
-    db_dialect: Annotated[Literal["mysql", "postgresql", "sqlite"], Form()] = "mysql",
+    db_dialect: Annotated[Literal["mysql", "postgresql", "sqlite", "mongodb"], Form()] = "mysql",
     description: Annotated[str | None, Form(max_length=10_000)] = None,
     programming_languages: Annotated[str | None, Form()] = None,
     frameworks: Annotated[str | None, Form()] = None,
@@ -97,13 +98,18 @@ def submit_project(
                 (storage.REPORT_EXTENSIONS[extension],),
             )
         db_schema_path = None
+        db_name = None
         if database_upload_id is not None:
+            db_name = uploads.get_own(db, principal.id, database_upload_id).filename
             db_schema_path = folder / "schema.sql"
             uploads.claim(db, principal.id, database_upload_id, "database", db_schema_path)
         elif database is not None and database.filename:
-            storage.require_extension(database.filename, {".sql"}, "Database file")
+            db_name = database.filename
+            storage.require_extension(database.filename, {".sql", ".json"}, "Database file")
             db_schema_path = folder / "schema.sql"
             storage.save_upload(database, db_schema_path, settings.max_sql_mb, None)
+        if db_name and db_name.lower().endswith(".json"):
+            db_dialect = "mongodb"  # a JSON export can only be a MongoDB schema
         project = Project(
             id=project_id,
             title=title.strip(),

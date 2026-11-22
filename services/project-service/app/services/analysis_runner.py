@@ -154,10 +154,19 @@ def _facts(db: Session, project: Project) -> dict | None:
         "languages": stack.get("languages", {}),
         "technologies": [t["name"] for t in stack.get("technologies", [])],
         "architecture": stack.get("architecture", []),
+        "classes": sorted(
+            {
+                cls["name"]
+                for file in (code.details or {}).get("files", [])
+                for cls in file.get("classes", [])
+                if cls.get("name")
+            }
+        )[:1000],
     }
     database = db.scalar(select(DbAnalysisResult).where(DbAnalysisResult.project_id == project.id))
     if database is not None:
         facts["total_tables"] = database.total_tables
+        facts["tables"] = [t["name"] for t in (database.details or {}).get("tables", [])][:500]
     return facts
 
 

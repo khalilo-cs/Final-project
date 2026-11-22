@@ -2,7 +2,11 @@
 
 `facts` come from the code and database analyzers:
     {"languages": {"Java": 12}, "technologies": ["Spring Boot", "MySQL"],
-     "architecture": ["MVC"], "total_tables": 7}
+     "architecture": ["MVC"], "total_tables": 7,
+     "tables": ["users", "orders"], "classes": ["User", "OrderService"]}
+
+It also checks the report's database description against the real schema
+(FR-05.7) and the class names in its UML diagrams against the code (FR-06.5).
 """
 
 import re
@@ -66,6 +70,36 @@ _TABLE_COUNT = [
     re.compile(r"(\d{1,3})\s*(?:جداول|جدولا|جدول)"),
     re.compile(r"(\d{1,3})\s+(?:database\s+)?tables\b"),
 ]
+
+
+# "the users table", "جدول المستخدمين users", "table `orders`"
+_TABLE_NAMED = [
+    re.compile(r"(?:جدول|الجدول)\s*[\"'`«(]?\s*([A-Za-z][A-Za-z0-9_]{2,40})"),
+    re.compile(r"\btable\s*[\"'`«(]\s*([A-Za-z][A-Za-z0-9_]{2,40})"),
+    re.compile(r"\b([A-Za-z][A-Za-z0-9_]{2,40})\s+table\b", re.I),
+]
+_NOT_TABLES = {
+    "the", "this", "that", "each", "every", "one", "following", "above", "below", "main",
+    "database", "data", "lookup", "join", "hash", "of", "and", "with", "in", "is", "are",
+    "contents", "summary", "periodic", "truth", "routing", "symbol",
+}  # fmt: skip
+_UML_DIAGRAMS = {
+    "class": [r"class\s+diagram", r"مخطط\s+(?:ال)?(?:فئات|كلاسات|اصناف|صنف)"],
+    "use_case": [r"use[\s-]*case", r"حالات\s+(?:ال)?استخدام"],
+    "sequence": [r"sequence\s+diagram", r"مخطط\s+(?:ال)?تسلسل"],
+    "activity": [r"activity\s+diagram", r"مخطط\s+(?:ال)?(?:نشاط|انشطة)"],
+    "er": [r"\berd?\b\s*diagram", r"entity[\s-]*relationship", r"مخطط\s+(?:ال)?كيانات"],
+    "deployment": [r"deployment\s+diagram", r"مخطط\s+(?:ال)?نشر"],
+}
+_UML_WORD = re.compile(r"\buml\b|class\s+diagram|مخطط\s+(?:ال)?(?:فئات|كلاسات|اصناف)")
+# CamelCase words in the original (not case-folded) text: likely class names.
+_CAMEL = re.compile(r"\b[A-Z][a-z0-9]+(?:[A-Z][a-z0-9]+)+\b")
+_CLASS_NAMED = re.compile(r"\b(?:class|كلاس|الكلاس|الصنف|صنف)\s+[\"'`«]?([A-Z][A-Za-z0-9_]{2,40})")
+_COMMON_CAMEL = {
+    "JavaScript", "TypeScript", "PostgreSQL", "MySQL", "GitHub", "PowerPoint", "YouTube",
+    "WhatsApp", "PayPal", "LinkedIn", "WordPress", "MongoDB", "FastAPI", "SpringBoot",
+    "PyTorch", "TensorFlow", "OpenCV", "iPhone", "DevOps", "PhpMyAdmin", "VisualStudio",
+}  # fmt: skip
 
 
 @dataclass
@@ -166,5 +200,80 @@ def check_consistency(text: str, facts: dict | None) -> dict:
                 )
                 break
 
+    inconsistencies.extend(_check_tables(text, normalized, facts.get("tables")))
+    uml, uml_issues = _check_uml(text, normalized, facts.get("classes"))
+    inconsistencies.extend(uml_issues)
+    result["uml"] = uml
+
     result["inconsistencies"] = [asdict(i) for i in inconsistencies]
     return result
+
+
+def _plain(name: str) -> str:
+    return name.lower().replace("_", "")
+
+
+def _check_tables(text: str, normalized: str, tables: list[str] | None) -> list[Inconsistency]:
+    """Tables the report names that the submitted schema does not have (FR-05.7)."""
+    if not tables:
+        return []
+    real = {_plain(t) for t in tables}
+    real |= {name[:-1] for name in real if name.endswith("s")} | {name + "s" for name in real}
+    found: list[Inconsistency] = []
+    seen: set[str] = set()
+    for pattern in _TABLE_NAMED:
+        for match in pattern.finditer(normalized):
+            name = match[1]
+            key = _plain(name)
+            if key in _NOT_TABLES or key in seen or key in real:
+                continue
+            seen.add(key)
+            found.append(
+                Inconsistency(
+                    type="table_not_in_schema",
+                    severity="Medium",
+                    report_claim=f"The report describes a table named '{name}'",
+                    code_reality="The submitted database has no such table",
+                    evidence=_context(text, normalized, match),
+                )
+            )
+    return found[:10]
+
+
+def _check_uml(
+    text: str, normalized: str, classes: list[str] | None
+) -> tuple[dict, list[Inconsistency]]:
+    """Do the classes drawn in the report's UML diagrams exist in the code? (FR-06.5)"""
+    diagrams = sorted(
+        kind for kind, patterns in _UML_DIAGRAMS.items() if _mentions(normalized, patterns)
+    )
+    uml = {"has_uml": bool(_UML_WORD.search(normalized)), "diagrams": diagrams}
+    if not classes or "class" not in diagrams:
+        return uml, []
+    real = {name.lower() for name in classes}
+    named = {m[1] for m in _CLASS_NAMED.finditer(text)}
+    camel = {m[0] for m in _CAMEL.finditer(text)} - _COMMON_CAMEL
+    candidates = named | camel
+    matched = sorted(name for name in candidates if name.lower() in real)
+    missing = sorted(name for name in candidates if name.lower() not in real)
+    # Without a single match the CamelCase words are probably not class names at all.
+    if not matched:
+        missing = sorted(named - {n for n in named if n.lower() in real})
+    documented = len({name.lower() for name in matched})
+    uml.update(
+        classes_in_report=len(candidates),
+        classes_matched=matched,
+        classes_not_in_code=missing[:20],
+        code_classes_documented_pct=round(100 * documented / len(real), 1),
+    )
+    issues = []
+    if missing:
+        issues.append(
+            Inconsistency(
+                type="uml_class_not_found",
+                severity="Medium" if len(missing) >= 3 else "Low",
+                report_claim="The report's class diagram shows: " + ", ".join(missing[:8]),
+                code_reality="These classes do not exist in the submitted code",
+            )
+        )
+    return uml, issues
