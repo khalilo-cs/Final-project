@@ -2,7 +2,6 @@
 
 import logging
 import uuid
-from pathlib import Path
 
 import httpx
 from sqlalchemy import select
@@ -10,7 +9,7 @@ from sqlalchemy.orm import Session
 
 from app.config import get_settings
 from app.models.project import PerformanceResult, Project
-from app.services import internal_http
+from app.services import crypto_store, internal_http
 
 log = logging.getLogger(__name__)
 
@@ -23,7 +22,8 @@ def start_run(db: Session, project: Project) -> PerformanceResult:
     try:
         with (
             internal_http.client(get_settings().sandbox_runner_url, timeout=60) as http,
-            open(Path(project.code_path), "rb") as archive,
+            crypto_store.plain(project.code_path) as readable,
+            open(readable, "rb") as archive,
         ):
             response = http.post("/internal/runs", files={"file": ("code.zip", archive)})
             response.raise_for_status()

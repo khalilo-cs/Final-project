@@ -1,7 +1,9 @@
+import threading
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
+from app import audit, database
 from app.database import engine
 from app.migrate import migrate
 from app.models import fingerprint as _fingerprint_models  # noqa: F401
@@ -23,15 +25,21 @@ from app.routes import (
     uploads,
     viva,
 )
+from app.services import jobs
 
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     migrate(engine)
+    stop = threading.Event()
+    jobs.start_poller(stop)
     yield
+    stop.set()
 
 
 app = FastAPI(title="Mihakk — Project Service", version="0.1.0", lifespan=lifespan)
+audit.install(app, lambda: database.SessionLocal())
+app.include_router(audit.router)
 app.include_router(courses.router)
 app.include_router(projects.router)
 app.include_router(analysis.router)

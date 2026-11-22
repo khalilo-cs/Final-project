@@ -9,6 +9,14 @@ class Settings(BaseSettings):
 
     database_url: str = "sqlite:///./projects.db"
     storage_dir: str = "./storage"
+    # Durable analysis queue: parallel jobs per process, and how often the queue is polled
+    # (0 disables the poller; requests still start their own job right away).
+    analysis_workers: int = 4
+    job_poll_seconds: float = 15
+    # Single-replica deployments: at startup every "running" job belonged to the dead process.
+    recover_all_running_jobs: bool = True
+    # base64 of 32 random bytes; uploaded files are AES-256-GCM encrypted at rest when set.
+    storage_encryption_key: str = ""
 
     # Same secret as auth-service: access tokens are verified locally.
     jwt_secret: str = Field(min_length=32)

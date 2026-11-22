@@ -3,6 +3,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app import audit, database
 from app.config import get_settings
 from app.database import SessionLocal, engine
 from app.migrate import migrate
@@ -19,6 +20,8 @@ async def lifespan(_: FastAPI):
 
 
 app = FastAPI(title="Mihakk — Auth Service", version="0.1.0", lifespan=lifespan)
+audit.install(app, lambda: database.SessionLocal())
+app.include_router(audit.router)
 
 if get_settings().cors_origins:
     app.add_middleware(

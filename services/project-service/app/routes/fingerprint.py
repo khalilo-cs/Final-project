@@ -12,7 +12,7 @@ from app.models.course import Course
 from app.models.fingerprint import ComprehensionChallenge
 from app.models.project import Project, ProjectStatus
 from app.routes.deps import CurrentPrincipal, DbSession, Principal
-from app.services import access, fingerprint, internal_http, notify
+from app.services import access, crypto_store, fingerprint, internal_http, notify
 
 router = APIRouter(prefix="/api/v1/fingerprint", tags=["comprehension fingerprint"])
 _READY = (ProjectStatus.analyzed, ProjectStatus.viva_scheduled, ProjectStatus.viva_completed)
@@ -86,7 +86,8 @@ def start(project_id: uuid.UUID, db: DbSession, principal: CurrentPrincipal):
     try:
         with (
             internal_http.client(get_settings().code_analyzer_url, timeout=120) as http,
-            open(project.code_path, "rb") as archive,
+            crypto_store.plain(project.code_path) as readable,
+            open(readable, "rb") as archive,
         ):
             response = http.post(
                 "/api/v1/challenge/mutations",

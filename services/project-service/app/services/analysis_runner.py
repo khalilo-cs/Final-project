@@ -24,7 +24,7 @@ from app.models.project import (
     ReportAnalysisResult,
     SecurityAnalysisResult,
 )
-from app.services import internal_http, notify
+from app.services import crypto_store, internal_http, notify
 
 log = logging.getLogger(__name__)
 
@@ -36,7 +36,8 @@ class AnalysisRejected(Exception):
 def _post(base_url: str, path: str, file: Path, filename: str, data: dict | None = None) -> dict:
     with (
         internal_http.client(base_url, get_settings().analyzer_timeout_seconds) as http,
-        open(file, "rb") as handle,
+        crypto_store.plain(file) as readable,
+        open(readable, "rb") as handle,
     ):
         response = http.post(path, files={"file": (filename, handle)}, data=data)
     if response.status_code in (400, 413, 422):

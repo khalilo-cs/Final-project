@@ -7,17 +7,16 @@ from pathlib import Path
 
 import httpx
 from fastapi import APIRouter, BackgroundTasks, HTTPException, status
-from fastapi.responses import FileResponse
+from fastapi.responses import Response
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 
 from app.config import get_settings
 from app.models.project import AiFixLog, ProjectStatus
 from app.routes.deps import CurrentPrincipal, DbSession
-from app.services import access, grading, internal_http, notify
+from app.services import access, crypto_store, grading, internal_http, jobs, notify
 from app.services.advisor import build_advice
 from app.services.alerts import fixes_phrase
-from app.services.analysis_runner import run_analysis
 
 router = APIRouter(prefix="/api/v1/projects", tags=["advisor"])
 
@@ -29,7 +28,8 @@ class ApplyRequest(BaseModel):
 def _code_request(path: str, project, data: dict | None = None) -> dict:
     with (
         internal_http.client(get_settings().code_analyzer_url, timeout=120) as http,
-        open(project.code_path, "rb") as archive,
+        crypto_store.plain(project.code_path) as readable,
+        open(readable, "rb") as archive,
     ):
         response = http.post(path, files={"file": ("code.zip", archive)}, data=data)
     response.raise_for_status()
@@ -108,6 +108,7 @@ def apply_fixes(
             shutil.copyfile(code_path, original)
             project.original_code_path = str(original)
         code_path.write_bytes(base64.b64decode(result["archive_base64"]))
+        crypto_store.seal(code_path)
         for fix in result["applied"]:
             db.add(
                 AiFixLog(
@@ -132,7 +133,8 @@ def apply_fixes(
         )
         db.commit()
         notify.send_emails(sent)
-        background.add_task(run_analysis, project.id)
+        jobs.enqueue(db, project.id)
+        background.add_task(jobs.work)
     return {"applied": result["applied"], "skipped": result["skipped"],
             "status": project.status.value}  # fmt: skip
 
@@ -146,4 +148,8 @@ def download_code(
         project.original_code_path if original and project.original_code_path else project.code_path
     )
     name = "code-original.zip" if original and project.original_code_path else "code.zip"
-    return FileResponse(path, media_type="application/zip", filename=name)
+    return Response(
+        crypto_store.read_bytes(path),
+        media_type="application/zip",
+        headers={"Content-Disposition": f'attachment; filename="{name}"'},
+    )

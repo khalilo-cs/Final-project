@@ -3,6 +3,7 @@ import time
 import uuid
 
 os.environ["JWT_SECRET"] = "test-secret-test-secret-test-secret-1234"
+os.environ["JOB_POLL_SECONDS"] = "0"  # jobs run through BackgroundTasks in tests
 
 import httpx
 import jwt

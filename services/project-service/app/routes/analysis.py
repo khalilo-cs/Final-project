@@ -21,8 +21,7 @@ from app.schemas.schemas import (
     ReportResultOut,
     SecurityResultOut,
 )
-from app.services import access
-from app.services.analysis_runner import run_analysis
+from app.services import access, jobs
 
 router = APIRouter(prefix="/api/v1/analysis", tags=["analysis"])
 
@@ -36,7 +35,8 @@ def _restart(db, principal: Principal, project_id: uuid.UUID, background) -> Pro
     project.status = ProjectStatus.analyzing
     project.analysis_error = None
     db.commit()
-    background.add_task(run_analysis, project_id)
+    jobs.enqueue(db, project_id)
+    background.add_task(jobs.work)
     return ProjectStatusOut(
         id=project.id, status=project.status, analysis_error=None, updated_at=project.updated_at
     )

@@ -18,7 +18,7 @@ from sqlalchemy.orm import Session
 
 from app.config import get_settings
 from app.models.upload import UploadSession
-from app.services import storage
+from app.services import crypto_store, storage
 
 MAX_CHUNK_BYTES = 2 * 1024 * 1024
 RECOMMENDED_CHUNK_BYTES = 256 * 1024  # small enough for a 2G/3G link
@@ -139,6 +139,7 @@ def claim(db: Session, user_id: uuid.UUID, upload_id: uuid.UUID, kind: str, targ
         )
     target.parent.mkdir(parents=True, exist_ok=True)
     shutil.copyfile(path, target)
+    crypto_store.seal(target)
     filename = session.filename
     db.delete(session)
     return filename

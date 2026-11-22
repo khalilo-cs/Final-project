@@ -1,9 +1,10 @@
 """What viva-engine needs to know about a project to ask about the student's own code."""
 
 import zipfile
-from pathlib import Path, PurePosixPath
+from pathlib import PurePosixPath
 
 from app.models.project import Project
+from app.services import crypto_store
 from app.services.grading import ProjectResults
 
 MAX_SNIPPET_LINES = 40
@@ -12,7 +13,7 @@ MAX_SNIPPET_LINES = 40
 def _snippets(code_path: str, wanted: dict[str, list[tuple[int, int]]]) -> dict:
     found = {}
     try:
-        with zipfile.ZipFile(Path(code_path)) as bundle:
+        with crypto_store.plain(code_path) as readable, zipfile.ZipFile(readable) as bundle:
             names = {PurePosixPath(n).as_posix(): n for n in bundle.namelist()}
             for file, ranges in wanted.items():
                 member = names.get(file)

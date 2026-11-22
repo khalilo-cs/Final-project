@@ -54,6 +54,8 @@ services:
       DATABASE_URL: postgresql+psycopg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET in .env}
       STORAGE_DIR: /data
+      STORAGE_ENCRYPTION_KEY: ${STORAGE_ENCRYPTION_KEY:-}
+      ANALYSIS_WORKERS: ${ANALYSIS_WORKERS:-4}
       CODE_ANALYZER_URL: http://code-analyzer:8003
       DB_ANALYZER_URL: http://db-analyzer:8004
       REPORT_ANALYZER_URL: http://report-analyzer:8005
@@ -185,6 +187,26 @@ services:
   # Runs student projects in throw-away containers to measure performance.
   # SECURITY: access to the Docker socket is root-equivalent on the host. Run this on a
   # dedicated machine or VM in production, never next to sensitive data.
+  backup:
+    # Daily database + uploaded-files backup (NFR-05); see tools/backup/README.md.
+    image: postgres:16-alpine
+    command: ["/tools/schedule.sh"]
+    environment:
+      PGHOST: postgres
+      PGUSER: ${POSTGRES_USER}
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+      PGDATABASE: ${POSTGRES_DB}
+      BACKUP_HOUR: ${BACKUP_HOUR:-1}
+      BACKUP_KEEP_DAYS: ${BACKUP_KEEP_DAYS:-14}
+    volumes:
+      - ./tools/backup:/tools:ro
+      - project-files:/data
+      - ${BACKUP_PATH:-./backups-data}:/backups
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
   sandbox-runner:
     build:
       context: ./services/sandbox-runner

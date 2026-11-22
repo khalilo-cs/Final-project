@@ -7,6 +7,7 @@ from pathlib import Path
 from fastapi import HTTPException, UploadFile, status
 
 from app.config import get_settings
+from app.services import crypto_store
 
 _MB = 1024 * 1024
 REPORT_EXTENSIONS = {".pdf": b"%PDF", ".docx": b"PK\x03\x04"}
@@ -41,6 +42,7 @@ def save_upload(
                 )
             sink.write(chunk)
             chunk = upload.file.read(_MB)
+    crypto_store.seal(target)
 
 
 def require_extension(filename: str | None, allowed: set[str], label: str) -> str:
