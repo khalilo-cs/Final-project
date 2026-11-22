@@ -1,3 +1,4 @@
+import { pick } from "../i18n";
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { ApiError, download, get, post, put } from "../api";
@@ -319,7 +320,7 @@ function GradePanel({ id }: { id: string }) {
       </table>
       {grade.alerts.length > 0 && (
         <div className="mt-4 space-y-1">
-          {grade.alerts.map((a, i) => <div key={i} className="flex items-center gap-2 text-sm"><Badge tone={severityTone(a.severity)}>{a.severity}</Badge><span>{a.message_ar ?? a.message}</span></div>)}
+          {grade.alerts.map((a, i) => <div key={i} className="flex items-center gap-2 text-sm"><Badge tone={severityTone(a.severity)}>{a.severity}</Badge><span>{pick(a.message_ar, a.message)}</span></div>)}
         </div>
       )}
       <div className="mt-4 flex flex-wrap items-end gap-3 border-t pt-4">

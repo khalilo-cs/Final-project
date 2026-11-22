@@ -256,6 +256,14 @@ export const EN: Record<string, string> = {
   "الكود (ZIP)": "Code (ZIP)",
   "أو رابط مستودع Git": "or a Git repository link",
   "أرفق ملف الكود (ZIP) أو ضع رابط مستودع Git.": "Attach the code ZIP or give a Git repository link.",
+  "اختبار الأداء غير متاح الآن: خدمة التشغيل المعزول أو Docker غير متصلة. بقية التحليل لا تتأثر.":
+    "Performance testing is unavailable right now (sandbox runner or Docker not reachable). The rest of the analysis is unaffected.",
+  "أُعيد تشغيل بيئة الاختبار أثناء القياس؛ أعد الاختبار.": "The sandbox restarted during the test; run it again.",
+  "تشابه الكود مع مشاريع أخرى": "Code similarity with other projects",
+  "ثبات أسلوب الكتابة": "Coding-style consistency",
+  "تطابق المناقشة مع جودة الكود": "Viva matches code quality",
+  "أصالة التقرير": "Report originality",
+  "بصمة الفهم (خطأ مزروع في كوده)": "Comprehension fingerprint (planted change)",
   // fingerprint
   "التحدي": "Challenge",
   "الدالة": "Function",
@@ -454,6 +462,7 @@ export const EN: Record<string, string> = {
 // Text with numbers in it: Arabic pattern -> English, `(\d+)` groups kept in order.
 export const EN_PATTERNS: [RegExp, string][] = [
   [/^قبل (\d+) دقيقة$/, "$1 min ago"],
+  [/^— لم يُقيَّم بعد: (.+)$/, "— not graded yet: $1"],
   [/^قبل (\d+) ساعة$/, "$1 h ago"],
   [/^أُضيف (.+)$/, "Added $1"],
   [/^جارٍ رفع (.+)$/, "Uploading $1"],

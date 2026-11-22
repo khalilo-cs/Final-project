@@ -27,15 +27,34 @@ export function setLang(lang: Lang): void {
   window.location.reload();
 }
 
+// Icons and punctuation before the words ("📊 الدرجة المقترحة") are kept as they are.
+const PREFIX = /^[^\p{L}\p{N}]+/u;
+
+function lookup(trimmed: string): string | undefined {
+  const exact = EN[trimmed];
+  if (exact !== undefined) return exact;
+  for (const [pattern, english] of EN_PATTERNS) {
+    if (pattern.test(trimmed)) return trimmed.replace(pattern, english);
+  }
+  return undefined;
+}
+
 export function translate(text: string): string {
   if (!ARABIC.test(text)) return text;
   const trimmed = text.trim();
-  const exact = EN[trimmed];
-  if (exact !== undefined) return text.replace(trimmed, exact);
-  for (const [pattern, english] of EN_PATTERNS) {
-    if (pattern.test(trimmed)) return text.replace(trimmed, trimmed.replace(pattern, english));
+  const direct = lookup(trimmed);
+  if (direct !== undefined) return text.replace(trimmed, direct);
+  const prefix = trimmed.match(PREFIX)?.[0] ?? "";
+  if (prefix) {
+    const rest = lookup(trimmed.slice(prefix.length).trim());
+    if (rest !== undefined) return text.replace(trimmed, `${prefix}${rest}`);
   }
   return text;
+}
+
+/** Text the server sends in both languages: show the one matching the interface. */
+export function pick(arabic: string | null | undefined, english: string | null | undefined): string {
+  return (getLang() === "en" ? english || arabic : arabic || english) ?? "";
 }
 
 function translateNode(node: Node): void {

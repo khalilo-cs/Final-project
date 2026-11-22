@@ -1,3 +1,4 @@
+import { pick } from "../i18n";
 import { useEffect, useState } from "react";
 import { ApiError, get, post } from "../api";
 import { Badge, Button, Card, ErrorBox, Score, severityTone, useLoad } from "../components/ui";
@@ -34,7 +35,8 @@ export function PerformancePanel({ id, canRun }: { id: string; canRun: boolean }
     <Card title="⚡ الأداء (تشغيل المشروع في بيئة معزولة)" actions={canRun && !running ? <Button variant="secondary" onClick={() => void rerun()}>إعادة الاختبار</Button> : undefined}>
       <ErrorBox error={error} />
       {running && <p className="animate-pulse text-sm text-slate-600">يُبنى المشروع ويُشغَّل ويُختبر تحت الضغط… قد يستغرق ذلك بضع دقائق.</p>}
-      {(perf.status === "unavailable" || perf.status === "lost") && <p className="text-sm text-slate-500">{perf.error}</p>}
+      {perf.status === "unavailable" && <p className="text-sm text-slate-500">{pick("اختبار الأداء غير متاح الآن: خدمة التشغيل المعزول أو Docker غير متصلة. بقية التحليل لا تتأثر.", perf.error)}</p>}
+      {perf.status === "lost" && <p className="text-sm text-slate-500">{pick("أُعيد تشغيل بيئة الاختبار أثناء القياس؛ أعد الاختبار.", perf.error)}</p>}
       {perf.status === "done" && (
         <>
           <div className="flex flex-wrap items-center gap-8">
@@ -51,7 +53,7 @@ export function PerformancePanel({ id, canRun }: { id: string; canRun: boolean }
           </div>
           {d.flags && d.flags.length > 0 && (
             <ul className="mt-3 space-y-1 text-sm">{d.flags.map((f, i) => (
-              <li key={i} className="flex items-center gap-2"><Badge tone={severityTone(f.severity)}>{f.severity}</Badge><span>{f.evidence_ar ?? f.evidence}</span></li>
+              <li key={i} className="flex items-center gap-2"><Badge tone={severityTone(f.severity)}>{f.severity}</Badge><span>{pick(f.evidence_ar, f.evidence)}</span></li>
             ))}</ul>
           )}
           {d.load_test && d.load_test.length > 0 && (

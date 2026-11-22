@@ -15,3 +15,5 @@ build/
 /backup/
 backups-data/
 certs/
+local-data/
+.venv-local/

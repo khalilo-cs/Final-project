@@ -1,3 +1,4 @@
+import { pick } from "../i18n";
 import { ApiError, get } from "../api";
 import { Badge, Card, Score, severityTone, useLoad } from "../components/ui";
 
@@ -47,7 +48,7 @@ export function AuthenticityPanel({ id }: { id: string }) {
       </div>
       {data.flags.length > 0 && (
         <ul className="mt-4 space-y-1 text-sm">
-          {data.flags.map((f, i) => <li key={i} className="flex items-center gap-2"><Badge tone={severityTone(f.severity)}>{f.severity}</Badge><span>{f.evidence_ar ?? f.evidence}</span></li>)}
+          {data.flags.map((f, i) => <li key={i} className="flex items-center gap-2"><Badge tone={severityTone(f.severity)}>{f.severity}</Badge><span>{pick(f.evidence_ar, f.evidence)}</span></li>)}
         </ul>
       )}
       {data.similar_projects.length > 0 && (
